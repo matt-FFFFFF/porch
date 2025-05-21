@@ -1,4 +1,4 @@
-package commands
+package copycwdtotemp
 
 import (
 	"context"
@@ -95,7 +95,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 
 	// We need to capture what temp directory was created
 	var capturedTempDir string
-	f := CopyCwdToTemp(cwd)
+	f := New(cwd)
 	results := f.Run(ctx, nil)
 
 	// The temp dir should now be
@@ -165,7 +165,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		f := CopyCwdToTemp(cwd)
+		f := New(cwd)
 		results := f.Run(ctx, nil)
 
 		require.Len(t, results, 1)
@@ -197,7 +197,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		f := CopyCwdToTemp(cwd)
+		f := New(cwd)
 		results := f.Run(ctx, nil)
 
 		require.Len(t, results, 1)
@@ -283,7 +283,7 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create our test commands
-	copyCwdCmd := CopyCwdToTemp(initialCwd)
+	copyCwdCmd := New(initialCwd)
 	trackerCmd := &CwdTrackerCommand{
 		label: "Command after copy",
 	}

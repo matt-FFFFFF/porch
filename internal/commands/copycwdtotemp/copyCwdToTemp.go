@@ -1,4 +1,4 @@
-package commands
+package copycwdtotemp
 
 import (
 	"math/rand"
@@ -25,7 +25,7 @@ var RandomName = func(prefix string, n int) string {
 	return prefix + string(b)
 }
 
-func CopyCwdToTemp(cwd string) *runbatch.FunctionCommand {
+func New(cwd string) *runbatch.FunctionCommand {
 	ret := &runbatch.FunctionCommand{
 		Label: "Copy current working directory to temporary directory",
 		Func: func(cwd string) runbatch.FunctionCommandReturn {

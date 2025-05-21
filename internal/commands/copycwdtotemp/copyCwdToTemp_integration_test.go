@@ -1,4 +1,4 @@
-package commands
+package copycwdtotemp
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 ./test.txt`
 	cwd, _ := os.Getwd()
 	path := path.Join(cwd, "testdata/copyCwdToTemp")
-	copyCommand := CopyCwdToTemp(path)
+	copyCommand := New(path)
 	pwdCommand := &runbatch.OSCommand{
 		Label: "pwd",
 		Cwd:   "",

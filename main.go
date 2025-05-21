@@ -3,10 +3,22 @@ package main
 import (
 	"context"
 	"os"
-
-	"github.com/urfave/cli/v3"
+	"os/signal"
+	"time"
 )
 
 func main() {
-	(&cli.Command{}).Run(context.Background(), os.Args)
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	defer close(signalChan)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	select {
+	case <-ctx.Done():
+		// Context done, exit
+		return
+	case <-signalChan:
+		signal.Stop(signalChan)
+	}
+
 }

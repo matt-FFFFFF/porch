@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
+	"github.com/matt-FFFFFF/avmtool/cmd"
 	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
 	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
-	"github.com/urfave/cli/v3"
 )
 
 func main() {
@@ -16,10 +16,13 @@ func main() {
 
 	sigCh := signalbroker.New(ctx)
 
-	go func() {
-		<-sigCh
-		cancel()
-	}()
+	go signalbroker.Watch(ctx, sigCh, cancel)
 
-	(&cli.Command{}).Run(ctx, os.Args)
+	err := cmd.RootCmd.Run(ctx, os.Args)
+	if err != nil {
+		ctxlog.Logger(ctx).Error("main", "detail", "command failed", "error", err)
+		os.Exit(1)
+	}
+	ctxlog.Logger(ctx).Info("main", "detail", "command completed successfully")
+	os.Exit(0)
 }

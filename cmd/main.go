@@ -1,5 +1,5 @@
 package cmd
 
-func Main() error {
-	return nil
-}
+import "github.com/urfave/cli/v3"
+
+var RootCmd = &cli.Command{}

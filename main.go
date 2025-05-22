@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
 	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
@@ -19,4 +21,5 @@ func main() {
 		cancel()
 	}()
 
+	(&cli.Command{}).Run(ctx, os.Args)
 }

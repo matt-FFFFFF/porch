@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
 	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
 )
 
 // This example shows how to use the signal broker to handle
@@ -13,7 +16,13 @@ import (
 func main() {
 	// Create a signal broker that listens for interrupt and termination signals
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
+
+	sigCh := signalbroker.New(ctx)
+
+	go signalbroker.Watch(ctx, sigCh, cancel)
 
 	// Create a batch with a mix of command types to demonstrate
 	// how both OS processes and function commands can be gracefully
@@ -27,7 +36,7 @@ func main() {
 	fmt.Println("Running commands...")
 
 	// Run the batch with our context and signal channel
-	results := batch.Run(ctx, nil)
+	results := batch.Run(ctx)
 
 	// Display the results
 	fmt.Println("\n=== Results ===")

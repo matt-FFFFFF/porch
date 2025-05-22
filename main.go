@@ -23,6 +23,7 @@ func main() {
 		ctxlog.Logger(ctx).Error("main", "detail", "command failed", "error", err)
 		os.Exit(1)
 	}
+
 	ctxlog.Logger(ctx).Info("main", "detail", "command completed successfully")
 	os.Exit(0)
 }

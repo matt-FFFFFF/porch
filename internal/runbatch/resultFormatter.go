@@ -1,6 +1,7 @@
 package runbatch
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -43,6 +44,7 @@ func WriteResults(w io.Writer, results Results, options *OutputOptions) error {
 func writeResultWithIndent(w io.Writer, r *Result, indent string, options *OutputOptions) error {
 	// Format the status indicator
 	var statusStr, labelPrefix string
+
 	if options.ColorOutput {
 		if r.Error != nil || r.ExitCode != 0 {
 			statusStr = "\033[31m✗\033[0m" // Red X
@@ -76,12 +78,13 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	if r.ExitCode != 0 {
 		fmt.Fprintf(w, " (exit code: %d)", r.ExitCode)
 	}
+
 	fmt.Fprintln(w)
 
 	// Add error message if there is one
 	if r.Error != nil {
 		// Skip printing ErrResultChildrenHasError since it's redundant with the actual errors
-		if r.Error != ErrResultChildrenHasError {
+		if !errors.Is(r.Error, ErrResultChildrenHasError) {
 			errMsg := r.Error.Error()
 			if options.ColorOutput {
 				fmt.Fprintf(w, "%s  \033[31m➜ Error: %s\033[0m\n", indent, errMsg)
@@ -108,6 +111,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		} else {
 			fmt.Fprintf(w, "%s  ➜ Error Output:\n", indent)
 		}
+
 		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     "))
 	}
 
@@ -131,5 +135,6 @@ func formatOutput(output []byte, indent string) string {
 	for i, line := range lines {
 		lines[i] = indent + line
 	}
+
 	return strings.Join(lines, "\n") + "\n"
 }

@@ -13,16 +13,21 @@ import (
 func TestWatch_FirstSignalNoCancel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 
 	sigCh := make(chan os.Signal, 1)
+
 	var wg sync.WaitGroup
+
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
 		Watch(ctx, sigCh, cancel)
 	}()
 	sigCh <- os.Interrupt
+
 	time.Sleep(50 * time.Millisecond)
 	select {
 	case <-ctx.Done():
@@ -38,14 +43,18 @@ func TestWatch_SecondSignalCancels(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	sigCh := make(chan os.Signal, 2)
+
 	var wg sync.WaitGroup
+
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
 		Watch(ctx, sigCh, cancel)
 	}()
 	sigCh <- os.Interrupt
 	sigCh <- os.Interrupt
+
 	time.Sleep(50 * time.Millisecond)
 	select {
 	case <-ctx.Done():
@@ -58,6 +67,7 @@ func TestWatch_SecondSignalCancels(t *testing.T) {
 	if ok {
 		t.Fatal("signal channel should be closed after second signal")
 	}
+
 	wg.Wait()
 }
 
@@ -65,14 +75,18 @@ func TestWatch_DifferentSignalsNoCancel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	sigCh := make(chan os.Signal, 2)
+
 	var wg sync.WaitGroup
+
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
 		Watch(ctx, sigCh, cancel)
 	}()
 	sigCh <- os.Interrupt
 	sigCh <- os.Kill
+
 	time.Sleep(50 * time.Millisecond)
 	select {
 	case <-ctx.Done():

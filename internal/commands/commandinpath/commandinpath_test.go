@@ -22,6 +22,7 @@ func TestNew(t *testing.T) {
 	if os.Getenv("GOOS") == "windows" {
 		mockCommandName += ".exe"
 	}
+
 	mockCommandPath := filepath.Join(tempDir, mockCommandName)
 
 	// Create an executable file

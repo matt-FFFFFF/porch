@@ -48,6 +48,7 @@ func New(ctx context.Context, logger *slog.Logger) context.Context {
 	if logger == nil {
 		logger = DefaultLogger
 	}
+
 	return context.WithValue(ctx, loggerKey{}, logger)
 }
 
@@ -57,6 +58,7 @@ func Logger(ctx context.Context) *slog.Logger {
 	if !ok || logger == nil {
 		return DefaultLogger
 	}
+
 	return logger
 }
 
@@ -84,9 +86,11 @@ func logLevelFromEnv() slog.Level {
 	exec, _ := os.Executable()
 	exec = filepath.Base(exec)
 	ext := filepath.Ext(exec)
+
 	if ext == ".exe" {
 		exec = exec[:len(exec)-len(ext)]
 	}
+
 	exec = strings.ToUpper(exec)
 	envName := strings.ToUpper(exec + "_LOG_LEVEL")
 

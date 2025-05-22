@@ -18,6 +18,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
 
 	sigCh := signalbroker.New(ctx)
@@ -40,6 +41,7 @@ func main() {
 
 	// Display the results
 	fmt.Println("\n=== Results ===")
+
 	options := runbatch.DefaultOutputOptions()
 	options.IncludeStdOut = true
 	options.IncludeStdErr = true

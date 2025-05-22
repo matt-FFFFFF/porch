@@ -30,18 +30,23 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	children := make(Results, 0, len(b.Commands))
 	wg := &sync.WaitGroup{}
 	resChan := make(chan Results, len(b.Commands))
+
 	for _, cmd := range b.Commands {
 		wg.Add(1)
+
 		go func(c Runnable) {
 			defer wg.Done()
 			resChan <- c.Run(ctx)
 		}(cmd)
 	}
+
 	wg.Wait()
 	close(resChan)
+
 	for r := range resChan {
 		children = slices.Concat(children, r)
 	}
+
 	res := Results{&Result{
 		Label:    b.Label,
 		ExitCode: 0,
@@ -54,5 +59,6 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		res[0].ExitCode = -1
 		res[0].Error = ErrResultChildrenHasError
 	}
+
 	return res
 }

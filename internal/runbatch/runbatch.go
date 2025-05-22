@@ -14,5 +14,6 @@ func (e *BatchError) Error() string {
 	for _, r := range e.FailedResults {
 		msg += r.Label + ": " + r.Error.Error() + " (exit code: " + strconv.Itoa(r.ExitCode) + ")\n"
 	}
+
 	return msg
 }

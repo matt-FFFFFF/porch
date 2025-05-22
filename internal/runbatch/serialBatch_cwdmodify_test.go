@@ -19,6 +19,7 @@ type cwdCapturingCmd struct {
 
 func (c *cwdCapturingCmd) Run(_ context.Context) Results {
 	c.runWith = c.cwd // capture what cwd was used when running
+
 	return Results{&Result{
 		Label:    c.label,
 		ExitCode: c.exitCode,

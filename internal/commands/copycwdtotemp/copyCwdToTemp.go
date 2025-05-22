@@ -91,5 +91,6 @@ func New(cwd string) *runbatch.FunctionCommand {
 		},
 	}
 	ret.SetCwd(cwd)
+
 	return ret
 }

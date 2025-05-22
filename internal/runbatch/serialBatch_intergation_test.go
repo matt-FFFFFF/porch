@@ -11,6 +11,7 @@ import (
 func TestSerialBatchRun_Integration_AllSuccess(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	batch := &SerialBatch{
 		Label: "integration-batch-success",
 		Commands: []Runnable{
@@ -31,6 +32,7 @@ func TestSerialBatchRun_Integration_AllSuccess(t *testing.T) {
 func TestSerialBatchRun_Integration_OneFailure(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	batch := &SerialBatch{
 		Label: "integration-batch-fail",
 		Commands: []Runnable{
@@ -50,6 +52,7 @@ func TestSerialBatchRun_Integration_OneFailure(t *testing.T) {
 func TestSerialBatchRun_Integration_NestedBatch(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	childBatch := &SerialBatch{
 		Label: "child-integration",
 		Commands: []Runnable{

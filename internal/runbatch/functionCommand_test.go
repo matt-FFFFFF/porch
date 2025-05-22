@@ -123,7 +123,6 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 	}()
 
 	_ = cmd.Run(ctx)
-
 	// Note: This test may fail since the current implementation doesn't handle panics
 	// If it passes, great! If it fails, we need to update FunctionCommand to handle panics
 	// Ideally, the function would catch the panic and return an error

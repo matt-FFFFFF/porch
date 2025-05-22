@@ -13,7 +13,9 @@ func New(label, command, cwd string, args []string) *runbatch.OSCommand {
 	if command == "" {
 		return nil
 	}
+
 	path := os.Getenv("PATH")
+
 	paths := strings.Split(path, string(os.PathListSeparator))
 	for _, p := range paths {
 		// check if the command exists in the path
@@ -25,6 +27,7 @@ func New(label, command, cwd string, args []string) *runbatch.OSCommand {
 			if runtime.GOOS != "windows" && info.Mode()&0111 == 0 {
 				continue
 			}
+
 			return &runbatch.OSCommand{
 				Label: label,
 				Path:  filepath.Join(p, command),
@@ -33,5 +36,6 @@ func New(label, command, cwd string, args []string) *runbatch.OSCommand {
 			}
 		}
 	}
+
 	return nil
 }

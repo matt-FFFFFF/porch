@@ -3,7 +3,6 @@ package runbatch
 import (
 	"bytes"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,6 +18,7 @@ func TestWriteResults_SimpleSuccess(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
+
 	opts := &OutputOptions{
 		IncludeStdOut:      true,
 		IncludeStdErr:      true,
@@ -28,6 +28,7 @@ func TestWriteResults_SimpleSuccess(t *testing.T) {
 
 	err := WriteResults(&buf, results, opts)
 	assert.NoError(t, err)
+
 	output := buf.String()
 
 	assert.Contains(t, output, "✓ simple-command")
@@ -45,6 +46,7 @@ func TestWriteResults_SimpleFailure(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
+
 	opts := &OutputOptions{
 		IncludeStdOut: false,
 		IncludeStdErr: true,
@@ -53,6 +55,7 @@ func TestWriteResults_SimpleFailure(t *testing.T) {
 
 	err := WriteResults(&buf, results, opts)
 	assert.NoError(t, err)
+
 	output := buf.String()
 
 	assert.Contains(t, output, "✗ failed-command")
@@ -86,6 +89,7 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
+
 	opts := &OutputOptions{
 		IncludeStdOut: true,
 		IncludeStdErr: true,
@@ -94,6 +98,7 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 
 	err := WriteResults(&buf, results, opts)
 	assert.NoError(t, err)
+
 	output := buf.String()
 
 	// Check parent output
@@ -103,10 +108,10 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 	assert.NotContains(t, output, "Error: result has children with errors")
 
 	// Check child outputs with indentation
-	assert.True(t, strings.Contains(output, "  ✓ child-success"))
-	assert.True(t, strings.Contains(output, "  ✗ child-failure"))
-	assert.True(t, strings.Contains(output, "  ➜ Error: child command failed"))
-	assert.True(t, strings.Contains(output, "child error details"))
+	assert.Contains(t, output, "  ✓ child-success")
+	assert.Contains(t, output, "  ✗ child-failure")
+	assert.Contains(t, output, "  ➜ Error: child command failed")
+	assert.Contains(t, output, "child error details")
 }
 
 func TestWriteResults_DefaultOptions(t *testing.T) {
@@ -143,6 +148,7 @@ func TestWriteResults_StdErrFormatting(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
+
 	opts := &OutputOptions{
 		IncludeStdOut: false,
 		IncludeStdErr: true,
@@ -151,6 +157,7 @@ func TestWriteResults_StdErrFormatting(t *testing.T) {
 
 	err := WriteResults(&buf, results, opts)
 	assert.NoError(t, err)
+
 	output := buf.String()
 
 	// Check the formatting

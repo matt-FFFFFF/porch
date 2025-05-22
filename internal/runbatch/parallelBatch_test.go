@@ -19,6 +19,7 @@ type fakeParallelCmd struct {
 
 func (f *fakeParallelCmd) Run(ctx context.Context) Results {
 	time.Sleep(f.delay)
+
 	return Results{&Result{
 		Label:    f.label,
 		ExitCode: f.exitCode,
@@ -36,6 +37,7 @@ func (f *fakeParallelCmd) SetCwd(_ string) {
 
 func TestParallelBatchRun_AllSuccess(t *testing.T) {
 	defer goleak.VerifyNone(t)
+
 	batch := &ParallelBatch{
 		Label: "parallel-batch-success",
 		Commands: []Runnable{
@@ -48,6 +50,7 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 	assert.Len(t, results, 1)
 	assert.NoError(t, results[0].Error, "expected no error")
 	assert.Len(t, results[0].Children, 2, "expected 2 child results")
+
 	for _, res := range results[0].Children {
 		assert.Equal(t, 0, res.ExitCode)
 		assert.NoError(t, res.Error)
@@ -56,6 +59,7 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 
 func TestParallelBatchRun_OneFailure(t *testing.T) {
 	defer goleak.VerifyNone(t)
+
 	batch := &ParallelBatch{
 		Label: "parallel-batch-fail",
 		Commands: []Runnable{
@@ -66,18 +70,23 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 	ctx := context.Background()
 	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
+
 	foundFail := false
+
 	for _, res := range results[0].Children {
 		if res.ExitCode != 0 {
 			foundFail = true
+
 			assert.Error(t, res.Error)
 		}
 	}
+
 	assert.True(t, foundFail, "expected at least one failure")
 }
 
 func TestParallelBatchRun_Parallelism(t *testing.T) {
 	defer goleak.VerifyNone(t)
+
 	batch := &ParallelBatch{
 		Label: "parallel-batch-parallelism",
 		Commands: []Runnable{

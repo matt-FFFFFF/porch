@@ -51,6 +51,7 @@ OuterLoop:
 			results = slices.Concat(results, childResults)
 		}
 	}
+
 	res := Results{&Result{
 		Label:    b.Label,
 		ExitCode: 0,
@@ -63,5 +64,6 @@ OuterLoop:
 		res[0].ExitCode = -1
 		res[0].Error = ErrResultChildrenHasError
 	}
+
 	return res
 }

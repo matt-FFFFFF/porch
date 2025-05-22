@@ -28,12 +28,14 @@ func (r Results) HasError() bool {
 		if v.Error != nil || v.ExitCode != 0 {
 			return true
 		}
+
 		if v.Children != nil {
 			if v.Children.HasError() {
 				return true
 			}
 		}
 	}
+
 	return false
 }
 

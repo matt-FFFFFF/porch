@@ -52,6 +52,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	originalCwdFS := FS
 	originalTempDirPath := TempDirPath
 	originalRandomName := RandomName
+
 	defer func() {
 		// Restore original values
 		FS = originalCwdFS
@@ -95,6 +96,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 
 	// We need to capture what temp directory was created
 	var capturedTempDir string
+
 	f := New(cwd)
 	results := f.Run(ctx)
 
@@ -135,6 +137,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 	originalCwdFS := FS
 	originalTempDirPath := TempDirPath
 	originalRandomName := RandomName
+
 	defer func() {
 		// Restore original values
 		FS = originalCwdFS
@@ -165,6 +168,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		f := New(cwd)
 		results := f.Run(ctx)
 
@@ -197,6 +201,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		f := New(cwd)
 		results := f.Run(ctx)
 
@@ -216,6 +221,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		cancel()
+
 		f := New(cwd)
 		results := f.Run(ctx)
 

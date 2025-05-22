@@ -69,6 +69,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	}
 
 	env := os.Environ()
+
 	for k, v := range c.Env {
 		logger.Debug("runbatch", "detail", "adding environment variable", "key", k, "value", v)
 		env = append(env, fmt.Sprintf("%s=%s", k, v))
@@ -78,6 +79,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	if err != nil {
 		res.Error = errors.Join(ErrFailedToCreatePipe, err)
 		res.ExitCode = -1
+
 		return Results{res}
 	}
 
@@ -85,6 +87,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	if err != nil {
 		res.Error = errors.Join(ErrFailedToCreatePipe, err)
 		res.ExitCode = -1
+
 		return Results{res}
 	}
 
@@ -92,6 +95,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	args := slices.Concat([]string{execName}, c.Args)
 
 	logger.Debug("runbatch", "detail", "starting process")
+
 	ps, err := os.StartProcess(c.Path, args, &os.ProcAttr{
 		Dir:   c.Cwd,
 		Env:   env,
@@ -101,6 +105,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	if err != nil {
 		res.Error = errors.Join(ErrCouldNotStartProcess, err)
 		res.ExitCode = -1
+
 		return Results{res}
 	}
 
@@ -110,8 +115,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	// or pass on any signals to the process.
 	done := make(chan struct{})
 	wasKilled := make(chan struct{})
+
 	go func() {
 		signalCount := make(map[os.Signal]struct{})
+
 		for {
 			select {
 			case s := <-c.sigCh:
@@ -120,11 +127,15 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					logger.Info("runbatch", "detail", "received duplicate signal, killing process", "signal", s.String())
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //molint:errcheck
 					killPs(ctx, wasKilled, ps)
+
 					return
 				}
+
 				signalCount[s] = struct{}{}
+
 				logger.Info("runbatch", "detail", "received signal", "signal", s.String())
 				fmt.Fprintf(wErr, "received signal: %s\n", s.String()) //nolint:errcheck
+
 				if err := ps.Signal(s); err != nil {
 					logger.Info("runbatch", "detail", "failed to send signal", "signal", s.String(), "error", err)
 				}
@@ -132,6 +143,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				logger.Info("runbatch", "detail", "context done, killing process")
 				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
 				killPs(ctx, wasKilled, ps)
+
 				return
 			case <-done:
 				return
@@ -141,14 +153,18 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	// Wait for the process to finish and close the pipes
 	logger.Debug("runbatch", "detail", "waiting for process to finish")
+
 	state, psErr := ps.Wait()
+
 	logger.Debug("runbatch", "detail", "process finished", "exitCode", res.ExitCode)
 
 	close(done)
+
 	_ = wOut.Close()
 	_ = wErr.Close()
 	res.ExitCode = state.ExitCode()
 	res.Error = psErr
+
 	if res.ExitCode == -1 {
 		res.Error = errors.Join(res.Error, ErrSignalReceived)
 	}
@@ -163,8 +179,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	}
 
 	logger.Debug("runbatch", "detail", "read stdout")
+
 	stdout, err := readAllUpToMax(ctx, rOut, maxBufferSize)
 	logger.Debug("runbatch", "detail", "stdout length", "bytes", len(stdout), "maxBytes", maxBufferSize)
+
 	res.StdOut = stdout
 	if err != nil {
 		res.Error = errors.Join(res.Error, err)
@@ -172,8 +190,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	}
 
 	logger.Debug("runbatch", "detail", "read stderr")
+
 	stderr, err := readAllUpToMax(ctx, rErr, maxBufferSize)
 	logger.Debug("runbatch", "detail", "stderr length", "bytes", len(stderr), "maxBytes", maxBufferSize)
+
 	res.StdErr = stderr
 	if err != nil {
 		res.ExitCode = -1
@@ -185,14 +205,17 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 func readAllUpToMax(ctx context.Context, r io.Reader, maxBufferSize int64) ([]byte, error) {
 	var buf bytes.Buffer
+
 	n, err := io.CopyN(&buf, r, maxBufferSize+1)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
+
 	if n > maxBufferSize {
 		ctxlog.Logger(ctx).Debug("runbatch", "detail", "buffer overflow in readAllUpToMax", "bytesRead", n, "maxBytes", maxBufferSize)
 		return buf.Bytes()[:maxBufferSize], ErrBufferOverflow
 	}
+
 	return buf.Bytes(), nil
 }
 
@@ -201,6 +224,7 @@ func killPs(ctx context.Context, ch chan struct{}, ps *os.Process) {
 	if err := ps.Kill(); err != nil {
 		ctxlog.Logger(ctx).Debug("process kill error", "pid", ps.Pid, "error", err)
 	}
+
 	close(ch)
 	ctxlog.Logger(ctx).Info("process killed", "pid", ps.Pid)
 }

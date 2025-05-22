@@ -16,4 +16,19 @@ linters:
   # - `none`: disables all linters by default.
   # - `fast`: enables only linters considered as "fast" (`golangci-lint help linters --json | jq '[ .[] | select(.fast==true) ] | map(.name)'`).
   # Default: standard
-  default: all
+  default: none
+  enable:
+    - err113
+    - errcheck
+    - goconst
+    - govet
+    - ineffassign
+    - lll
+    - mnd
+    - nestif
+    - revive
+    - staticcheck
+    - testifylint
+    - unused
+    - wrapcheck
+    - wsl

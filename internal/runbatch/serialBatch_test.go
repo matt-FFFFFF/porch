@@ -33,6 +33,7 @@ func (f *fakeCmd) SetCwd(_ string) {
 
 func TestSerialBatchRun_AllSuccess(t *testing.T) {
 	defer goleak.VerifyNone(t)
+
 	batch := &SerialBatch{
 		Label: "batch1",
 		Commands: []Runnable{
@@ -50,6 +51,7 @@ func TestSerialBatchRun_AllSuccess(t *testing.T) {
 
 func TestSerialBatchRun_OneFailure(t *testing.T) {
 	defer goleak.VerifyNone(t)
+
 	batch := &SerialBatch{
 		Label: "batch2",
 		Commands: []Runnable{
@@ -67,6 +69,7 @@ func TestSerialBatchRun_OneFailure(t *testing.T) {
 
 func TestSerialBatchRun_NestedBatch(t *testing.T) {
 	defer goleak.VerifyNone(t)
+
 	childBatch := &SerialBatch{
 		Label: "child",
 		Commands: []Runnable{

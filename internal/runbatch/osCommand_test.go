@@ -22,7 +22,9 @@ func TestCommandRun_Success(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
+
 	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
@@ -41,7 +43,9 @@ func TestCommandRun_Failure(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
+
 	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
@@ -57,11 +61,15 @@ func TestCommandRun_NotFound(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
+
 	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
+
 	var notFoundErr *os.PathError
+
 	assert.ErrorAs(t, res.Error, &notFoundErr, "expected PathError")
 	assert.ErrorIs(t, res.Error, ErrCouldNotStartProcess, "expected error to be ErrCouldNotStartProcess")
 }
@@ -70,6 +78,7 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping cwd/env test on windows")
 	}
+
 	tempDir := t.TempDir()
 	cmd := &OSCommand{
 		Path:  "/bin/sh",
@@ -81,7 +90,9 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
+
 	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
@@ -100,7 +111,9 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
+
 	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
@@ -122,11 +135,14 @@ func TestCommandRun_SigInt(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
+
 	defer cancel()
+
 	go func() {
 		time.Sleep(1 * time.Second)
 		cmd.sigCh <- os.Interrupt
 	}()
+
 	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]

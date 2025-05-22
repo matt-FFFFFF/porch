@@ -35,6 +35,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 
 	frCh := make(chan FunctionCommandReturn, 1)
 	defer close(frCh) // Ensure the channel is closed after use
+
 	done := make(chan struct{})
 	defer close(done) // Signal the goroutine to stop if still running
 
@@ -87,6 +88,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		if fr.Err != nil {
 			return Results{{Label: f.Label, ExitCode: -1, Error: fr.Err}}
 		}
+
 		if fr.NewCwd != "" {
 			res.newCwd = fr.NewCwd
 		}

@@ -21,6 +21,8 @@ linters:
     - err113
     - errcheck
     - goconst
+    - godot
+    - goheader
     - govet
     - ineffassign
     - lll
@@ -29,6 +31,18 @@ linters:
     - revive
     - staticcheck
     - testifylint
+    - unconvert
+    - unparam
     - unused
     - wrapcheck
     - wsl
+
+  settings:
+    goheader:
+      values:
+        const:
+          YEAR: "2025"
+          AUTHOR: "matt-FFFFFF"
+      template: |-
+        Copyright (c) {{ AUTHOR }} {{ YEAR }}. All rights reserved.
+        SPDX-License-Identifier: MIT

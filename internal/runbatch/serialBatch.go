@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -13,12 +16,12 @@ type SerialBatch struct {
 	Label    string     // Optional label for the batch
 }
 
-// GetLabel returns the label of the batch (to satisfy Runnable interface)
+// GetLabel returns the label of the batch (to satisfy Runnable interface).
 func (b *SerialBatch) GetLabel() string {
 	return b.Label
 }
 
-// SetCwd sets the working directory for the batch
+// SetCwd sets the working directory for the batch.
 func (b *SerialBatch) SetCwd(cwd string) {
 	for _, cmd := range b.Commands {
 		cmd.SetCwd(cwd)

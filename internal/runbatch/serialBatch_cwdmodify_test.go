@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -7,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// cwdCapturingCmd is a command that captures the cwd it was run with
+// cwdCapturingCmd is a command that captures the cwd it was run with.
 type cwdCapturingCmd struct {
 	label    string
 	exitCode int
@@ -162,7 +165,7 @@ func TestSerialBatchCwdErrorHandling(t *testing.T) {
 	assert.Equal(t, "/initial/path", cmd3.runWith)
 }
 
-// customResultsCmd is a command that returns custom results
+// customResultsCmd is a command that returns custom results.
 type customResultsCmd struct {
 	results Results
 	cwd     string
@@ -180,7 +183,7 @@ func (c *customResultsCmd) SetCwd(cwd string) {
 	c.cwd = cwd
 }
 
-// TestSerialBatchCwdWithNestedBatches tests that cwd changes propagate through nested batches
+// TestSerialBatchCwdWithNestedBatches tests that cwd changes propagate through nested batches.
 func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 	// Setup inner batch
 	innerCmd1 := &cwdCapturingCmd{label: "inner_cmd1", exitCode: 0, cwd: "/initial/path"}

@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -40,12 +43,12 @@ type OSCommand struct {
 	sigCh chan os.Signal    // Channel to receive signals, allows mocking in test.
 }
 
-// GetLabel returns the label of the command (to satisfy Runnable interface)
+// GetLabel returns the label of the command (to satisfy Runnable interface).
 func (c *OSCommand) GetLabel() string {
 	return c.Label
 }
 
-// SetCwd sets the working directory for the command
+// SetCwd sets the working directory for the command.
 func (c *OSCommand) SetCwd(cwd string) {
 	c.Cwd = cwd
 }
@@ -219,7 +222,7 @@ func readAllUpToMax(ctx context.Context, r io.Reader, maxBufferSize int64) ([]by
 	return buf.Bytes(), nil
 }
 
-// killPs kills the process and closes the notification channel
+// killPs kills the process and closes the notification channel.
 func killPs(ctx context.Context, ch chan struct{}, ps *os.Process) {
 	if err := ps.Kill(); err != nil {
 		ctxlog.Logger(ctx).Debug("process kill error", "pid", ps.Pid, "error", err)

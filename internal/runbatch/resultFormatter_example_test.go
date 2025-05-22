@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -68,7 +71,7 @@ func ExampleWriteResults_stderrOutput() {
 	//
 }
 
-// Example of using the formatter to display results
+// Example of using the formatter to display results.
 func Example_resultFormatting() {
 	// Create a context with a timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

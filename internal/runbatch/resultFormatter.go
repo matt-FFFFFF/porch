@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -7,7 +10,7 @@ import (
 	"strings"
 )
 
-// OutputOptions controls what is included in the output
+// OutputOptions controls what is included in the output.
 type OutputOptions struct {
 	IncludeStdOut      bool // Whether to include stdout in the output
 	IncludeStdErr      bool // Whether to include stderr in the output
@@ -15,7 +18,7 @@ type OutputOptions struct {
 	ShowSuccessDetails bool // Whether to show details for successful commands
 }
 
-// DefaultOutputOptions returns a default set of output options
+// DefaultOutputOptions returns a default set of output options.
 func DefaultOutputOptions() *OutputOptions {
 	return &OutputOptions{
 		IncludeStdOut:      false,
@@ -25,7 +28,7 @@ func DefaultOutputOptions() *OutputOptions {
 	}
 }
 
-// Write formatted results to the provided writer
+// Write formatted results to the provided writer.
 func WriteResults(w io.Writer, results Results, options *OutputOptions) error {
 	if options == nil {
 		options = DefaultOutputOptions()
@@ -128,7 +131,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	return nil
 }
 
-// formatOutput formats multi-line output with proper indentation
+// formatOutput formats multi-line output with proper indentation.
 func formatOutput(output []byte, indent string) string {
 	lines := strings.Split(string(output), "\n")
 	// Add indentation to each line and join them back together

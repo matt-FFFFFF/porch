@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -39,22 +42,22 @@ func (r Results) HasError() bool {
 	return false
 }
 
-// Print outputs the results to stdout with default options
+// Print outputs the results to stdout with default options.
 func (r Results) Print() error {
 	return WriteResults(os.Stdout, r, nil)
 }
 
-// PrintWithOptions outputs the results to stdout with the specified options
+// PrintWithOptions outputs the results to stdout with the specified options.
 func (r Results) PrintWithOptions(options *OutputOptions) error {
 	return WriteResults(os.Stdout, r, options)
 }
 
-// Write outputs the results to the specified writer with default options
+// Write outputs the results to the specified writer with default options.
 func (r Results) Write(w io.Writer) error {
 	return WriteResults(w, r, nil)
 }
 
-// WriteWithOptions outputs the results to the specified writer with the specified options
+// WriteWithOptions outputs the results to the specified writer with the specified options.
 func (r Results) WriteWithOptions(w io.Writer, options *OutputOptions) error {
 	return WriteResults(w, r, options)
 }

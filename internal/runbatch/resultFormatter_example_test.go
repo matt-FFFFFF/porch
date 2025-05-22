@@ -106,7 +106,7 @@ func Example_resultFormatting() {
 
 	// Output the results with different options
 	fmt.Println("Default Output (failures only):")
-	results.Print()
+	results.Print() //nolint:errcheck
 	// Output:
 	// Default Output (failures only):
 	// [31m✗[0m [1;31mDemo Batch[0m (exit code: -1)

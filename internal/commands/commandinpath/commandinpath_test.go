@@ -15,7 +15,7 @@ func TestNew(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(tempDir) //nolint:errcheck
 
 	// Create a mock command file in tempDir
 	mockCommandName := "mockcommand"
@@ -29,7 +29,7 @@ func TestNew(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create mock command: %v", err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 
 	// Make it executable (for Unix systems)
 	if runtime.GOOS != "windows" {

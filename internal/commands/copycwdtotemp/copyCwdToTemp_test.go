@@ -112,7 +112,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	// Verify each file was copied correctly
 	for path, mapFile := range mockFS {
 		// Extract the filename relative to the cwd
-		relativePath := path
+		var relativePath string
 		if filepath.Dir(path) == cwd {
 			relativePath = filepath.Base(path)
 		} else {

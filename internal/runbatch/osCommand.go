@@ -32,12 +32,12 @@ var (
 
 // OSCommand represents a single command to be run in the batch.
 type OSCommand struct {
-	Path  string            // The command to run (e.g., executable name)
-	Cwd   string            // Working directory for the command, if empty then use previous working directory
-	Args  []string          // Arguments to the command, do not include the executable name itself
-	Env   map[string]string // Environment variables
-	Label string            // Optional label or description
-	sigCh chan os.Signal    // Channel to receive signals
+	Path  string            // The command to run (e.g., executable name).
+	Cwd   string            // Working directory for the command, if empty then use previous working directory.
+	Args  []string          // Arguments to the command, do not include the executable name itself.
+	Env   map[string]string // Environment variables.
+	Label string            // Optional label or description.
+	sigCh chan os.Signal    // Channel to receive signals, allows mocking in test.
 }
 
 // GetLabel returns the label of the command (to satisfy Runnable interface)
@@ -118,17 +118,19 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				// is this the second signal received of this type?
 				if _, ok := signalCount[s]; ok {
 					logger.Info("runbatch", "detail", "received duplicate signal, killing process", "signal", s.String())
-					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String())
+					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //molint:errcheck
 					killPs(ctx, wasKilled, ps)
 					return
 				}
 				signalCount[s] = struct{}{}
 				logger.Info("runbatch", "detail", "received signal", "signal", s.String())
-				fmt.Fprintf(wErr, "received signal: %s\n", s.String())
-				ps.Signal(s)
+				fmt.Fprintf(wErr, "received signal: %s\n", s.String()) //nolint:errcheck
+				if err := ps.Signal(s); err != nil {
+					logger.Info("runbatch", "detail", "failed to send signal", "signal", s.String(), "error", err)
+				}
 			case <-ctx.Done():
 				logger.Info("runbatch", "detail", "context done, killing process")
-				fmt.Fprintln(wErr, "context done, killing process")
+				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
 				killPs(ctx, wasKilled, ps)
 				return
 			case <-done:

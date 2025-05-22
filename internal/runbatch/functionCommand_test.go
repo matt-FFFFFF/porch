@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
 
@@ -37,7 +38,7 @@ func TestFunctionCommandRun_Success(t *testing.T) {
 
 func TestFunctionCommandRun_Failure(t *testing.T) {
 	// Define a custom error for testing
-	testErr := errors.New("function failed")
+	testErr := errors.New("function failed") //nolint:err113
 
 	// Define a function that fails with our custom error
 	failFunc := func(_ context.Context, _ string) FunctionCommandReturn {
@@ -57,8 +58,8 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code")
-	assert.Error(t, res.Error, "expected error")
-	assert.ErrorIs(t, res.Error, testErr, "expected specific error")
+	require.Error(t, res.Error, "expected error")
+	require.ErrorIs(t, res.Error, testErr, "expected specific error")
 }
 
 func TestFunctionCommandRun_NilFunction(t *testing.T) {
@@ -101,7 +102,7 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for cancelled context")
-	assert.Error(t, res.Error, "expected error for cancelled context")
+	require.Error(t, res.Error, "expected error for cancelled context")
 	assert.ErrorIs(t, res.Error, context.DeadlineExceeded, "expected deadline exceeded error")
 }
 
@@ -126,9 +127,6 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 	}()
 
 	_ = cmd.Run(ctx)
-	// Note: This test may fail since the current implementation doesn't handle panics
-	// If it passes, great! If it fails, we need to update FunctionCommand to handle panics
-	// Ideally, the function would catch the panic and return an error
 }
 
 func TestFunctionCommandRun_Slow(t *testing.T) {
@@ -184,7 +182,7 @@ func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
 
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for cancelled context")
-	assert.ErrorIs(t, res.Error, context.Canceled, "expected context cancelled error")
+	require.ErrorIs(t, res.Error, context.Canceled, "expected context cancelled error")
 
 	// Close the channel to allow any leaked goroutine to exit
 	close(blockCh)

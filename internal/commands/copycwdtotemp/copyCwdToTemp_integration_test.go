@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package copycwdtotemp
 
 import (
@@ -8,9 +11,10 @@ import (
 
 	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TestCopyCwdToTempWithNewCwd tests the CopyCwdToTemp command with a new working directory
+// TestCopyCwdToTempWithNewCwd tests the CopyCwdToTemp command with a new working directory.
 func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	requiredTree := `.
 ./subdir
@@ -42,7 +46,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	results := serialCommands.Run(context.Background())
 	assert.Len(t, results, 1)
 	assert.Equal(t, 0, results[0].ExitCode)
-	assert.NoError(t, results[0].Error)
+	require.NoError(t, results[0].Error)
 	assert.Len(t, results[0].Children, 3)
 	assert.NotEqual(t, path, string(results[0].Children[1].StdOut))
 	assert.Contains(t, string(results[0].Children[2].StdOut), requiredTree)

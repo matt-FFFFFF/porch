@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
 
@@ -20,7 +21,8 @@ type fakeParallelCmd struct {
 	err      error
 }
 
-func (f *fakeParallelCmd) Run(ctx context.Context) Results {
+// Run implements the Runnable interface for fakeParallelCmd.
+func (f *fakeParallelCmd) Run(_ context.Context) Results {
 	time.Sleep(f.delay)
 
 	return Results{&Result{
@@ -30,10 +32,12 @@ func (f *fakeParallelCmd) Run(ctx context.Context) Results {
 	}}
 }
 
+// GetLabel implements the Runnable interface for fakeParallelCmd.
 func (f *fakeParallelCmd) GetLabel() string {
 	return f.label
 }
 
+// SetCwd implements the Runnable interface for fakeParallelCmd.
 func (f *fakeParallelCmd) SetCwd(_ string) {
 	// No-op for the fake command
 }
@@ -51,7 +55,7 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 	ctx := context.Background()
 	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
-	assert.NoError(t, results[0].Error, "expected no error")
+	require.NoError(t, results[0].Error, "expected no error")
 	assert.Len(t, results[0].Children, 2, "expected 2 child results")
 
 	for _, res := range results[0].Children {
@@ -80,7 +84,7 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 		if res.ExitCode != 0 {
 			foundFail = true
 
-			assert.Error(t, res.Error)
+			require.Error(t, res.Error)
 		}
 	}
 

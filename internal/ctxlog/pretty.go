@@ -1,9 +1,13 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package ctxlog
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -12,6 +16,13 @@ import (
 	"sync"
 
 	"github.com/TylerBrock/colorjson"
+)
+
+var (
+	// ErrMarshalAttribute is returned when an error occurs while marshaling an attribute.
+	ErrMarshalAttribute = errors.New("error when marshaling attribute")
+	// ErrIoWrite is returned when an error occurs while writing to the output.
+	ErrIoWrite = errors.New("error when writing to output")
 )
 
 const (
@@ -47,6 +58,7 @@ func colorizer(colorCode int, v string) string {
 	return fmt.Sprintf("\033[%sm%s%s", strconv.Itoa(colorCode), v, reset)
 }
 
+// PrettyHandler is a custom slog handler that formats log messages to the console in a pretty way.
 type PrettyHandler struct {
 	h                slog.Handler
 	r                func([]string, slog.Attr) slog.Attr
@@ -57,14 +69,17 @@ type PrettyHandler struct {
 	outputEmptyAttrs bool
 }
 
+// Enabled checks if the handler is enabled for the given level.
 func (h *PrettyHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.h.Enabled(ctx, level)
 }
 
+// WithAttrs creates a new handler with the given attributes.
 func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &PrettyHandler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m, writer: h.writer, colorize: h.colorize}
 }
 
+// WithGroup creates a new handler with the given group name.
 func (h *PrettyHandler) WithGroup(name string) slog.Handler {
 	return &PrettyHandler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m, writer: h.writer, colorize: h.colorize}
 }
@@ -93,6 +108,7 @@ func (h *PrettyHandler) computeAttrs(
 	return attrs, nil
 }
 
+// Handle implements the slog.Handler interface for PrettyHandler.
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	colorize := func(code int, value string) string {
 		return value
@@ -166,7 +182,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	if h.outputEmptyAttrs || len(attrs) > 0 {
 		attrsAsBytes, err = jsonFormatter.Marshal(attrs)
 		if err != nil {
-			return fmt.Errorf("error when marshaling attrs: %w", err)
+			return errors.Join(ErrMarshalAttribute, err)
 		}
 	}
 
@@ -190,9 +206,11 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 		out.WriteString(colorize(darkGray, string(attrsAsBytes)))
 	}
 
-	_, err = io.WriteString(h.writer, out.String()+"\n")
+	out.WriteString("\n")
+
+	_, err = io.WriteString(h.writer, out.String())
 	if err != nil {
-		return err
+		return errors.Join(ErrIoWrite, err)
 	}
 
 	return nil
@@ -216,7 +234,8 @@ func suppressDefaults(
 	}
 }
 
-func NewPretty(handlerOptions *slog.HandlerOptions, options ...Option) *PrettyHandler {
+// NewPrettyHandler creates a new PrettyHandler with the given options.
+func NewPrettyHandler(handlerOptions *slog.HandlerOptions, options ...Option) *PrettyHandler {
 	if handlerOptions == nil {
 		handlerOptions = &slog.HandlerOptions{}
 	}
@@ -244,20 +263,24 @@ func NewPretty(handlerOptions *slog.HandlerOptions, options ...Option) *PrettyHa
 // 	return New(opts, WithDestinationWriter(os.Stdout), WithColor(), WithOutputEmptyAttrs())
 // }
 
+// Option implements a functional options pattern for PrettyHandler.
 type Option func(h *PrettyHandler)
 
+// WithDestinationWriter sets the destination writer for the PrettyHandler.
 func WithDestinationWriter(writer io.Writer) Option {
 	return func(h *PrettyHandler) {
 		h.writer = writer
 	}
 }
 
+// WithColor enables color output for the PrettyHandler.
 func WithColor() Option {
 	return func(h *PrettyHandler) {
 		h.colorize = true
 	}
 }
 
+// WithOutputEmptyAttrs enables output of empty attributes for the PrettyHandler.
 func WithOutputEmptyAttrs() Option {
 	return func(h *PrettyHandler) {
 		h.outputEmptyAttrs = true

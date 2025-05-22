@@ -28,7 +28,7 @@ func DefaultOutputOptions() *OutputOptions {
 	}
 }
 
-// Write formatted results to the provided writer.
+// WriteResults formatted results to the provided writer.
 func WriteResults(w io.Writer, results Results, options *OutputOptions) error {
 	if options == nil {
 		options = DefaultOutputOptions()

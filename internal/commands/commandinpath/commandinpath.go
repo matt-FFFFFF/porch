@@ -1,3 +1,7 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
+// package commandinpath provides a way to create an OSCommand that searches for a command in the system PATH.
 package commandinpath
 
 import (
@@ -7,6 +11,10 @@ import (
 	"strings"
 
 	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+)
+
+const (
+	GOOSWindows = "windows"
 )
 
 func New(label, command, cwd string, args []string) *runbatch.OSCommand {
@@ -24,7 +32,7 @@ func New(label, command, cwd string, args []string) *runbatch.OSCommand {
 				continue
 			}
 			// check if the command is executable if not Windows
-			if runtime.GOOS != "windows" && info.Mode()&0111 == 0 {
+			if runtime.GOOS != GOOSWindows && info.Mode()&0111 == 0 {
 				continue
 			}
 

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
 
@@ -48,7 +49,7 @@ func TestSerialBatchRun_AllSuccess(t *testing.T) {
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.Equal(t, 0, res.ExitCode)
-	assert.NoError(t, res.Error)
+	require.NoError(t, res.Error)
 	assert.Len(t, res.Children, 2)
 }
 
@@ -66,7 +67,7 @@ func TestSerialBatchRun_OneFailure(t *testing.T) {
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.NotEqual(t, 0, res.ExitCode)
-	assert.Error(t, res.Error)
+	require.Error(t, res.Error)
 	assert.Len(t, res.Children, 2)
 }
 

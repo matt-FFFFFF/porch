@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package copycwdtotemp
 
 import (
@@ -15,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// CwdTrackerCommand is a simplified mock command that only tracks its cwd
+// CwdTrackerCommand is a simplified mock command that only tracks its cwd.
 type CwdTrackerCommand struct {
 	label       string
 	executedCwd string
@@ -106,7 +109,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	// Check the results
 	require.Len(t, results, 1)
 	assert.Equal(t, 0, results[0].ExitCode)
-	assert.NoError(t, results[0].Error)
+	require.NoError(t, results[0].Error)
 
 	// Verify that we have a temp dir
 	assert.NotEmpty(t, capturedTempDir)
@@ -124,7 +127,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 		copiedFilePath := filepath.Join(capturedTempDir, relativePath)
 		// Use the mock filesystem to read files instead of real OS
 		content, err := afero.ReadFile(FS, copiedFilePath)
-		assert.NoError(t, err, "should be able to read %s", relativePath)
+		require.NoError(t, err, "should be able to read %s", relativePath)
 		assert.Equal(t, string(mapFile.Data), string(content), "file content should match for %s", relativePath)
 	}
 
@@ -231,9 +234,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 	})
 }
 
-// TestCwdChangePropagation tests that the CWD changes are properly propagated
-// by creating a command that behaves like CopyCwdToTemp and verifying
-// the behavior
+// the behavior.
 func TestCwdChangePropagation(t *testing.T) {
 	const newCwd = "/tmp/new_cwd_path"
 
@@ -265,7 +266,7 @@ func TestCwdChangePropagation(t *testing.T) {
 		"The subsequent command should have received the new CWD")
 }
 
-// TestCopyCwdTempIntegration does an integration test with the actual CopyCwdToTemp command
+// TestCopyCwdTempIntegration does an integration test with the actual CopyCwdToTemp command.
 func TestCopyCwdTempIntegration(t *testing.T) {
 	// Save original values to restore after test
 	originalCwdFS := FS
@@ -327,6 +328,6 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 
 	// Verify the file was copied to the new directory
 	content, err := afero.ReadFile(memFs, filepath.Join(expectedNewCwd, "testfile.txt"))
-	assert.NoError(t, err, "The file should have been copied to the new directory")
+	require.NoError(t, err, "The file should have been copied to the new directory")
 	assert.Equal(t, "test content", string(content), "The file content should match")
 }

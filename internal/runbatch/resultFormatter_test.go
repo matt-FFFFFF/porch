@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWriteResults_SimpleSuccess(t *testing.T) {
@@ -30,7 +31,7 @@ func TestWriteResults_SimpleSuccess(t *testing.T) {
 	}
 
 	err := WriteResults(&buf, results, opts)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	output := buf.String()
 
@@ -57,7 +58,7 @@ func TestWriteResults_SimpleFailure(t *testing.T) {
 	}
 
 	err := WriteResults(&buf, results, opts)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	output := buf.String()
 
@@ -100,7 +101,7 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 	}
 
 	err := WriteResults(&buf, results, opts)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	output := buf.String()
 
@@ -129,7 +130,7 @@ func TestWriteResults_DefaultOptions(t *testing.T) {
 
 	var buf bytes.Buffer
 	err := WriteResults(&buf, results, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// With default options, stdout should not be included but stderr should be
 	output := buf.String()
@@ -159,7 +160,7 @@ func TestWriteResults_StdErrFormatting(t *testing.T) {
 	}
 
 	err := WriteResults(&buf, results, opts)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	output := buf.String()
 

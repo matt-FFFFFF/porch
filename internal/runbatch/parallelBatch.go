@@ -29,6 +29,7 @@ func (b *ParallelBatch) SetCwd(cwd string) {
 	}
 }
 
+// Run implements the Runnable interface for ParallelBatch.
 func (b *ParallelBatch) Run(ctx context.Context) Results {
 	children := make(Results, 0, len(b.Commands))
 	wg := &sync.WaitGroup{}

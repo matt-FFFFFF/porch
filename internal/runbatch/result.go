@@ -10,6 +10,7 @@ import (
 	"slices"
 )
 
+// ErrResultChildrenHasError is the error returned when a result has children with at least one error.
 var ErrResultChildrenHasError = fmt.Errorf("result has children with errors")
 
 // Result represents the outcome of running a command or batch.
@@ -26,6 +27,7 @@ type Result struct {
 // Results is a slice of Result pointers, used to represent multiple results.
 type Results []*Result
 
+// HasError if any of the results in the hierarchy has an error or non-zero exit code.
 func (r Results) HasError() bool {
 	for v := range slices.Values(r) {
 		if v.Error != nil || v.ExitCode != 0 {

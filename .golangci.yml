@@ -37,6 +37,15 @@ linters:
     - wrapcheck
     - wsl
 
+  exclusions:
+    rules:
+      # Exclude some linters from running on tests files.
+      - path: _test\.go
+        linters:
+          - err113
+          - revive
+          - wrapcheck
+
   settings:
     goheader:
       values:
@@ -46,3 +55,7 @@ linters:
       template: |-
         Copyright (c) {{ AUTHOR }} {{ YEAR }}. All rights reserved.
         SPDX-License-Identifier: MIT
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

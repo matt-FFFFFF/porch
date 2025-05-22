@@ -28,6 +28,7 @@ func (b *SerialBatch) SetCwd(cwd string) {
 	}
 }
 
+// Run implements the Runnable interface for SerialBatch.
 func (b *SerialBatch) Run(ctx context.Context) Results {
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""

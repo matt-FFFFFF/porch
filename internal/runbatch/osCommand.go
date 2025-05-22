@@ -24,13 +24,20 @@ const (
 var _ Runnable = (*OSCommand)(nil)
 
 var (
-	ErrBufferOverflow       = fmt.Errorf("output exceeds max size of %d bytes", maxBufferSize)
+	// ErrBufferOverflow is returned when the output exceeds the max size.
+	ErrBufferOverflow = fmt.Errorf("output exceeds max size of %d bytes", maxBufferSize)
+	// ErrCouldNotStartProcess is returned when the process could not be started.
 	ErrCouldNotStartProcess = errors.New("could not start process")
-	ErrCouldNotKillProcess  = errors.New("could not kill process after timeout")
-	ErrFailedToReadBuffer   = errors.New("failed to read buffer")
-	ErrTimeoutExceeded      = errors.New("timeout exceeded")
-	ErrFailedToCreatePipe   = errors.New("failed to create pipe")
-	ErrSignalReceived       = errors.New("signal received")
+	// ErrCouldNotKillProcess is returned when the process could not be killed.
+	ErrCouldNotKillProcess = errors.New("could not kill process after timeout")
+	// ErrFailedToReadBuffer is returned when the buffer from the operating system pipe could not be read.
+	ErrFailedToReadBuffer = errors.New("failed to read buffer")
+	// ErrTimeoutExceeded is returned when the command exceeds the context deadline.
+	ErrTimeoutExceeded = errors.New("timeout exceeded")
+	// ErrFailedToCreatePipe is returned when the operating system pipe could not be created.
+	ErrFailedToCreatePipe = errors.New("failed to create pipe")
+	// ErrSignalReceived is returned when a operating system signal is received by the child process.
+	ErrSignalReceived = errors.New("signal received")
 )
 
 // OSCommand represents a single command to be run in the batch.
@@ -53,6 +60,7 @@ func (c *OSCommand) SetCwd(cwd string) {
 	c.Cwd = cwd
 }
 
+// Run implements the Runnable interface for OSCommand.
 func (c *OSCommand) Run(ctx context.Context) Results {
 	logger := ctxlog.Logger(ctx).
 		With("runnableType", "OSCommand").
@@ -128,7 +136,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				// is this the second signal received of this type?
 				if _, ok := signalCount[s]; ok {
 					logger.Info("runbatch", "detail", "received duplicate signal, killing process", "signal", s.String())
-					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //molint:errcheck
+					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
 					killPs(ctx, wasKilled, ps)
 
 					return
@@ -211,11 +219,16 @@ func readAllUpToMax(ctx context.Context, r io.Reader, maxBufferSize int64) ([]by
 
 	n, err := io.CopyN(&buf, r, maxBufferSize+1)
 	if err != nil && err != io.EOF {
-		return nil, err
+		return nil, errors.Join(ErrFailedToReadBuffer, err)
 	}
 
 	if n > maxBufferSize {
-		ctxlog.Logger(ctx).Debug("runbatch", "detail", "buffer overflow in readAllUpToMax", "bytesRead", n, "maxBytes", maxBufferSize)
+		ctxlog.Logger(ctx).Debug(
+			"runbatch",
+			"detail", "buffer overflow in readAllUpToMax",
+			"bytesRead", n, "maxBytes",
+			maxBufferSize)
+
 		return buf.Bytes()[:maxBufferSize], ErrBufferOverflow
 	}
 

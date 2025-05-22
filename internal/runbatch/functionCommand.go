@@ -5,31 +5,61 @@ package runbatch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
 var _ Runnable = (*FunctionCommand)(nil)
 
+// ErrFunctionCmdPanic is the error returned when a function command panics.
+// It is constructed with the value that caused the panic.
+type ErrFunctionCmdPanic struct {
+	v any
+}
+
+// Error implements the error interface for ErrFunctionCmdPanic.
+func (e *ErrFunctionCmdPanic) Error() string {
+	prefix := "function command panic: "
+	switch x := e.v.(type) {
+	case string:
+		return fmt.Sprintf("%s %s", prefix, x)
+	case error:
+		return fmt.Sprintf("%s %s", prefix, x.Error())
+	default:
+		return fmt.Sprintf("%s %v", prefix, x)
+	}
+}
+
+// NewErrFunctionCmdPanic creates a new ErrFunctionCmdPanic with the given value.§.
+func NewErrFunctionCmdPanic(v any) error {
+	return &ErrFunctionCmdPanic{v: v}
+}
+
 // FunctionCommand is a command that runs a function. It implements the Runnable interface.
 type FunctionCommand struct {
 	Label string
 	Cwd   string
-	Func  func(context.Context, string) FunctionCommandReturn // The function to run, the string parameter is the working directory
+	// The function to run, the string parameter is the working directory
+	Func func(context.Context, string) FunctionCommandReturn
 }
 
+// FunctionCommandReturn is the return type of the function run by FunctionCommand.
 type FunctionCommandReturn struct {
 	NewCwd string
 	Err    error
 }
 
+// GetLabel returns the label of the command (to satisfy Runnable interface).
 func (f *FunctionCommand) GetLabel() string {
 	return f.Label
 }
 
+// SetCwd sets the working directory for the command.
 func (f *FunctionCommand) SetCwd(cwd string) {
 	f.Cwd = cwd
 }
 
+// Run implements the Runnable interface for FunctionCommand.
 func (f *FunctionCommand) Run(ctx context.Context) Results {
 	// Return success immediately if function is nil
 	if f.Func == nil {
@@ -49,12 +79,10 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			if r := recover(); r != nil {
 				var err error
 				switch x := r.(type) {
-				case string:
-					err = fmt.Errorf("panic: %s", x)
 				case error:
-					err = fmt.Errorf("panic: %w", x)
+					err = errors.Join(NewErrFunctionCmdPanic(x), err)
 				default:
-					err = fmt.Errorf("panic: %v", r)
+					err = NewErrFunctionCmdPanic(x)
 				}
 
 				// Check if we're done before sending to avoid "send on closed channel"

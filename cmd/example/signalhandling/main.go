@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -11,11 +14,10 @@ import (
 	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
 )
 
-// This example shows how to use the signal broker to handle
-// signal interrupts with the runbatch package
+// signal interrupts with the runbatch package.
 func main() {
 	// Create a signal broker that listens for interrupt and termination signals
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) //nolint:mnd
 	ctxlog.New(ctx, ctxlog.DefaultLogger)
 	ctxlog.LevelVar.Set(slog.LevelDebug)
 
@@ -48,8 +50,7 @@ func main() {
 	results.PrintWithOptions(options)
 }
 
-// createDemoBatch creates a demo batch with both long-running processes
-// and function commands to demonstrate handling both types
+// and function commands to demonstrate handling both types.
 func createDemoBatch() *runbatch.SerialBatch {
 	return &runbatch.SerialBatch{
 		Label: "Signal Handling Demo",
@@ -85,14 +86,14 @@ func createDemoBatch() *runbatch.SerialBatch {
 								case <-ticker.C:
 									count++
 									fmt.Printf("Function tick %d\n", count)
-									if count >= 60 {
+									if count >= 60 { //nolint:mnd
 										fmt.Println("Function completed naturally")
 										return runbatch.FunctionCommandReturn{}
 									}
 								case <-ctx.Done():
 									fmt.Println("Function cancelled")
 									return runbatch.FunctionCommandReturn{
-										Err: fmt.Errorf("function cancelled"),
+										Err: fmt.Errorf("function cancelled"), //nolint:err113
 									}
 								}
 							}

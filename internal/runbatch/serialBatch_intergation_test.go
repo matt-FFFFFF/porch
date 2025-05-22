@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerialBatchRun_Integration_AllSuccess(t *testing.T) {
@@ -26,7 +27,7 @@ func TestSerialBatchRun_Integration_AllSuccess(t *testing.T) {
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.Equal(t, 0, res.ExitCode)
-	assert.NoError(t, res.Error)
+	require.NoError(t, res.Error)
 	assert.Len(t, res.Children, 2)
 	assert.Contains(t, string(res.Children[0].StdOut), "hello")
 	assert.Contains(t, string(res.Children[1].StdOut), "world")
@@ -47,7 +48,7 @@ func TestSerialBatchRun_Integration_OneFailure(t *testing.T) {
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.NotEqual(t, 0, res.ExitCode)
-	assert.Error(t, res.Error)
+	require.Error(t, res.Error)
 	assert.Len(t, res.Children, 2)
 	assert.Contains(t, string(res.Children[0].StdOut), "ok")
 }
@@ -76,12 +77,12 @@ func TestSerialBatchRun_Integration_NestedBatch(t *testing.T) {
 
 	// Check parent batch result
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code in parent batch")
-	assert.ErrorIs(t, res.Error, ErrResultChildrenHasError, "expected error to be ErrResultChildrenHasError")
+	require.ErrorIs(t, res.Error, ErrResultChildrenHasError, "expected error to be ErrResultChildrenHasError")
 	assert.Len(t, res.Children, 2)
 
 	// Check child batch result
 	assert.Equal(t, "child-integration", res.Children[0].Label)
-	assert.ErrorIs(t, res.Children[0].Error, ErrResultChildrenHasError, "expected error to be ErrResultChildrenHasError")
+	require.ErrorIs(t, res.Children[0].Error, ErrResultChildrenHasError, "expected error to be ErrResultChildrenHasError")
 
 	// Check child batch's child results
 	assert.Len(t, res.Children[0].Children, 2)
@@ -93,6 +94,6 @@ func TestSerialBatchRun_Integration_NestedBatch(t *testing.T) {
 	// Check parent batch's child result
 	assert.Equal(t, "parent-echo", res.Children[1].Label)
 	assert.Equal(t, 0, res.Children[1].ExitCode)
-	assert.NoError(t, res.Children[1].Error)
+	require.NoError(t, res.Children[1].Error)
 	assert.Contains(t, string(res.Children[1].StdOut), "parent")
 }

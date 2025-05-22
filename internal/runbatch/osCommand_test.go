@@ -13,6 +13,7 @@ import (
 
 	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCommandRun_Success(t *testing.T) {
@@ -33,7 +34,7 @@ func TestCommandRun_Success(t *testing.T) {
 
 	res := results[0]
 	assert.Equal(t, 0, res.ExitCode, "expected exit code 0")
-	assert.NoError(t, res.Error, "unexpected error")
+	require.NoError(t, res.Error, "unexpected error")
 	assert.Contains(t, string(res.StdOut), "hello", "expected stdout to contain 'hello'")
 }
 
@@ -73,7 +74,7 @@ func TestCommandRun_NotFound(t *testing.T) {
 
 	var notFoundErr *os.PathError
 
-	assert.ErrorAs(t, res.Error, &notFoundErr, "expected PathError")
+	require.ErrorAs(t, res.Error, &notFoundErr, "expected PathError")
 	assert.ErrorIs(t, res.Error, ErrCouldNotStartProcess, "expected error to be ErrCouldNotStartProcess")
 }
 
@@ -121,10 +122,10 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for killed process")
-	assert.Error(t, res.Error, "expected error for killed process, got nil")
-	assert.ErrorIs(t, ctx.Err(), context.DeadlineExceeded, "expected context to be done, but it was not")
-	assert.ErrorIs(t, res.Error, ErrTimeoutExceeded, "expected error to be ErrTimeoutExceeded")
-	assert.ErrorIs(t, res.Error, ErrSignalReceived, "expected error to be ErrSignalReceived")
+	require.Error(t, res.Error, "expected error for killed process, got nil")
+	require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded, "expected context to be done, but it was not")
+	require.ErrorIs(t, res.Error, ErrTimeoutExceeded, "expected error to be ErrTimeoutExceeded")
+	require.ErrorIs(t, res.Error, ErrSignalReceived, "expected error to be ErrSignalReceived")
 	assert.Contains(t, string(res.StdErr), "killing", "expected stderr to mention killed")
 }
 
@@ -150,7 +151,7 @@ func TestCommandRun_SigInt(t *testing.T) {
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for sigint process")
-	assert.NoError(t, ctx.Err(), "expected context to be unclosed")
-	assert.ErrorIs(t, res.Error, ErrSignalReceived, "expected error to be ErrSignalReceived")
+	require.NoError(t, ctx.Err(), "expected context to be unclosed")
+	require.ErrorIs(t, res.Error, ErrSignalReceived, "expected error to be ErrSignalReceived")
 	assert.Contains(t, string(res.StdErr), "interrupt", "expected stderr to mention interrupt")
 }

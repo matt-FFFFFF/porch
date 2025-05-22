@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package signalbroker
 
 import (
@@ -13,7 +16,10 @@ func Watch(ctx context.Context, sigCh chan os.Signal, cancel context.CancelFunc)
 	sigMap := make(map[os.Signal]struct{})
 	for sig := range sigCh {
 		if _, ok := sigMap[sig]; ok {
-			ctxlog.Logger(ctx).Info("watchdog", "detail", "received second signal of type, forcefully terminating", "signal", sig.String())
+			ctxlog.Logger(ctx).Info(
+				"watchdog",
+				"detail", "received second signal of type, forcefully terminating",
+				"signal", sig.String())
 			close(sigCh)
 			cancel()
 

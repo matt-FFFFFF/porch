@@ -1,11 +1,6 @@
-// Package ctxlog provides a context-based logger that can be used to log messages
-// with different log levels. It uses the slog package for structured logging.
-// The log level is set based on the environment variable, which allows for
-// dynamic configuration of the log level at runtime.
-// The variable name for the log level is derived from the executable name.
-// For example, if the executable is named "myapp", the environment variable
-// for the log level would be "MYAPP_LOG_LEVEL". The log level can be set to
-// "DEBUG", "INFO", "WARN", "ERROR", or any other value will default to "WARN".
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package ctxlog
 
 import (
@@ -19,7 +14,7 @@ import (
 type loggerKey struct{}
 
 // DefaultLogger is a text logger that is used if no logger is provided.
-var DefaultLogger = slog.New(NewPretty(&slog.HandlerOptions{
+var DefaultLogger = slog.New(NewPrettyHandler(&slog.HandlerOptions{
 	Level: LevelVar,
 },
 	WithColor(),

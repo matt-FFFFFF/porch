@@ -1,7 +1,11 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package copycwdtotemp
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -12,10 +16,26 @@ import (
 
 var FS = afero.NewOsFs()
 
-// TempDirPath returns the temporary directory to use
+var (
+	// ErrFileCopy is returned when a file copy operation fails.
+	ErrFileCopy = errors.New("file copy error")
+	// ErrFilePath is returned when a file path operation fails.
+	ErrFilePath = errors.New("file path error")
+)
+
+const (
+	// SixFourFour is the file mode for non-executable files created in the temporary directory.
+	SixFourFour = 0o644
+	// SevenFiveFive is the file mode for directories created in the temporary directory.
+	SevenFiveFive = 0o755
+	// TempDirSuffixLength is the length of the random suffix for the temporary directory.
+	TempDirSuffixLength = 8
+)
+
+// TempDirPath returns the temporary directory to use.
 var TempDirPath = os.TempDir
 
-// RandomName generates a random string with the given prefix and length
+// RandomName generates a random string with the given prefix and length.
 var RandomName = func(prefix string, n int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -30,9 +50,9 @@ func New(cwd string) *runbatch.FunctionCommand {
 	ret := &runbatch.FunctionCommand{
 		Label: "Copy current working directory to temporary directory",
 		Func: func(ctx context.Context, cwd string) runbatch.FunctionCommandReturn {
-			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", 8))
+			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", TempDirSuffixLength))
 			// Create a temporary directory in the OS temp directory
-			err := FS.MkdirAll(tmpDir, 0755)
+			err := FS.MkdirAll(tmpDir, SevenFiveFive)
 			if err != nil {
 				return runbatch.FunctionCommandReturn{
 					Err: err,
@@ -57,7 +77,7 @@ func New(cwd string) *runbatch.FunctionCommand {
 					// Strip cwd from the path to get the relative path
 					relPath, err := filepath.Rel(cwd, path)
 					if err != nil {
-						return err
+						return errors.Join(ErrFilePath, err)
 					}
 
 					// Create the destination path
@@ -65,16 +85,16 @@ func New(cwd string) *runbatch.FunctionCommand {
 
 					// If it's a directory, create it
 					if info.IsDir() {
-						return FS.MkdirAll(dstPath, 0755)
+						return FS.MkdirAll(dstPath, SevenFiveFive)
 					}
 
 					// If it's a file, copy it
 					srcFile, err := afero.ReadFile(FS, path)
 					if err != nil {
-						return err
+						return errors.Join(ErrFileCopy, err)
 					}
 
-					return afero.WriteFile(FS, dstPath, srcFile, 0644)
+					return afero.WriteFile(FS, dstPath, srcFile, SixFourFour)
 				}
 			})
 

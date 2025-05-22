@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // cwdCapturingCmd is a command that captures the cwd it was run with.
@@ -63,7 +64,7 @@ func TestSerialBatchCwdPropagation(t *testing.T) {
 	// Verify results
 	assert.Len(t, results, 1)
 	assert.Equal(t, 0, results[0].ExitCode)
-	assert.NoError(t, results[0].Error)
+	require.NoError(t, results[0].Error)
 	assert.Len(t, results[0].Children, 3)
 
 	// First command ran with initial path

@@ -1,3 +1,11 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
+// Package signalbroker provides a way to listen for OS signals and handle them gracefully.
+// By default it listens for os.Interrupt, syscall.SIGINT, syscall.SIGTERM, and syscall.SIGQUIT signals.
+//
+// It also contains a watchdog function that can be used to watch for signals
+// and cancel a context when two signals of the same type are received.
 package signalbroker
 
 import (

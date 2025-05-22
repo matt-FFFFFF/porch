@@ -2,7 +2,6 @@ package runbatch
 
 import (
 	"context"
-	"os"
 	"slices"
 	"sync"
 )
@@ -27,7 +26,7 @@ func (b *ParallelBatch) SetCwd(cwd string) {
 	}
 }
 
-func (b *ParallelBatch) Run(ctx context.Context, sig <-chan os.Signal) Results {
+func (b *ParallelBatch) Run(ctx context.Context) Results {
 	children := make(Results, 0, len(b.Commands))
 	wg := &sync.WaitGroup{}
 	resChan := make(chan Results, len(b.Commands))
@@ -35,7 +34,7 @@ func (b *ParallelBatch) Run(ctx context.Context, sig <-chan os.Signal) Results {
 		wg.Add(1)
 		go func(c Runnable) {
 			defer wg.Done()
-			resChan <- c.Run(ctx, sig)
+			resChan <- c.Run(ctx)
 		}(cmd)
 	}
 	wg.Wait()

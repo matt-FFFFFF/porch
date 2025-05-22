@@ -1,6 +1,7 @@
 package copycwdtotemp
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -28,7 +29,7 @@ var RandomName = func(prefix string, n int) string {
 func New(cwd string) *runbatch.FunctionCommand {
 	ret := &runbatch.FunctionCommand{
 		Label: "Copy current working directory to temporary directory",
-		Func: func(cwd string) runbatch.FunctionCommandReturn {
+		Func: func(ctx context.Context, cwd string) runbatch.FunctionCommandReturn {
 			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", 8))
 			// Create a temporary directory in the OS temp directory
 			err := FS.MkdirAll(tmpDir, 0755)
@@ -40,36 +41,41 @@ func New(cwd string) *runbatch.FunctionCommand {
 
 			// Use afero.Walk to copy files from the current directory to the temp directory
 			err = afero.Walk(FS, cwd, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+					if err != nil {
+						return err
+					}
+
+					// Skip the temporary directory itself to avoid infinite recursion
+					if path == cwd {
+						return nil
+					}
+
+					// Strip cwd from the path to get the relative path
+					relPath, err := filepath.Rel(cwd, path)
+					if err != nil {
+						return err
+					}
+
+					// Create the destination path
+					dstPath := filepath.Clean(filepath.Join(tmpDir, relPath))
+
+					// If it's a directory, create it
+					if info.IsDir() {
+						return FS.MkdirAll(dstPath, 0755)
+					}
+
+					// If it's a file, copy it
+					srcFile, err := afero.ReadFile(FS, path)
+					if err != nil {
+						return err
+					}
+
+					return afero.WriteFile(FS, dstPath, srcFile, 0644)
 				}
-
-				// Skip the temporary directory itself to avoid infinite recursion
-				if path == cwd {
-					return nil
-				}
-
-				// Strip cwd from the path to get the relative path
-				relPath, err := filepath.Rel(cwd, path)
-				if err != nil {
-					return err
-				}
-
-				// Create the destination path
-				dstPath := filepath.Clean(filepath.Join(tmpDir, relPath))
-
-				// If it's a directory, create it
-				if info.IsDir() {
-					return FS.MkdirAll(dstPath, 0755)
-				}
-
-				// If it's a file, copy it
-				srcFile, err := afero.ReadFile(FS, path)
-				if err != nil {
-					return err
-				}
-
-				return afero.WriteFile(FS, dstPath, srcFile, 0644)
 			})
 
 			if err != nil {

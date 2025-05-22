@@ -17,7 +17,7 @@ type fakeParallelCmd struct {
 	err      error
 }
 
-func (f *fakeParallelCmd) Run(ctx context.Context, sig <-chan os.Signal) Results {
+func (f *fakeParallelCmd) Run(ctx context.Context) Results {
 	time.Sleep(f.delay)
 	return Results{&Result{
 		Label:    f.label,
@@ -44,8 +44,7 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 		},
 	}
 	ctx := context.Background()
-	sig := make(chan os.Signal)
-	results := batch.Run(ctx, sig)
+	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
 	assert.NoError(t, results[0].Error, "expected no error")
 	assert.Len(t, results[0].Children, 2, "expected 2 child results")
@@ -65,8 +64,7 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 		},
 	}
 	ctx := context.Background()
-	sig := make(chan os.Signal)
-	results := batch.Run(ctx, sig)
+	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
 	foundFail := false
 	for _, res := range results[0].Children {
@@ -88,9 +86,8 @@ func TestParallelBatchRun_Parallelism(t *testing.T) {
 		},
 	}
 	ctx := context.Background()
-	sig := make(chan os.Signal)
 	start := time.Now()
-	_ = batch.Run(ctx, sig)
+	_ = batch.Run(ctx)
 	duration := time.Since(start)
 	assert.Less(t, duration, 180*time.Millisecond, "expected parallel execution to be faster than serial")
 }

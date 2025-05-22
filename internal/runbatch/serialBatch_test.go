@@ -15,7 +15,7 @@ type fakeCmd struct {
 	err      error
 }
 
-func (f *fakeCmd) Run(_ context.Context, _ <-chan os.Signal) Results {
+func (f *fakeCmd) Run(_ context.Context) Results {
 	return Results{&Result{
 		Label:    f.label,
 		ExitCode: f.exitCode,
@@ -40,7 +40,7 @@ func TestSerialBatchRun_AllSuccess(t *testing.T) {
 			&fakeCmd{label: "cmd2", exitCode: 0},
 		},
 	}
-	results := batch.Run(context.Background(), nil)
+	results := batch.Run(context.Background())
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.Equal(t, 0, res.ExitCode)
@@ -57,7 +57,7 @@ func TestSerialBatchRun_OneFailure(t *testing.T) {
 			&fakeCmd{label: "cmd2", exitCode: 1, err: os.ErrPermission},
 		},
 	}
-	results := batch.Run(context.Background(), nil)
+	results := batch.Run(context.Background())
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.NotEqual(t, 0, res.ExitCode)
@@ -81,7 +81,7 @@ func TestSerialBatchRun_NestedBatch(t *testing.T) {
 			&fakeCmd{label: "cmdC", exitCode: 0},
 		},
 	}
-	results := batch.Run(context.Background(), nil)
+	results := batch.Run(context.Background())
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode)

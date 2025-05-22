@@ -12,7 +12,7 @@ import (
 
 func TestFunctionCommandRun_Success(t *testing.T) {
 	// Define a function that succeeds
-	successFunc := func(_ string) FunctionCommandReturn {
+	successFunc := func(_ context.Context, _ string) FunctionCommandReturn {
 		return FunctionCommandReturn{}
 	}
 
@@ -24,7 +24,7 @@ func TestFunctionCommandRun_Success(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]
@@ -37,7 +37,7 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 	testErr := errors.New("function failed")
 
 	// Define a function that fails with our custom error
-	failFunc := func(_ string) FunctionCommandReturn {
+	failFunc := func(_ context.Context, _ string) FunctionCommandReturn {
 		return FunctionCommandReturn{Err: testErr}
 	}
 
@@ -49,7 +49,7 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]
@@ -69,7 +69,7 @@ func TestFunctionCommandRun_NilFunction(t *testing.T) {
 	defer cancel()
 
 	// This should not panic
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]
@@ -79,7 +79,7 @@ func TestFunctionCommandRun_NilFunction(t *testing.T) {
 
 func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 	// Define a function that blocks for longer than the context timeout
-	longRunningFunc := func(_ string) FunctionCommandReturn {
+	longRunningFunc := func(_ context.Context, _ string) FunctionCommandReturn {
 		time.Sleep(500 * time.Millisecond)
 		return FunctionCommandReturn{}
 	}
@@ -93,7 +93,7 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]
@@ -104,7 +104,7 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 
 func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 	// Define a function that panics
-	panicFunc := func(_ string) FunctionCommandReturn {
+	panicFunc := func(_ context.Context, _ string) FunctionCommandReturn {
 		panic("function panicked")
 	}
 
@@ -122,7 +122,7 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 		}
 	}()
 
-	_ = cmd.Run(ctx, nil)
+	_ = cmd.Run(ctx)
 
 	// Note: This test may fail since the current implementation doesn't handle panics
 	// If it passes, great! If it fails, we need to update FunctionCommand to handle panics
@@ -131,7 +131,7 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 
 func TestFunctionCommandRun_Slow(t *testing.T) {
 	// Define a slow but eventually succeeding function
-	slowFunc := func(_ string) FunctionCommandReturn {
+	slowFunc := func(_ context.Context, _ string) FunctionCommandReturn {
 		time.Sleep(100 * time.Millisecond)
 		return FunctionCommandReturn{}
 	}
@@ -145,7 +145,7 @@ func TestFunctionCommandRun_Slow(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]
@@ -158,7 +158,7 @@ func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	// Define a function that blocks until given channel is closed
 	blockCh := make(chan struct{})
-	blockingFunc := func(_ string) FunctionCommandReturn {
+	blockingFunc := func(_ context.Context, _ string) FunctionCommandReturn {
 		<-blockCh // Block until channel is closed
 		return FunctionCommandReturn{}
 	}
@@ -177,7 +177,7 @@ func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
 		cancel()
 	}()
 
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]

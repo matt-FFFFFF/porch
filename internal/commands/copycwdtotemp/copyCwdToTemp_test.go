@@ -21,7 +21,7 @@ type CwdTrackerCommand struct {
 	executedCwd string
 }
 
-func (c *CwdTrackerCommand) Run(_ context.Context, _ <-chan os.Signal) runbatch.Results {
+func (c *CwdTrackerCommand) Run(_ context.Context) runbatch.Results {
 	return runbatch.Results{
 		{
 			Label:    c.label,
@@ -96,7 +96,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	// We need to capture what temp directory was created
 	var capturedTempDir string
 	f := New(cwd)
-	results := f.Run(ctx, nil)
+	results := f.Run(ctx)
 
 	// The temp dir should now be
 	capturedTempDir = filepath.Join("/tmp", "avmtool_testrun")
@@ -166,7 +166,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		f := New(cwd)
-		results := f.Run(ctx, nil)
+		results := f.Run(ctx)
 
 		require.Len(t, results, 1)
 		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
@@ -198,11 +198,30 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		f := New(cwd)
-		results := f.Run(ctx, nil)
+		results := f.Run(ctx)
 
 		require.Len(t, results, 1)
 		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
 		assert.Error(t, results[0].Error)
+	})
+
+	t.Run("context canceled", func(t *testing.T) {
+		// Set the current working directory for the test
+		cwd := "src"
+
+		// Mock TempDirPath to return a simple path
+		TempDirPath = func() string {
+			return "/tmp"
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		cancel()
+		f := New(cwd)
+		results := f.Run(ctx)
+
+		require.Len(t, results, 1)
+		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
+		assert.Equal(t, ctx.Err(), results[0].Error)
 	})
 }
 
@@ -214,7 +233,7 @@ func TestCwdChangePropagation(t *testing.T) {
 
 	cwdChangingCmd := &runbatch.FunctionCommand{
 		Label: "Change CWD",
-		Func: func(currentCwd string) runbatch.FunctionCommandReturn {
+		Func: func(_ context.Context, _ string) runbatch.FunctionCommandReturn {
 			return runbatch.FunctionCommandReturn{
 				NewCwd: newCwd,
 			}
@@ -233,7 +252,7 @@ func TestCwdChangePropagation(t *testing.T) {
 	}
 
 	// Run the batch
-	batch.Run(context.Background(), nil)
+	batch.Run(context.Background())
 
 	// Verify the tracker received the new CWD
 	assert.Equal(t, newCwd, tracker.executedCwd,
@@ -294,7 +313,7 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 		Commands: []runbatch.Runnable{copyCwdCmd, trackerCmd},
 	}
 
-	batch.Run(context.Background(), nil)
+	batch.Run(context.Background())
 
 	// Verify the tracker picked up the new working directory
 	assert.Equal(t, expectedNewCwd, trackerCmd.executedCwd,

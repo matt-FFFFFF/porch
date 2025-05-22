@@ -102,7 +102,7 @@ func Example_resultFormatting() {
 	}
 
 	// Run the batch
-	results := batch.Run(ctx, nil)
+	results := batch.Run(ctx)
 
 	// Output the results with different options
 	fmt.Println("Default Output (failures only):")

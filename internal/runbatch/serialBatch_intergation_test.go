@@ -18,7 +18,7 @@ func TestSerialBatchRun_Integration_AllSuccess(t *testing.T) {
 			&OSCommand{Path: "/bin/echo", Args: []string{"world"}, Label: "echo2"},
 		},
 	}
-	results := batch.Run(ctx, nil)
+	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.Equal(t, 0, res.ExitCode)
@@ -38,7 +38,7 @@ func TestSerialBatchRun_Integration_OneFailure(t *testing.T) {
 			&OSCommand{Path: "/bin/false", Args: []string{}, Label: "fail-cmd"},
 		},
 	}
-	results := batch.Run(ctx, nil)
+	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.NotEqual(t, 0, res.ExitCode)
@@ -64,7 +64,7 @@ func TestSerialBatchRun_Integration_NestedBatch(t *testing.T) {
 			&OSCommand{Path: "/bin/echo", Args: []string{"parent"}, Label: "parent-echo"},
 		},
 	}
-	results := batch.Run(ctx, nil)
+	results := batch.Run(ctx)
 	assert.Len(t, results, 1)
 	res := results[0]
 

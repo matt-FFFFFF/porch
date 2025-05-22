@@ -2,7 +2,6 @@ package runbatch
 
 import (
 	"context"
-	"os"
 	"slices"
 )
 
@@ -26,24 +25,31 @@ func (b *SerialBatch) SetCwd(cwd string) {
 	}
 }
 
-func (b *SerialBatch) Run(ctx context.Context, sig <-chan os.Signal) Results {
-	children := make(Results, 0, len(b.Commands))
+func (b *SerialBatch) Run(ctx context.Context) Results {
+	results := make(Results, 0, len(b.Commands))
 	newCwd := ""
+
+OuterLoop:
 	for i, cmd := range slices.All(b.Commands) {
-		childResults := cmd.Run(ctx, sig)
-		if len(childResults) != 1 {
-			newCwd = ""
-		}
-		if len(childResults) == 1 && !childResults.HasError() {
-			newCwd = childResults[0].newCwd
-		}
-		if newCwd != "" && i < len(b.Commands)-1 {
-			// set the newCwd for the remaining commands
-			for rb := range slices.Values(b.Commands[i+1:]) {
-				rb.SetCwd(newCwd)
+		select {
+		case <-ctx.Done():
+			break OuterLoop
+		default:
+			childResults := cmd.Run(ctx)
+			if len(childResults) != 1 {
+				newCwd = ""
 			}
+			if len(childResults) == 1 && !childResults.HasError() {
+				newCwd = childResults[0].newCwd
+			}
+			if newCwd != "" && i < len(b.Commands)-1 {
+				// set the newCwd for the remaining commands
+				for rb := range slices.Values(b.Commands[i+1:]) {
+					rb.SetCwd(newCwd)
+				}
+			}
+			results = slices.Concat(results, childResults)
 		}
-		children = slices.Concat(children, childResults)
 	}
 	res := Results{&Result{
 		Label:    b.Label,
@@ -51,9 +57,9 @@ func (b *SerialBatch) Run(ctx context.Context, sig <-chan os.Signal) Results {
 		Error:    nil,
 		StdOut:   nil,
 		StdErr:   nil,
-		Children: children,
+		Children: results,
 	}}
-	if children.HasError() {
+	if results.HasError() {
 		res[0].ExitCode = -1
 		res[0].Error = ErrResultChildrenHasError
 	}

@@ -2,7 +2,6 @@ package runbatch
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ type cwdCapturingCmd struct {
 	newCwd   string // returned newCwd
 }
 
-func (c *cwdCapturingCmd) Run(_ context.Context, _ <-chan os.Signal) Results {
+func (c *cwdCapturingCmd) Run(_ context.Context) Results {
 	c.runWith = c.cwd // capture what cwd was used when running
 	return Results{&Result{
 		Label:    c.label,
@@ -55,7 +54,7 @@ func TestSerialBatchCwdPropagation(t *testing.T) {
 	assert.Equal(t, "/initial/path", cmd3.cwd)
 
 	// Run the batch
-	results := batch.Run(context.Background(), nil)
+	results := batch.Run(context.Background())
 
 	// Verify results
 	assert.Len(t, results, 1)
@@ -85,7 +84,7 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 	}
 
 	// Run the batch
-	_ = batch.Run(context.Background(), nil)
+	_ = batch.Run(context.Background())
 
 	// Verify the last command picked up the most recent cwd change
 	assert.Equal(t, "/initial/path", cmd1.runWith)
@@ -107,7 +106,7 @@ func TestSerialBatchCwdNoChange(t *testing.T) {
 	}
 
 	// Run the batch
-	_ = batch.Run(context.Background(), nil)
+	_ = batch.Run(context.Background())
 
 	// All commands should have run with their initial paths
 	assert.Equal(t, "/initial/path", cmd1.runWith)
@@ -134,7 +133,7 @@ func TestSerialBatchCwdErrorHandling(t *testing.T) {
 	}
 
 	// Run the batch
-	_ = batch.Run(context.Background(), nil)
+	_ = batch.Run(context.Background())
 
 	// cmd2 should not have picked up any cwd changes
 	assert.Equal(t, "/initial/path", cmd2.runWith)
@@ -156,7 +155,7 @@ func TestSerialBatchCwdErrorHandling(t *testing.T) {
 	}
 
 	// Run the batch
-	_ = batch2.Run(context.Background(), nil)
+	_ = batch2.Run(context.Background())
 
 	// cmd3 should not have picked up any cwd changes from the error command
 	assert.Equal(t, "/initial/path", cmd3.runWith)
@@ -168,7 +167,7 @@ type customResultsCmd struct {
 	cwd     string
 }
 
-func (c *customResultsCmd) Run(_ context.Context, _ <-chan os.Signal) Results {
+func (c *customResultsCmd) Run(_ context.Context) Results {
 	return c.results
 }
 
@@ -201,7 +200,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 	}
 
 	// Run the outer batch
-	outerBatch.Run(context.Background(), nil)
+	outerBatch.Run(context.Background())
 
 	// Check cwd propagation
 	assert.Equal(t, "/initial/path", outerCmd1.runWith)

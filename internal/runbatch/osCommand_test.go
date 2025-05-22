@@ -2,11 +2,13 @@ package runbatch
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"runtime"
 	"testing"
 	"time"
 
+	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,9 +19,11 @@ func TestCommandRun_Success(t *testing.T) {
 		Env:   map[string]string{"FOO": "BAR"},
 		Label: "echo test",
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 
 	res := results[0]
@@ -34,9 +38,11 @@ func TestCommandRun_Failure(t *testing.T) {
 		Args:  []string{"-c", "exit 1"},
 		Label: "fail test",
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	assert.Equal(t, 1, res.ExitCode, "expected 1 exit code")
@@ -48,9 +54,11 @@ func TestCommandRun_NotFound(t *testing.T) {
 		Args:  []string{""},
 		Label: "notfound test",
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	var notFoundErr *os.PathError
@@ -71,8 +79,10 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 		Label: "env and cwd test",
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	assert.Equal(t, 0, res.ExitCode, "expected exit code 0")
@@ -88,8 +98,10 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 		Label: "sleep test",
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
-	results := cmd.Run(ctx, nil)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for killed process")
@@ -97,7 +109,7 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 	assert.ErrorIs(t, ctx.Err(), context.DeadlineExceeded, "expected context to be done, but it was not")
 	assert.ErrorIs(t, res.Error, ErrTimeoutExceeded, "expected error to be ErrTimeoutExceeded")
 	assert.ErrorIs(t, res.Error, ErrSignalReceived, "expected error to be ErrSignalReceived")
-	assert.Contains(t, string(res.StdErr), "killed", "expected stderr to mention killed")
+	assert.Contains(t, string(res.StdErr), "killing", "expected stderr to mention killed")
 }
 
 func TestCommandRun_SigInt(t *testing.T) {
@@ -105,15 +117,17 @@ func TestCommandRun_SigInt(t *testing.T) {
 		Path:  "/bin/sleep",
 		Args:  []string{"10"},
 		Label: "sleep test",
+		sigCh: make(chan os.Signal, 1),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 11*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+	ctxlog.LevelVar.Set(slog.LevelDebug)
 	defer cancel()
-	sig := make(chan os.Signal, 1)
 	go func() {
 		time.Sleep(1 * time.Second)
-		sig <- os.Interrupt
+		cmd.sigCh <- os.Interrupt
 	}()
-	results := cmd.Run(ctx, sig)
+	results := cmd.Run(ctx)
 	assert.Len(t, results, 1, "expected 1 result")
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for sigint process")

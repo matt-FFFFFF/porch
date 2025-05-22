@@ -3,7 +3,6 @@ package runbatch
 import (
 	"context"
 	"fmt"
-	"os"
 )
 
 var _ Runnable = (*FunctionCommand)(nil)
@@ -12,7 +11,7 @@ var _ Runnable = (*FunctionCommand)(nil)
 type FunctionCommand struct {
 	Label string
 	Cwd   string
-	Func  func(string) FunctionCommandReturn
+	Func  func(context.Context, string) FunctionCommandReturn // The function to run, the string parameter is the working directory
 }
 
 type FunctionCommandReturn struct {
@@ -28,7 +27,7 @@ func (f *FunctionCommand) SetCwd(cwd string) {
 	f.Cwd = cwd
 }
 
-func (f *FunctionCommand) Run(ctx context.Context, _ <-chan os.Signal) Results {
+func (f *FunctionCommand) Run(ctx context.Context) Results {
 	// Return success immediately if function is nil
 	if f.Func == nil {
 		return Results{{Label: f.Label, ExitCode: 0, Error: nil}}
@@ -67,7 +66,7 @@ func (f *FunctionCommand) Run(ctx context.Context, _ <-chan os.Signal) Results {
 		}()
 
 		// Run the function
-		fr := f.Func(f.Cwd)
+		fr := f.Func(ctx, f.Cwd)
 
 		// Check if we're done before sending to avoid "send on closed channel"
 		select {

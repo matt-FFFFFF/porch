@@ -39,7 +39,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 			checkFilesCommand,
 		},
 	}
-	results := serialCommands.Run(context.Background(), nil)
+	results := serialCommands.Run(context.Background())
 	assert.Len(t, results, 1)
 	assert.Equal(t, 0, results[0].ExitCode)
 	assert.NoError(t, results[0].Error)

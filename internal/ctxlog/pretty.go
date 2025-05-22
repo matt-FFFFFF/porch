@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/TylerBrock/colorjson"
 )
 
 const (
@@ -34,6 +36,12 @@ const (
 	lightCyan    = 96
 	white        = 97
 )
+
+var jsonFormatter = colorjson.NewFormatter()
+
+func init() {
+	jsonFormatter.Indent = 2
+}
 
 func colorizer(colorCode int, v string) string {
 	return fmt.Sprintf("\033[%sm%s%s", strconv.Itoa(colorCode), v, reset)
@@ -148,7 +156,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	var attrsAsBytes []byte
 	if h.outputEmptyAttrs || len(attrs) > 0 {
-		attrsAsBytes, err = json.MarshalIndent(attrs, "", "  ")
+		attrsAsBytes, err = jsonFormatter.Marshal(attrs)
 		if err != nil {
 			return fmt.Errorf("error when marshaling attrs: %w", err)
 		}

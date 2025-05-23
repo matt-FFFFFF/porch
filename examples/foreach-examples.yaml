@@ -12,6 +12,14 @@ commands:
         commands:
           - type: "command"
             command: "oscommand"
+            name: "cd"
+            executable: "sh"
+            args:
+              - "-c"
+              - "echo"
+              - "$ITEM"
+          - type: "command"
+            command: "oscommand"
             name: "List Files"
             executable: "ls"
             args:

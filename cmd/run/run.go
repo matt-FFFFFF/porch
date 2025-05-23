@@ -40,6 +40,7 @@ var RunCmd = &cli.Command{
 		res := rb.Run(ctx)
 		opts := runbatch.DefaultOutputOptions()
 		opts.IncludeStdOut = true
+		opts.ShowSuccessDetails = true
 		runbatch.WriteResults(cmd.Writer, res, opts)
 		return nil
 	},

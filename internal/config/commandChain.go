@@ -5,7 +5,6 @@ package config
 
 import (
 	"errors"
-	"slices"
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/avmtool/internal/registry"
@@ -37,12 +36,13 @@ type Definition struct {
 
 // CommandDefinition represents a command in the YAML.
 type Command struct {
-	Type     string    `yaml:"type"`
-	Name     string    `yaml:"name"`
-	Command  string    `yaml:"command,omitempty"`
-	Cwd      string    `yaml:"cwd,omitempty"`
-	Args     []string  `yaml:"args,omitempty"`
-	Commands []Command `yaml:"commands,omitempty"`
+	Type       string    `yaml:"type"`
+	Name       string    `yaml:"name"`
+	Command    string    `yaml:"command,omitempty"`
+	Executable string    `yaml:"executable,omitempty"`
+	Cwd        string    `yaml:"cwd,omitempty"`
+	Args       []string  `yaml:"args,omitempty"`
+	Commands   []Command `yaml:"commands,omitempty"`
 	// ForEach specific fields
 	ItemProvider string `yaml:"itemProvider,omitempty"`
 	ForEachMode  string `yaml:"mode,omitempty"` // "serial" or "parallel"
@@ -83,7 +83,7 @@ func build(cmds []Command) ([]runbatch.Runnable, error) {
 			}
 
 			rble, err := c.Create(
-				cmd.Name, cmd.Command, cmd.Cwd, slices.Concat([]string{cmd.Command}, cmd.Args)...)
+				cmd.Name, cmd.Executable, cmd.Cwd, cmd.Args...)
 			if err != nil {
 				return nil, errors.Join(ErrRunnableCreate, err)
 			}

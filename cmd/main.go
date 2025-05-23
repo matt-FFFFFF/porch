@@ -4,7 +4,14 @@
 // Package cmd contains the command-line interface (CLI) for the module.
 package cmd
 
-import "github.com/urfave/cli/v3"
+import (
+	"github.com/matt-FFFFFF/avmtool/cmd/run"
+	"github.com/urfave/cli/v3"
+)
 
 // RootCmd is the root command for the CLI.
-var RootCmd = &cli.Command{}
+var RootCmd = &cli.Command{
+	Commands: []*cli.Command{
+		run.RunCmd,
+	},
+}

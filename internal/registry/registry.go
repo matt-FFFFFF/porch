@@ -5,6 +5,7 @@ package registry
 
 import (
 	"github.com/matt-FFFFFF/avmtool/internal/commands"
+	"github.com/matt-FFFFFF/avmtool/internal/commands/commandinpath"
 	"github.com/matt-FFFFFF/avmtool/internal/commands/copycwdtotemp"
 )
 
@@ -13,4 +14,5 @@ type Registry map[string]commands.Commander
 
 var DefaultRegistry = Registry{
 	"copycwdtotemp": &copycwdtotemp.Commander{},
+	"oscommand":     &commandinpath.Commander{},
 }

@@ -13,9 +13,8 @@ import (
 )
 
 type testCommand struct {
-	label      string
-	cwd        string
-	executedOn []string
+	label string
+	cwd   string
 }
 
 func (t *testCommand) SetCwd(cwd string) {

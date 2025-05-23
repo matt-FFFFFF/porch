@@ -94,6 +94,9 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		// Clone the current environment for each item
 		// and set the ITEM environment variable to the current item.
 		newEnv := maps.Clone(f.Env)
+		if newEnv == nil {
+			newEnv = make(map[string]string)
+		}
 		newEnv[ItemEnvVar] = item
 
 		foreachCommands[i] = &SerialBatch{

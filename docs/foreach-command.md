@@ -16,9 +16,8 @@ commands:
     commands:
       - type: "command"
         name: "Process File"
-        command: "oscommand"
+        command: "go"
         args:
-          - "go"
           - "vet"
           - "${CURRENT_FILE}"
 ```

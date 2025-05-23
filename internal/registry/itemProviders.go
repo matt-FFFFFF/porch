@@ -4,8 +4,6 @@
 package registry
 
 import (
-	"context"
-
 	"github.com/matt-FFFFFF/avmtool/internal/providers"
 	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
 )
@@ -18,11 +16,6 @@ type ItemProviderRegistry map[string]ItemProvider
 
 // DefaultItemProviderRegistry is the default registry for item providers.
 var DefaultItemProviderRegistry = ItemProviderRegistry{
-	// Fixed list example
-	"example": func(ctx context.Context, _ string) ([]string, error) {
-		return []string{"item1", "item2", "item3"}, nil
-	},
-
 	// File-based providers
 	"list-go-files":    providers.ListFiles("*.go"),
 	"list-yaml-files":  providers.ListFiles("*.yaml"),

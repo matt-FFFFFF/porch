@@ -32,7 +32,7 @@ func New(ctx context.Context, sigs ...os.Signal) chan os.Signal {
 		sigs = termSignals
 	}
 
-	ctxlog.Debug(ctx, "signalbroker", "detail", "creating signal broker", "signals", sigs)
+	ctxlog.Debug(ctx, "creating signal broker", "signals", sigs)
 	signal.Notify(ch, sigs...)
 
 	return ch

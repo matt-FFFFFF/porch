@@ -16,7 +16,7 @@ import (
 
 func TestFunctionCommandRun_Success(t *testing.T) {
 	// Define a function that succeeds
-	successFunc := func(_ context.Context, _ string) FunctionCommandReturn {
+	successFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {
 		return FunctionCommandReturn{}
 	}
 
@@ -41,7 +41,7 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 	testErr := errors.New("function failed") //nolint:err113
 
 	// Define a function that fails with our custom error
-	failFunc := func(_ context.Context, _ string) FunctionCommandReturn {
+	failFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {
 		return FunctionCommandReturn{Err: testErr}
 	}
 
@@ -83,7 +83,7 @@ func TestFunctionCommandRun_NilFunction(t *testing.T) {
 
 func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 	// Define a function that blocks for longer than the context timeout
-	longRunningFunc := func(_ context.Context, _ string) FunctionCommandReturn {
+	longRunningFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {
 		time.Sleep(500 * time.Millisecond)
 		return FunctionCommandReturn{}
 	}
@@ -108,7 +108,7 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 
 func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 	// Define a function that panics
-	panicFunc := func(_ context.Context, _ string) FunctionCommandReturn {
+	panicFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {
 		panic("function panicked")
 	}
 
@@ -131,7 +131,7 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 
 func TestFunctionCommandRun_Slow(t *testing.T) {
 	// Define a slow but eventually succeeding function
-	slowFunc := func(_ context.Context, _ string) FunctionCommandReturn {
+	slowFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {
 		time.Sleep(100 * time.Millisecond)
 		return FunctionCommandReturn{}
 	}
@@ -158,7 +158,7 @@ func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	// Define a function that blocks until given channel is closed
 	blockCh := make(chan struct{})
-	blockingFunc := func(_ context.Context, _ string) FunctionCommandReturn {
+	blockingFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {
 		<-blockCh // Block until channel is closed
 		return FunctionCommandReturn{}
 	}

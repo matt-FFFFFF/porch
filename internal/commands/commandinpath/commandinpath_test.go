@@ -9,15 +9,14 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
 	// Create temp directory for test commands
 	tempDir, err := os.MkdirTemp("", "commandinpath_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
+	require.NoError(t, err, "Failed to create temp directory")
 	defer os.RemoveAll(tempDir) //nolint:errcheck
 
 	// Create a mock command file in tempDir
@@ -30,17 +29,13 @@ func TestNew(t *testing.T) {
 
 	// Create an executable file
 	f, err := os.Create(mockCommandPath)
-	if err != nil {
-		t.Fatalf("Failed to create mock command: %v", err)
-	}
+	require.NoError(t, err, "Failed to create mock command")
 	defer f.Close() //nolint:errcheck
 
 	// Make it executable (for Unix systems)
 	if runtime.GOOS != "windows" {
 		err = os.Chmod(mockCommandPath, 0755)
-		if err != nil {
-			t.Fatalf("Failed to make mock command executable: %v", err)
-		}
+		require.NoError(t, err, "Failed to make mock command executable")
 	}
 
 	// Test cases
@@ -127,41 +122,20 @@ func TestNew(t *testing.T) {
 			require.NoError(t, f.Chmod(tc.fileMode))
 
 			// Call the function under test
-			result := New(tc.label, tc.command, tc.cwd, tc.args)
+			result, _ := New(tc.label, tc.command, tc.cwd, tc.args)
 
 			// Check if result is nil
-			if tc.expectedNil && result != nil {
-				t.Errorf("Expected nil result, got %+v", result)
-				return
-			}
+			if tc.expectedNil {
+				assert.Nil(t, result, "Expected nil result")
+			} else {
+				assert.NotNil(t, result, "Expected non-nil result")
+				assert.Equal(t, tc.label, result.Label, "Label should match")
+				assert.Equal(t, tc.expectedPath, result.Path, "Path should match")
+				assert.Equal(t, tc.cwd, result.Cwd, "Cwd should match")
+				assert.Len(t, result.Args, len(tc.args), "Args length should match")
 
-			if !tc.expectedNil && result == nil {
-				t.Errorf("Expected non-nil result, got nil")
-				return
-			}
-
-			// If we expect a non-nil result, check the fields
-			if !tc.expectedNil {
-				if result.Label != tc.label {
-					t.Errorf("Expected label %q, got %q", tc.label, result.Label)
-				}
-
-				if result.Path != tc.expectedPath {
-					t.Errorf("Expected path %q, got %q", tc.expectedPath, result.Path)
-				}
-
-				if result.Cwd != tc.cwd {
-					t.Errorf("Expected cwd %q, got %q", tc.cwd, result.Cwd)
-				}
-
-				if len(result.Args) != len(tc.args) {
-					t.Errorf("Expected %d args, got %d", len(tc.args), len(result.Args))
-				} else {
-					for i, arg := range tc.args {
-						if result.Args[i] != arg {
-							t.Errorf("Expected arg %d to be %q, got %q", i, arg, result.Args[i])
-						}
-					}
+				for i, arg := range tc.args {
+					assert.Equal(t, arg, result.Args[i], "Arg %d should match", i)
 				}
 			}
 		})

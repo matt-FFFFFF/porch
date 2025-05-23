@@ -1,7 +1,7 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-package main
+package main //nolint:revive
 
 import (
 	"context"
@@ -47,7 +47,7 @@ func main() {
 	options := runbatch.DefaultOutputOptions()
 	options.IncludeStdOut = true
 	options.IncludeStdErr = true
-	results.PrintWithOptions(options)
+	results.PrintWithOptions(options) //nolint:errcheck
 }
 
 // and function commands to demonstrate handling both types.
@@ -68,13 +68,13 @@ func createDemoBatch() *runbatch.SerialBatch {
 					// A long-running command that will be interrupted
 					&runbatch.OSCommand{
 						Path:  "/bin/sleep",
-						Args:  []string{"30"},
+						Args:  []string{"10"},
 						Label: "Long Sleep",
 					},
 					// A function command that checks for context cancellation
 					&runbatch.FunctionCommand{
 						Label: "Cancellable Function",
-						Func: func(ctx context.Context, _ string) runbatch.FunctionCommandReturn {
+						Func: func(ctx context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 							ticker := time.NewTicker(1 * time.Second)
 							defer ticker.Stop()
 							count := 0
@@ -86,7 +86,7 @@ func createDemoBatch() *runbatch.SerialBatch {
 								case <-ticker.C:
 									count++
 									fmt.Printf("Function tick %d\n", count)
-									if count >= 60 { //nolint:mnd
+									if count >= 10 { //nolint:mnd
 										fmt.Println("Function completed naturally")
 										return runbatch.FunctionCommandReturn{}
 									}

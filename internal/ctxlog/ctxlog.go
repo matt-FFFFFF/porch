@@ -13,18 +13,23 @@ import (
 
 type loggerKey struct{}
 
-// DefaultLogger is a text logger that is used if no logger is provided.
+// DefaultLogger is a text logger with prettified output that is used if no logger is provided.
 var DefaultLogger = slog.New(NewPrettyHandler(&slog.HandlerOptions{
-	Level: LevelVar,
+	Level:     LevelVar,
+	AddSource: true,
 },
-	WithColor(),
 	WithDestinationWriter(os.Stdout),
+	WithAutoColour(),
 ))
 
-var JsonLogger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+// JSONLogger is a JSON logger that can be substituted for the default logger.
+var JSONLogger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 	Level: LevelVar,
 }))
 
+// LevelVar is a variable that holds the log level.
+// Initially this is set to the log level from the environment variable.
+// It can me modified at runtime to change the log level.
 var LevelVar = &slog.LevelVar{}
 
 func init() {

@@ -1,10 +1,11 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// package commandinpath provides a way to create an OSCommand that searches for a command in the system PATH.
+// Package commandinpath provides a way to create an OSCommand that searches for a command in the system PATH.
 package commandinpath
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,12 +15,25 @@ import (
 )
 
 const (
+	// GOOSWindows is the string constant for Windows OS from the runtime package.
 	GOOSWindows = "windows"
 )
 
-func New(label, command, cwd string, args []string) *runbatch.OSCommand {
+var (
+	ErrCommandNotFound = errors.New("command not found")
+)
+
+// New creates a new runbatch.OSCommand. It will search for the command in the system PATH.
+// It returns nil if the command is not found or if the command is empty.
+// On Windows, there is no need to add .exe to the command name.
+func New(label, command, cwd string, args []string) (*runbatch.OSCommand, error) {
 	if command == "" {
-		return nil
+		return nil, ErrCommandNotFound
+	}
+
+	// If the command is empty and we're on Windows, add .exe
+	if runtime.GOOS == GOOSWindows && filepath.Ext(command) == "" {
+		command += ".exe"
 	}
 
 	path := os.Getenv("PATH")
@@ -41,9 +55,9 @@ func New(label, command, cwd string, args []string) *runbatch.OSCommand {
 				Path:  filepath.Join(p, command),
 				Cwd:   cwd,
 				Args:  args,
-			}
+			}, nil
 		}
 	}
 
-	return nil
+	return nil, ErrCommandNotFound
 }

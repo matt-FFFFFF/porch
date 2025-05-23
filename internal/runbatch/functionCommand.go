@@ -30,7 +30,7 @@ func (e *ErrFunctionCmdPanic) Error() string {
 	}
 }
 
-// NewErrFunctionCmdPanic creates a new ErrFunctionCmdPanic with the given value.§.
+// NewErrFunctionCmdPanic creates a new ErrFunctionCmdPanic with the given value.
 func NewErrFunctionCmdPanic(v any) error {
 	return &ErrFunctionCmdPanic{v: v}
 }
@@ -40,8 +40,12 @@ type FunctionCommand struct {
 	Label string
 	Cwd   string
 	// The function to run, the string parameter is the working directory
-	Func func(context.Context, string) FunctionCommandReturn
+	Func FunctionCommandFunc
 }
+
+// FunctionCommandFunc is the type of the function that can be run by FunctionCommand.
+// It takes a context, a string (the working directory), and a variadic number of strings (arguments).
+type FunctionCommandFunc func(ctx context.Context, workingDirectory string, args ...string) FunctionCommandReturn
 
 // FunctionCommandReturn is the return type of the function run by FunctionCommand.
 type FunctionCommandReturn struct {

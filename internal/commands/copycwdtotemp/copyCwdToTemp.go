@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/afero"
 )
 
+// FS is a filesystem abstraction used for file operations.
+// Default is the OS filesystem, but can be replaced with a mock for testing.
 var FS = afero.NewOsFs()
 
 var (
@@ -46,10 +48,13 @@ var RandomName = func(prefix string, n int) string {
 	return prefix + string(b)
 }
 
+// New creates a new command that copies the current working directory to a temporary directory.
+// It also sets the new working directory to the temporary directory for any subsequent
+// serial batch commands.
 func New(cwd string) *runbatch.FunctionCommand {
 	ret := &runbatch.FunctionCommand{
 		Label: "Copy current working directory to temporary directory",
-		Func: func(ctx context.Context, cwd string) runbatch.FunctionCommandReturn {
+		Func: func(ctx context.Context, cwd string, _ ...string) runbatch.FunctionCommandReturn {
 			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", TempDirSuffixLength))
 			// Create a temporary directory in the OS temp directory
 			err := FS.MkdirAll(tmpDir, SevenFiveFive)

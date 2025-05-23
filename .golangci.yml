@@ -43,6 +43,7 @@ linters:
       - path: _test\.go
         linters:
           - err113
+          - errcheck
           - revive
           - wrapcheck
 

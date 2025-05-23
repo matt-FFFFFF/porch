@@ -11,11 +11,13 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strconv"
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/TylerBrock/colorjson"
+	"github.com/matt-FFFFFF/avmtool/internal/color"
+	"golang.org/x/term"
 )
 
 var (
@@ -27,35 +29,13 @@ var (
 
 const (
 	timeFormat = "[15:04:05.000]"
-
-	reset = "\033[0m"
-
-	black        = 30
-	red          = 31
-	green        = 32
-	yellow       = 33
-	blue         = 34
-	magenta      = 35
-	cyan         = 36
-	lightGray    = 37
-	darkGray     = 90
-	lightRed     = 91
-	lightGreen   = 92
-	lightYellow  = 93
-	lightBlue    = 94
-	lightMagenta = 95
-	lightCyan    = 96
-	white        = 97
 )
 
 var jsonFormatter = colorjson.NewFormatter()
 
 func init() {
 	jsonFormatter.Indent = 2
-}
-
-func colorizer(colorCode int, v string) string {
-	return fmt.Sprintf("\033[%sm%s%s", strconv.Itoa(colorCode), v, reset)
+	jsonFormatter.DisabledColor = !term.IsTerminal(int(os.Stdout.Fd()))
 }
 
 // PrettyHandler is a custom slog handler that formats log messages to the console in a pretty way.
@@ -65,7 +45,7 @@ type PrettyHandler struct {
 	b                *bytes.Buffer
 	m                *sync.Mutex
 	writer           io.Writer
-	colorize         bool
+	colour           bool
 	outputEmptyAttrs bool
 }
 
@@ -76,12 +56,12 @@ func (h *PrettyHandler) Enabled(ctx context.Context, level slog.Level) bool {
 
 // WithAttrs creates a new handler with the given attributes.
 func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &PrettyHandler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m, writer: h.writer, colorize: h.colorize}
+	return &PrettyHandler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m, writer: h.writer, colour: h.colour}
 }
 
 // WithGroup creates a new handler with the given group name.
 func (h *PrettyHandler) WithGroup(name string) slog.Handler {
-	return &PrettyHandler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m, writer: h.writer, colorize: h.colorize}
+	return &PrettyHandler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m, writer: h.writer, colour: h.colour}
 }
 
 func (h *PrettyHandler) computeAttrs(
@@ -110,13 +90,6 @@ func (h *PrettyHandler) computeAttrs(
 
 // Handle implements the slog.Handler interface for PrettyHandler.
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
-	colorize := func(code int, value string) string {
-		return value
-	}
-	if h.colorize {
-		colorize = colorizer
-	}
-
 	var level string
 
 	levelAttr := slog.Attr{
@@ -130,18 +103,19 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	if !levelAttr.Equal(slog.Attr{}) {
 		level = levelAttr.Value.String() + ":"
 
-		if r.Level <= slog.LevelDebug {
-			level = colorize(lightGray, level)
-		} else if r.Level <= slog.LevelInfo {
-			level = colorize(cyan, level)
-		} else if r.Level < slog.LevelWarn {
-			level = colorize(lightBlue, level)
-		} else if r.Level < slog.LevelError {
-			level = colorize(lightYellow, level)
-		} else if r.Level <= slog.LevelError+1 {
-			level = colorize(lightRed, level)
-		} else if r.Level > slog.LevelError+1 {
-			level = colorize(lightMagenta, level)
+		switch {
+		case r.Level <= slog.LevelDebug:
+			level = color.Colorize(level, color.FgWhite)
+		case r.Level <= slog.LevelInfo:
+			level = color.Colorize(level, color.FgCyan)
+		case r.Level < slog.LevelWarn:
+			level = color.Colorize(level, color.FgBlue)
+		case r.Level < slog.LevelError:
+			level = color.Colorize(level, color.FgYellow)
+		case r.Level <= slog.LevelError+1:
+			level = color.Colorize(level, color.FgRed)
+		default: // r.Level > slog.LevelError+1
+			level = color.Colorize(level, color.FgHiMagenta)
 		}
 	}
 
@@ -156,7 +130,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 
 	if !timeAttr.Equal(slog.Attr{}) {
-		timestamp = colorize(lightGray, timeAttr.Value.String())
+		timestamp = color.Colorize(timeAttr.Value.String(), color.FgWhite)
 	}
 
 	var msg string
@@ -170,7 +144,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 
 	if !msgAttr.Equal(slog.Attr{}) {
-		msg = colorize(white, msgAttr.Value.String())
+		msg = color.Colorize(msgAttr.Value.String(), color.FgHiWhite)
 	}
 
 	attrs, err := h.computeAttrs(ctx, r)
@@ -179,6 +153,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 
 	var attrsAsBytes []byte
+
 	if h.outputEmptyAttrs || len(attrs) > 0 {
 		attrsAsBytes, err = jsonFormatter.Marshal(attrs)
 		if err != nil {
@@ -203,7 +178,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 
 	if len(attrsAsBytes) > 0 {
-		out.WriteString(colorize(darkGray, string(attrsAsBytes)))
+		out.WriteString(color.Colorize(string(attrsAsBytes), color.FgHiWhite))
 	}
 
 	out.WriteString("\n")
@@ -216,8 +191,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
-func suppressDefaults(
-	next func([]string, slog.Attr) slog.Attr,
+func suppressDefaults(next func([]string, slog.Attr) slog.Attr,
 ) func([]string, slog.Attr) slog.Attr {
 	return func(groups []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.TimeKey ||
@@ -259,10 +233,6 @@ func NewPrettyHandler(handlerOptions *slog.HandlerOptions, options ...Option) *P
 	return handler
 }
 
-// func NewHandler(opts *slog.HandlerOptions) *Handler {
-// 	return New(opts, WithDestinationWriter(os.Stdout), WithColor(), WithOutputEmptyAttrs())
-// }
-
 // Option implements a functional options pattern for PrettyHandler.
 type Option func(h *PrettyHandler)
 
@@ -273,10 +243,17 @@ func WithDestinationWriter(writer io.Writer) Option {
 	}
 }
 
-// WithColor enables color output for the PrettyHandler.
-func WithColor() Option {
+// WithColour enables color output for the PrettyHandler.
+func WithColour() Option {
 	return func(h *PrettyHandler) {
-		h.colorize = true
+		h.colour = true
+	}
+}
+
+// WithAutoColour enables automatic color output for the PrettyHandler.
+func WithAutoColour() Option {
+	return func(h *PrettyHandler) {
+		h.colour = color.Enabled()
 	}
 }
 

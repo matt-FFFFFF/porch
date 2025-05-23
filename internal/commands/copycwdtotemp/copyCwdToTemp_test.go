@@ -18,6 +18,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	tmpDir = "/tmp"
+	srcDir = "src"
+)
+
 // CwdTrackerCommand is a simplified mock command that only tracks its cwd.
 type CwdTrackerCommand struct {
 	label       string
@@ -44,11 +49,11 @@ func (c *CwdTrackerCommand) SetCwd(cwd string) {
 func TestCopyCwdToTemp(t *testing.T) {
 	// Create a mock filesystem
 	mockFS := fstest.MapFS{
-		"src/file1.txt":         &fstest.MapFile{Data: []byte("content of file 1")},
-		"src/file2.txt":         &fstest.MapFile{Data: []byte("content of file 2")},
-		"src/subdir/file3.txt":  &fstest.MapFile{Data: []byte("content in subdirectory")},
-		"src/subdir/file4.txt":  &fstest.MapFile{Data: []byte("more content in subdirectory")},
-		"src/subdir2/file5.txt": &fstest.MapFile{Data: []byte("content in another subdirectory")},
+		srcDir + "/file1.txt":         &fstest.MapFile{Data: []byte("content of file 1")},
+		srcDir + "/file2.txt":         &fstest.MapFile{Data: []byte("content of file 2")},
+		srcDir + "/subdir/file3.txt":  &fstest.MapFile{Data: []byte("content in subdirectory")},
+		srcDir + "/subdir/file4.txt":  &fstest.MapFile{Data: []byte("more content in subdirectory")},
+		srcDir + "/subdir2/file5.txt": &fstest.MapFile{Data: []byte("content in another subdirectory")},
 	}
 
 	// Save original values to restore after test
@@ -67,7 +72,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	FS = afero.NewMemMapFs()
 
 	// Set the current working directory for the test
-	cwd := "src"
+	cwd := srcDir
 
 	// Mock RandomName to return a known value
 	RandomName = func(prefix string, n int) string {
@@ -76,7 +81,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 
 	// Mock TempDirPath to return a simple path
 	TempDirPath = func() string {
-		return "/tmp"
+		return tmpDir
 	}
 
 	// Add the files to our mock filesystem by copying from fstest.MapFS to afero.MemMapFs
@@ -132,7 +137,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	}
 
 	// Clean up
-	FS.RemoveAll(capturedTempDir)
+	FS.RemoveAll(capturedTempDir) //nolint:errcheck
 }
 
 func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
@@ -158,11 +163,11 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 	// Test case: MkdirTemp error
 	t.Run("MkdirTemp error", func(t *testing.T) {
 		// Set the current working directory for the test
-		cwd := "src"
+		cwd := srcDir
 
 		// Mock TempDirPath to return a simple path
 		TempDirPath = func() string {
-			return "/tmp"
+			return tmpDir
 		}
 
 		baseFs := afero.NewMemMapFs()
@@ -186,7 +191,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 		baseFs := afero.NewMemMapFs()
 
 		// Set the current working directory for the test
-		cwd := "src"
+		cwd := srcDir
 
 		// Create the directory and file structure
 		err := baseFs.MkdirAll(cwd, 0755)
@@ -197,7 +202,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		// Mock TempDirPath to return a simple path
 		TempDirPath = func() string {
-			return "/tmp"
+			return tmpDir
 		}
 
 		FS = &errorFS{fs: baseFs, errorPath: testFilePath} // Create an errorFS that will return an error for file1.txt
@@ -215,11 +220,11 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 	t.Run("context canceled", func(t *testing.T) {
 		// Set the current working directory for the test
-		cwd := "src"
+		cwd := srcDir
 
 		// Mock TempDirPath to return a simple path
 		TempDirPath = func() string {
-			return "/tmp"
+			return tmpDir
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -236,11 +241,11 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 // the behavior.
 func TestCwdChangePropagation(t *testing.T) {
-	const newCwd = "/tmp/new_cwd_path"
+	const newCwd = tmpDir + "	/new_cwd_path"
 
 	cwdChangingCmd := &runbatch.FunctionCommand{
 		Label: "Change CWD",
-		Func: func(_ context.Context, _ string) runbatch.FunctionCommandReturn {
+		Func: func(_ context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 			return runbatch.FunctionCommandReturn{
 				NewCwd: newCwd,
 			}
@@ -287,9 +292,9 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	// Define constants for test paths
 	const (
 		initialCwd     = "/test/initial/path"
-		tempDir        = "/tmp"
+		tempDir        = tmpDir
 		randomSuffix   = "testrun"
-		expectedNewCwd = "/tmp/avmtool_testrun"
+		expectedNewCwd = tempDir + "/avmtool_testrun"
 	)
 
 	// Setup temp directory

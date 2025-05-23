@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/matt-FFFFFF/avmtool/internal/color"
 )
 
 // OutputOptions controls what is included in the output.
@@ -23,7 +25,7 @@ func DefaultOutputOptions() *OutputOptions {
 	return &OutputOptions{
 		IncludeStdOut:      false,
 		IncludeStdErr:      true,
-		ColorOutput:        true,
+		ColorOutput:        color.Enabled(),
 		ShowSuccessDetails: false,
 	}
 }
@@ -48,20 +50,19 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	// Format the status indicator
 	var statusStr, labelPrefix string
 
-	if options.ColorOutput {
-		if r.Error != nil || r.ExitCode != 0 {
-			statusStr = "\033[31m✗\033[0m" // Red X
-			labelPrefix = "\033[1;31m"     // Bold red
-		} else {
-			statusStr = "\033[32m✓\033[0m" // Green checkmark
-			labelPrefix = "\033[1;32m"     // Bold green
-		}
-	} else {
-		if r.Error != nil || r.ExitCode != 0 {
-			statusStr = "✗" // Plain X
-		} else {
-			statusStr = "✓" // Plain checkmark
-		}
+	isError := r.Error != nil || r.ExitCode != 0
+
+	switch {
+	case options.ColorOutput && isError:
+		statusStr = color.Colorize("✗", color.FgRed)               // Red X
+		labelPrefix = color.ControlString(color.Bold, color.FgRed) // Bold red
+	case options.ColorOutput && !isError:
+		statusStr = color.Colorize("✓", color.FgGreen)               // Green checkmark
+		labelPrefix = color.ControlString(color.Bold, color.FgGreen) // Bold green
+	case !options.ColorOutput && isError:
+		statusStr = "✗" // Plain X
+	case !options.ColorOutput && !isError:
+		statusStr = "✓" // Plain checkmark
 	}
 
 	// Format the label
@@ -72,14 +73,14 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 	// Print the status line
 	if options.ColorOutput {
-		fmt.Fprintf(w, "%s%s %s%s\033[0m", indent, statusStr, labelPrefix, label)
+		fmt.Fprintf(w, "%s%s %s%s%s", indent, statusStr, labelPrefix, label, color.ControlString(color.Reset)) // nolint:errcheck
 	} else {
-		fmt.Fprintf(w, "%s%s %s", indent, statusStr, label)
+		fmt.Fprintf(w, "%s%s %s", indent, statusStr, label) // nolint:errcheck
 	}
 
 	// Add exit code if non-zero
 	if r.ExitCode != 0 {
-		fmt.Fprintf(w, " (exit code: %d)", r.ExitCode)
+		fmt.Fprintf(w, " (exit code: %d)", r.ExitCode) // nolint:errcheck
 	}
 
 	fmt.Fprintln(w)
@@ -90,7 +91,14 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		if !errors.Is(r.Error, ErrResultChildrenHasError) {
 			errMsg := r.Error.Error()
 			if options.ColorOutput {
-				fmt.Fprintf(w, "%s  \033[31m➜ Error: %s\033[0m\n", indent, errMsg)
+				fmt.Fprintf(
+					w,
+					"%s  %s %s%s\n",
+					indent,
+					color.ColorizeNoReset("➜ Error:", color.FgRed),
+					errMsg,
+					color.ControlString(color.Reset),
+				)
 			} else {
 				fmt.Fprintf(w, "%s  ➜ Error: %s\n", indent, errMsg)
 			}
@@ -110,7 +118,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	// Add stderr if requested and exists
 	if shouldShowDetails && options.IncludeStdErr && len(r.StdErr) > 0 {
 		if options.ColorOutput {
-			fmt.Fprintf(w, "%s  \033[33m➜ Error Output:\033[0m\n", indent)
+			fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgYellow))
 		} else {
 			fmt.Fprintf(w, "%s  ➜ Error Output:\n", indent)
 		}

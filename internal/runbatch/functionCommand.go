@@ -37,10 +37,9 @@ func NewErrFunctionCmdPanic(v any) error {
 
 // FunctionCommand is a command that runs a function. It implements the Runnable interface.
 type FunctionCommand struct {
-	Label string
-	Cwd   string
-	// The function to run, the string parameter is the working directory
-	Func FunctionCommandFunc
+	Label string              // The label for the command
+	Cwd   string              // The working directory for the command
+	Func  FunctionCommandFunc // The function to run, the string parameter is the working directory
 }
 
 // FunctionCommandFunc is the type of the function that can be run by FunctionCommand.
@@ -49,19 +48,17 @@ type FunctionCommandFunc func(ctx context.Context, workingDirectory string, args
 
 // FunctionCommandReturn is the return type of the function run by FunctionCommand.
 type FunctionCommandReturn struct {
-	NewCwd string
-	Err    error
-}
-
-// GetLabel returns the label of the command (to satisfy Runnable interface).
-func (f *FunctionCommand) GetLabel() string {
-	return f.Label
+	NewCwd string // The new working directory, if changed
+	Err    error  // Any error that occurred during execution
 }
 
 // SetCwd sets the working directory for the command.
 func (f *FunctionCommand) SetCwd(cwd string) {
 	f.Cwd = cwd
 }
+
+// InheritEnv is not implemented for FunctionCommand.
+func (f *FunctionCommand) InheritEnv(env map[string]string) {}
 
 // Run implements the Runnable interface for FunctionCommand.
 func (f *FunctionCommand) Run(ctx context.Context) Results {

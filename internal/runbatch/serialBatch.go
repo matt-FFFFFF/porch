@@ -5,6 +5,7 @@ package runbatch
 
 import (
 	"context"
+	"maps"
 	"slices"
 )
 
@@ -12,19 +13,24 @@ var _ Runnable = (*SerialBatch)(nil)
 
 // SerialBatch represents a collection of commands, which are run serially.
 type SerialBatch struct {
-	Commands []Runnable // The commands or nested batches to run
-	Label    string     // Optional label for the batch
-}
-
-// GetLabel returns the label of the batch (to satisfy Runnable interface).
-func (b *SerialBatch) GetLabel() string {
-	return b.Label
+	Commands []Runnable        // The commands or nested batches to run
+	Label    string            // Optional label for the batch
+	Env      map[string]string // Environment variables to be passed to each command.
 }
 
 // SetCwd sets the working directory for the batch.
 func (b *SerialBatch) SetCwd(cwd string) {
 	for _, cmd := range b.Commands {
 		cmd.SetCwd(cwd)
+	}
+}
+
+// InheritEnv sets the environment variables for the batch.
+func (b *SerialBatch) InheritEnv(env map[string]string) {
+	for k, v := range maps.All(env) {
+		if _, ok := b.Env[k]; !ok {
+			b.Env[k] = v
+		}
 	}
 }
 
@@ -39,6 +45,7 @@ OuterLoop:
 		case <-ctx.Done():
 			break OuterLoop
 		default:
+			cmd.InheritEnv(b.Env)
 			childResults := cmd.Run(ctx)
 			if len(childResults) != 1 {
 				newCwd = ""
@@ -47,7 +54,7 @@ OuterLoop:
 				newCwd = childResults[0].newCwd
 			}
 			if newCwd != "" && i < len(b.Commands)-1 {
-				// set the newCwd for the remaining commands
+				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
 					rb.SetCwd(newCwd)
 				}

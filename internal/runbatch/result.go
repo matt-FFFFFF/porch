@@ -21,7 +21,7 @@ type Result struct {
 	StdErr   []byte  // Error output from the command(s)
 	Label    string  // Label of the command or batch
 	Children Results // Nested results for tree output
-	newCwd   string  // New working directory, if changed
+	newCwd   string  // New working directory, if changed. Only used for serial batches.
 }
 
 // Results is a slice of Result pointers, used to represent multiple results.

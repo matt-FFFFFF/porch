@@ -32,12 +32,13 @@ func (c *cwdCapturingCmd) Run(_ context.Context) Results {
 	}}
 }
 
-func (c *cwdCapturingCmd) GetLabel() string {
-	return c.label
-}
-
 func (c *cwdCapturingCmd) SetCwd(cwd string) {
 	c.cwd = cwd
+}
+
+// InheritEnv sets the environment variables for the batch.
+func (c *cwdCapturingCmd) InheritEnv(_ map[string]string) {
+	// No-op for the cwdCapturingCmd
 }
 
 // TestSerialBatchCwdPropagation tests that when a command changes its working directory,
@@ -176,13 +177,11 @@ func (c *customResultsCmd) Run(_ context.Context) Results {
 	return c.results
 }
 
-func (c *customResultsCmd) GetLabel() string {
-	return "custom_results_cmd"
-}
-
 func (c *customResultsCmd) SetCwd(cwd string) {
 	c.cwd = cwd
 }
+
+func (c *customResultsCmd) InheritEnv(_ map[string]string) {}
 
 // TestSerialBatchCwdWithNestedBatches tests that cwd changes propagate through nested batches.
 func TestSerialBatchCwdWithNestedBatches(t *testing.T) {

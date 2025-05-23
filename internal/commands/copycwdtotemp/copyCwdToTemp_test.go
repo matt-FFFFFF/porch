@@ -38,13 +38,11 @@ func (c *CwdTrackerCommand) Run(_ context.Context) runbatch.Results {
 	}
 }
 
-func (c *CwdTrackerCommand) GetLabel() string {
-	return c.label
-}
-
 func (c *CwdTrackerCommand) SetCwd(cwd string) {
 	c.executedCwd = cwd
 }
+
+func (c *CwdTrackerCommand) InheritEnv(_ map[string]string) {}
 
 func TestCopyCwdToTemp(t *testing.T) {
 	// Create a mock filesystem

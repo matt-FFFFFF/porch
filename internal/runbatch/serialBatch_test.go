@@ -27,11 +27,12 @@ func (f *fakeCmd) Run(_ context.Context) Results {
 	}}
 }
 
-func (f *fakeCmd) GetLabel() string {
-	return f.label
+func (f *fakeCmd) SetCwd(_ string) {
+	// No-op for the fake command
 }
 
-func (f *fakeCmd) SetCwd(_ string) {
+// InheritEnv sets the environment variables for the batch.
+func (f *fakeCmd) InheritEnv(_ map[string]string) {
 	// No-op for the fake command
 }
 

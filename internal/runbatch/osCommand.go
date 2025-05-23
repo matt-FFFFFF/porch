@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -50,14 +51,18 @@ type OSCommand struct {
 	sigCh chan os.Signal    // Channel to receive signals, allows mocking in test.
 }
 
-// GetLabel returns the label of the command (to satisfy Runnable interface).
-func (c *OSCommand) GetLabel() string {
-	return c.Label
-}
-
 // SetCwd sets the working directory for the command.
 func (c *OSCommand) SetCwd(cwd string) {
 	c.Cwd = cwd
+}
+
+// InheritEnv sets the environment variables for the batch.
+func (c *OSCommand) InheritEnv(env map[string]string) {
+	for k, v := range maps.All(env) {
+		if _, ok := c.Env[k]; !ok {
+			c.Env[k] = v
+		}
+	}
 }
 
 // Run implements the Runnable interface for OSCommand.

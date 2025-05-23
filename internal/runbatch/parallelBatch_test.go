@@ -32,13 +32,12 @@ func (f *fakeParallelCmd) Run(_ context.Context) Results {
 	}}
 }
 
-// GetLabel implements the Runnable interface for fakeParallelCmd.
-func (f *fakeParallelCmd) GetLabel() string {
-	return f.label
-}
-
 // SetCwd implements the Runnable interface for fakeParallelCmd.
 func (f *fakeParallelCmd) SetCwd(_ string) {
+	// No-op for the fake command
+}
+
+func (f *fakeParallelCmd) InheritEnv(_ map[string]string) {
 	// No-op for the fake command
 }
 

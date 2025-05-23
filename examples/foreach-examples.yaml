@@ -1,0 +1,61 @@
+name: "Go Files Linter"
+description: "Runs golint on all Go files in parallel"
+commands:
+  - type: "foreach"
+    name: "Lint Go Files"
+    itemProvider: "list-go-files"
+    mode: "parallel"
+    itemVariable: "GO_FILE"
+    commands:
+      - type: "command"
+        name: "Run Golint"
+        command: "oscommand"
+        args:
+          - "golint"
+          - "${GO_FILE}"
+
+---
+name: "Directory Processor"
+description: "Process each directory in series"
+commands:
+  - type: "foreach"
+    name: "Process Directories"
+    itemProvider: "list-directories"
+    mode: "serial"
+    commands:
+      - type: "serial"
+        name: "Directory Commands"
+        commands:
+          - type: "command"
+            name: "List Files"
+            command: "oscommand"
+            args:
+              - "ls"
+              - "-la"
+          - type: "command"
+            name: "Check Go Files"
+            command: "oscommand"
+            args:
+              - "find"
+              - "."
+              - "-name"
+              - "*.go"
+              - "-type"
+              - "f"
+
+---
+name: "Custom List Processor"
+description: "Process a custom list of items"
+commands:
+  - type: "foreach"
+    name: "Process Custom List"
+    itemProvider: "comma-separated"
+    mode: "parallel"
+    commands:
+      - type: "command"
+        name: "Echo Item"
+        command: "oscommand"
+        args:
+          - "echo"
+          - "Processing item:"
+          - "${ITEM}"

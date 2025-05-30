@@ -5,14 +5,13 @@ package registry
 
 import (
 	"github.com/matt-FFFFFF/avmtool/internal/commands"
-	"github.com/matt-FFFFFF/avmtool/internal/commands/commandinpath"
-	"github.com/matt-FFFFFF/avmtool/internal/commands/copycwdtotemp"
+	"github.com/matt-FFFFFF/avmtool/internal/commands/shellcommand"
 )
 
 // Registry is a map of YAML command names to their respective Commander implementations.
 type Registry map[string]commands.Commander
 
 var DefaultRegistry = Registry{
-	"copycwdtotemp": &copycwdtotemp.Commander{},
-	"oscommand":     &commandinpath.Commander{},
+	//"copycwdtotemp": &copycwdtotemp.Commander{},
+	"shellcommand": &shellcommand.Commander{},
 }

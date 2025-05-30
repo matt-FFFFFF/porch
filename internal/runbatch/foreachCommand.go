@@ -40,9 +40,7 @@ type ForEachCommand struct {
 	ItemsProvider ItemsProviderFunc
 	Commands      []Runnable
 	Mode          ForEachMode
-	// ItemVariable is the name of the environment variable to set with the current item.
-	// If empty, no environment variable is set.
-	Env map[string]string
+	Env           map[string]string
 }
 
 // SetCwd sets the working directory for the command.
@@ -56,6 +54,10 @@ func (f *ForEachCommand) SetCwd(cwd string) {
 
 // InheritEnv sets the environment variables for the batch.
 func (f *ForEachCommand) InheritEnv(env map[string]string) {
+	if len(f.Env) == 0 {
+		f.Env = maps.Clone(env)
+		return
+	}
 	for k, v := range maps.All(env) {
 		if _, ok := f.Env[k]; !ok {
 			f.Env[k] = v
@@ -140,7 +142,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 }
 
 // NewForEachCommand creates a new ForEachCommand.
-func NewForEachCommand(label string, provider ItemsProviderFunc, mode ForEachMode, commands ...Runnable) *ForEachCommand {
+func NewForEachCommand(label string, provider ItemsProviderFunc, mode ForEachMode, commands []Runnable) *ForEachCommand {
 	return &ForEachCommand{
 		Label:         label,
 		ItemsProvider: provider,

@@ -1,0 +1,46 @@
+name: "Dynamic Schema Example"
+description: "Demonstrates different command types with dynamic schemas"
+commands:
+  - type: "serial"
+    name: "Main Workflow"
+    commands:
+      # Basic command with standard fields
+      - type: "command"
+        name: "Check Dependencies"
+        command: "commandinpath"
+        args:
+          - "go"
+          - "git"
+
+      # ForEach command with its specific fields
+      - type: "foreach"
+        name: "Process Go Files"
+        itemProvider: "list-go-files"
+        mode: "parallel"
+        itemVariable: "GO_FILE"
+        commands:
+          - type: "command"
+            name: "Format File"
+            command: "oscommand"
+            args:
+              - "gofmt"
+              - "-w"
+              - "${GO_FILE}"
+
+      # Parallel command with nested commands
+      - type: "parallel"
+        name: "Parallel Tasks"
+        commands:
+          - type: "command"
+            name: "Task 1"
+            command: "oscommand"
+            args:
+              - "echo"
+              - "Task 1 running"
+
+          - type: "command"
+            name: "Task 2"
+            command: "oscommand"
+            args:
+              - "echo"
+              - "Task 2 running"

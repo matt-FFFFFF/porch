@@ -58,6 +58,10 @@ func (c *OSCommand) SetCwd(cwd string) {
 
 // InheritEnv sets the environment variables for the batch.
 func (c *OSCommand) InheritEnv(env map[string]string) {
+	if len(c.Env) == 0 {
+		c.Env = maps.Clone(env)
+		return
+	}
 	for k, v := range maps.All(env) {
 		if _, ok := c.Env[k]; !ok {
 			c.Env[k] = v

@@ -4,28 +4,25 @@
 package registry
 
 import (
-	"github.com/matt-FFFFFF/avmtool/internal/providers"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"context"
 )
 
-// ItemProvider is a function that returns a list of items to iterate over.
-type ItemProvider = runbatch.ItemsProviderFunc
+// ItemsProviderFunc is a function that returns a list of items to iterate over.
+// It takes a context and the current working directory, and returns a list of items and an error.
+type ItemsProviderFunc func(ctx context.Context, workingDirectory string) ([]string, error)
 
-// ItemProviderRegistry is a map of item provider names to their implementations.
-type ItemProviderRegistry map[string]ItemProvider
+// ItemProviderRegistry is a map of item provider names to their implementations
+type ItemProviderRegistry map[string]ItemsProviderFunc
 
-// DefaultItemProviderRegistry is the default registry for item providers.
+// DefaultItemProviderRegistry is the default registry for item providers
 var DefaultItemProviderRegistry = ItemProviderRegistry{
-	// File-based providers
-	"list-go-files":    providers.ListFiles("*.go"),
-	"list-yaml-files":  providers.ListFiles("*.yaml"),
-	"list-directories": providers.ListDirectories("."),
-
-	// String-based provider
-	"comma-separated": providers.SplitString("item1,item2,item3", ","),
+	// Example provider that returns a fixed list
+	"example": func(ctx context.Context, _ string) ([]string, error) {
+		return []string{"item1", "item2", "item3"}, nil
+	},
 }
 
-// Register adds a new item provider to the registry.
-func (r ItemProviderRegistry) Register(name string, provider ItemProvider) {
+// Register adds a new item provider to the registry
+func (r ItemProviderRegistry) Register(name string, provider ItemsProviderFunc) {
 	r[name] = provider
 }

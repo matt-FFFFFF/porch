@@ -28,6 +28,10 @@ func (b *ParallelBatch) SetCwd(cwd string) {
 
 // InheritEnv sets the environment variables for the batch.
 func (b *ParallelBatch) InheritEnv(env map[string]string) {
+	if len(b.Env) == 0 {
+		b.Env = maps.Clone(env)
+		return
+	}
 	for k, v := range maps.All(env) {
 		if _, ok := b.Env[k]; !ok {
 			b.Env[k] = v

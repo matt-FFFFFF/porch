@@ -4,9 +4,13 @@
 // Package commands provides a standard interface for creating a command registry.
 package commands
 
-import "github.com/matt-FFFFFF/avmtool/internal/runbatch"
+import (
+	"context"
 
-// Commander is an interface for creating commands.
+	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+)
+
+// Commander is an interface for converting commands into runnables.
 type Commander interface {
-	Create(name, exec, cwd string, args ...string) (runbatch.Runnable, error)
+	Create(ctx context.Context, payload []byte) (runbatch.Runnable, error)
 }

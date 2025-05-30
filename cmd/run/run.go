@@ -33,7 +33,7 @@ var RunCmd = &cli.Command{
 		if err != nil {
 			return errors.Join(ErrReadFile, err)
 		}
-		rb, err := config.BuildFromYAML(bytes)
+		rb, err := config.BuildFromYAML(ctx, bytes)
 		if err != nil {
 			return errors.Join(ErrBuildConfig, err)
 		}

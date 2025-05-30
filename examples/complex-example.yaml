@@ -1,0 +1,32 @@
+name: "Complex Workflow Example"
+description: "Example showing nested serial and parallel commands"
+commands:
+  - type: "serial"
+    name: "Main Workflow"
+    commands:
+      - type: "shell"
+        name: "Setup"
+        exec: "echo"
+        args:
+          - "Starting workflow"
+
+      - type: "parallel"
+        name: "Parallel Tasks"
+        commands:
+          - type: "shell"
+            name: "Task 1"
+            exec: "echo"
+            args:
+              - "Task 1 running"
+
+          - type: "shell"
+            name: "Task 2"
+            exec: "echo"
+            args:
+              - "Task 2 running"
+
+      - type: "shell"
+        name: "Cleanup"
+        exec: "echo"
+        args:
+          - "Workflow complete"

@@ -20,6 +20,10 @@ type Code int
 
 // ControlString generates a string with ANSI control codes for text formatting.
 func ControlString(c ...Code) string {
+	if !enabled {
+		return ""
+	}
+
 	sb := strings.Builder{}
 	sb.Grow(len(prefix) + len(suffix) + sbPadding)
 	sb.WriteString(prefix)
@@ -118,7 +122,7 @@ const (
 var enabled bool
 
 func init() {
-	enabled = isColorEnabled()
+	enabled = isColorCapable()
 }
 
 // Colorize returns a string with ANSI color codes applied.
@@ -187,7 +191,7 @@ func Enabled() bool {
 	return enabled
 }
 
-func isColorEnabled() bool {
+func isColorCapable() bool {
 	if nc := os.Getenv(NoColor); nc != "" {
 		return false
 	}

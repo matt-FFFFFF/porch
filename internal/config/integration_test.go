@@ -7,6 +7,7 @@ import (
 	"context"
 	"testing"
 
+	_ "github.com/matt-FFFFFF/pporch/internal/allcommands" // Import all commands to register them
 	"github.com/matt-FFFFFF/pporch/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,10 +20,8 @@ description: "Test shell command execution"
 commands:
   - type: "shell"
     name: "List Files"
-    exec: "ls"
-    args:
-      - "-la"
-    cwd: "/tmp"
+    command_line: "ls -la"
+    working_directory: "/tmp"
 `
 
 	ctx := context.Background()
@@ -75,30 +74,22 @@ commands:
     commands:
       - type: "shell"
         name: "Setup"
-        exec: "echo"
-        args:
-          - "Starting workflow"
+        command_line: "echo \"Starting workflow\""
 
       - type: "parallel"
         name: "Parallel Tasks"
         commands:
           - type: "shell"
             name: "Task 1"
-            exec: "echo"
-            args:
-              - "Task 1 running"
+            command_line: "echo \"Task 1 running\""
 
           - type: "shell"
             name: "Task 2"
-            exec: "echo"
-            args:
-              - "Task 2 running"
+            command_line: "echo \"Task 2 running\""
 
       - type: "shell"
         name: "Cleanup"
-        exec: "echo"
-        args:
-          - "Workflow complete"
+        command_line: "echo \"Workflow complete\""
 `
 
 	ctx := context.Background()

@@ -30,8 +30,8 @@ func DefaultOutputOptions() *OutputOptions {
 	}
 }
 
-// WriteResults formatted results to the provided writer.
-func WriteResults(w io.Writer, results Results, options *OutputOptions) error {
+// writeTextResults formatted results to the provided writer.
+func writeTextResults(w io.Writer, results Results, options *OutputOptions) error {
 	if options == nil {
 		options = DefaultOutputOptions()
 	}

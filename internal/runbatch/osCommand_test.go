@@ -25,7 +25,6 @@ func TestCommandRun_Success(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
 
 	defer cancel()
 
@@ -46,7 +45,6 @@ func TestCommandRun_Failure(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
 
 	defer cancel()
 
@@ -64,7 +62,6 @@ func TestCommandRun_NotFound(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
 
 	defer cancel()
 
@@ -114,7 +111,6 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
 
 	defer cancel()
 
@@ -138,7 +134,6 @@ func TestCommandRun_SigInt(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
 
 	defer cancel()
 

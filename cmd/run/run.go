@@ -5,6 +5,7 @@ package run
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"os"
@@ -34,6 +35,17 @@ var RunCmd = &cli.Command{
 			Name: fileArg,
 		},
 	},
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:        "write",
+			Aliases:     []string{"w"},
+			DefaultText: "Write results to a file",
+			TakesFile:   true,
+			Usage:       "The file to write results to",
+			OnlyOnce:    true,
+			Required:    false,
+		},
+	},
 	Action: func(ctx context.Context, cmd *cli.Command) error {
 		bytes, err := os.ReadFile(cmd.StringArg(fileArg))
 		if err != nil {
@@ -43,11 +55,22 @@ var RunCmd = &cli.Command{
 		if err != nil {
 			return errors.Join(ErrBuildConfig, err)
 		}
+		outputFile := cmd.String("write")
 		res := rb.Run(ctx)
+		if outputFile != "" {
+			f, err := os.Create(outputFile) // Create the output file if it doesn't exist
+			if err != nil {
+				return fmt.Errorf("failed to create output file: %w", err)
+			}
+			defer f.Close() //nolint:errcheck
+			if err := gob.NewEncoder(f).Encode(res); err != nil {
+				return fmt.Errorf("failed to write results to file: %w", err)
+			}
+		}
 		opts := runbatch.DefaultOutputOptions()
 		opts.IncludeStdOut = true
 		opts.ShowSuccessDetails = true
-		if err := runbatch.WriteResults(cmd.Writer, res, opts); err != nil {
+		if err := res.WriteTextWithOptions(cmd.Writer, opts); err != nil {
 			return fmt.Errorf("failed to write results: %w", err)
 		}
 		return nil

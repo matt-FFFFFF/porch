@@ -30,7 +30,7 @@ func TestWriteResults_SimpleSuccess(t *testing.T) {
 		ShowSuccessDetails: true,
 	}
 
-	err := WriteResults(&buf, results, opts)
+	err := writeTextResults(&buf, results, opts)
 	require.NoError(t, err)
 
 	output := buf.String()
@@ -57,7 +57,7 @@ func TestWriteResults_SimpleFailure(t *testing.T) {
 		ColorOutput:   false,
 	}
 
-	err := WriteResults(&buf, results, opts)
+	err := writeTextResults(&buf, results, opts)
 	require.NoError(t, err)
 
 	output := buf.String()
@@ -100,7 +100,7 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 		ColorOutput:   false,
 	}
 
-	err := WriteResults(&buf, results, opts)
+	err := writeTextResults(&buf, results, opts)
 	require.NoError(t, err)
 
 	output := buf.String()
@@ -129,7 +129,7 @@ func TestWriteResults_DefaultOptions(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := WriteResults(&buf, results, nil)
+	err := writeTextResults(&buf, results, nil)
 	require.NoError(t, err)
 
 	// With default options, stdout should not be included but stderr should be
@@ -159,7 +159,7 @@ func TestWriteResults_StdErrFormatting(t *testing.T) {
 		ColorOutput:   false,
 	}
 
-	err := WriteResults(&buf, results, opts)
+	err := writeTextResults(&buf, results, opts)
 	require.NoError(t, err)
 
 	output := buf.String()

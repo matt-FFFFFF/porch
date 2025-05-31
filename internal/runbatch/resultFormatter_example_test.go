@@ -6,12 +6,13 @@ package runbatch
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
 
 // ExampleWriteResults_stderrOutput demonstrates how to format stderr output with the result formatter.
-func ExampleWriteResults_stderrOutput() {
+func ExampleResults_WriteTextWithOptions_stderrOutput() {
 	// Create a sample result hierarchy with stderr output
 	cmdWithStderr := &Result{
 		Label:    "Command with StdErr",
@@ -49,7 +50,7 @@ func ExampleWriteResults_stderrOutput() {
 	}
 
 	// Write the results to the buffer
-	_ = WriteResults(&buf, results, options)
+	_ = results.WriteTextWithOptions(&buf, options)
 
 	// For the example, print to stdout
 	fmt.Println(buf.String())
@@ -109,12 +110,19 @@ func Example_resultFormatting() {
 
 	// Output the results with different options
 	fmt.Println("Default Output (failures only):")
-	results.Print() //nolint:errcheck
+	// Force color output for consistent example output
+	options := &OutputOptions{
+		IncludeStdOut:      false,
+		IncludeStdErr:      true,
+		ColorOutput:        false,
+		ShowSuccessDetails: false,
+	}
+	writeTextResults(os.Stdout, results, options) //nolint:errcheck
 	// Output:
 	// Default Output (failures only):
-	// [31m✗[0m [1;31mDemo Batch[0m (exit code: -1)
-	//   [32m✓[0m [1;32mGreeting Command[0m
-	//   [31m✗[0m [1;31mParallel Processes[0m (exit code: -1)
-	//     [32m✓[0m [1;32mShow Hosts[0m
-	//     [31m✗[0m [1;31mFailing Command[0m (exit code: 1)
+	// ✗ Demo Batch (exit code: -1)
+	//   ✓ Greeting Command
+	//   ✗ Parallel Processes (exit code: -1)
+	//     ✓ Show Hosts
+	//     ✗ Failing Command (exit code: 1)
 }

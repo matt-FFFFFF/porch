@@ -1,6 +1,0 @@
-name: "Copy Directory Example"
-description: "Example using the copycwdtotemp command type"
-commands:
-  - type: "copycwdtotemp"
-    name: "Copy Current Directory"
-    cwd: "/Users/matt/code/avmtool"

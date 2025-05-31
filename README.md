@@ -2,8 +2,6 @@
 
 AVMTool is a sophisticated command orchestration framework for running and managing complex command workflows. It provides a flexible way to define, compose, and execute command chains with sophisticated flow control, parallel processing, and comprehensive error handling.
 
-![AVMTool Diagram](https://via.placeholder.com/800x400?text=AVMTool+Command+Orchestration)
-
 ## Features
 
 - **Sophisticated Command Orchestration**
@@ -32,19 +30,18 @@ AVMTool is a sophisticated command orchestration framework for running and manag
 
 - **Extensible Architecture**
   - Plugin-based command registry
-  - Custom item providers
-  - Working directory management avmtool - a portable process orchestrater
+  - Working directory management
 
 ## Installation
 
 ```bash
-go install github.com/matt-FFFFFF/avmtool@latest
+go install github.com/matt-FFFFFF/pporch@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/matt-FFFFFF/avmtool.git
+git clone https://github.com/matt-FFFFFF/pporch.git
 cd avmtool
 go build -o avmtool
 ```
@@ -56,66 +53,46 @@ go build -o avmtool
 Create a YAML file defining your command chain:
 
 ```yaml
-name: "Basic Workflow"
-description: "A simple workflow with sequential and parallel tasks"
+name: "Complex Workflow Example"
+description: "Example showing nested serial and parallel commands"
 commands:
-  - type: "serial"
-    name: "Setup and Build"
+  - type: "shell"
+    name: "Setup"
+    command_line: "echo banana"
+
+  - type: "parallel"
+    name: "Parallel Tasks"
     commands:
-      - type: "command"
-        name: "Check Dependencies"
-        command: "commandinpath"
-        args:
-          - "go"
-          - "git"
+      - type: "shell"
+        name: "Task 1"
+        command_line: "echo Task 1 running"
 
-      - type: "parallel"
-        name: "Build Process"
-        commands:
-          - type: "command"
-            name: "Lint Code"
-            command: "oscommand"
-            args:
-              - "go"
-              - "vet"
-              - "./..."
+      - type: "shell"
+        name: "Task 3"
+        command_line: '>&2 echo "an error message" && exit 2 '
 
-          - type: "command"
-            name: "Run Tests"
-            command: "oscommand"
-            args:
-              - "go"
-              - "test"
-              - "./..."
+      - type: "shell"
+        name: "Task 2"
+        command_line: "echo Task 2 running"
+
+  - type: "serial"
+    name: "Copy to tmp demo"
+    commands:
+      - type: "copycwdtotemp"
+        cwd: "."
+      - type: "shell"
+        name: "List files"
+        command_line: "ls -l"
+      - type: "shell"
+        name: "Print working directory"
+        command_line: "pwd"
+
 ```
 
 Run it with:
 
 ```bash
 avmtool run workflow.yaml
-```
-
-### ForEach Iteration
-
-Process multiple items in parallel or series:
-
-```yaml
-name: "Process Files"
-description: "Process all Go files in parallel"
-commands:
-  - type: "foreach"
-    name: "Go Files"
-    itemProvider: "list-go-files"
-    mode: "parallel"
-    itemVariable: "FILE"
-    commands:
-      - type: "command"
-        name: "Format File"
-        command: "oscommand"
-        args:
-          - "gofmt"
-          - "-w"
-          - "${FILE}"
 ```
 
 ## Command Types
@@ -127,12 +104,9 @@ AVMTool supports several command types:
 Executes a single command:
 
 ```yaml
-- type: "command"
+- type: "shell"
   name: "Build Project"
-  command: "oscommand"
-  args:
-    - "go"
-    - "build"
+  command_line: "make build"
 ```
 
 ### 2. Serial Batch
@@ -167,31 +141,6 @@ Executes commands in parallel:
       # ...
 ```
 
-### 4. ForEach Command
-
-Processes a collection of items:
-
-```yaml
-- type: "foreach"
-  name: "Process Directories"
-  itemProvider: "list-directories"
-  mode: "serial"  # or "parallel"
-  itemVariable: "DIR"
-  commands:
-    # Commands to run for each directory
-```
-
-## Item Providers
-
-AVMTool includes several built-in item providers for ForEach commands:
-
-- `list-go-files`: Lists all Go files in the current directory
-- `list-yaml-files`: Lists all YAML files
-- `list-directories`: Lists all directories
-- `comma-separated`: Splits a comma-separated string into items
-
-Custom providers can be registered programmatically.
-
 ## Extending AVMTool
 
 ### Creating Custom Commands
@@ -199,25 +148,12 @@ Custom providers can be registered programmatically.
 Implement the `Commander` interface:
 
 ```go
+// Commander is an interface for converting commands into runnables.
 type Commander interface {
-  Create(name, exec, cwd string, args ...string) (runbatch.Runnable, error)
+ // Create creates a runnable command from the provided payload.
+ // The payload is the YAML command in bytes.
+ Create(ctx context.Context, payload []byte) (runbatch.Runnable, error)
 }
-```
-
-### Creating Custom Item Providers
-
-Create and register item provider functions:
-
-```go
-func MyProvider() runbatch.ItemsProviderFunc {
-  return func(ctx context.Context, workingDir string) ([]string, error) {
-    // Return a slice of items
-    return []string{"item1", "item2", "item3"}, nil
-  }
-}
-
-// Register provider
-registry.DefaultItemProviderRegistry.Register("my-provider", MyProvider())
 ```
 
 ## Advanced Examples
@@ -228,12 +164,10 @@ registry.DefaultItemProviderRegistry.Register("my-provider", MyProvider())
 - type: "serial"
   name: "Work in Temp Directory"
   commands:
-    - type: "command"
-      name: "Copy to Temp"
-      command: "copycwdtotemp"
-    - type: "command"
+    - type: "copycwdtotemp"
+    - type: "shell"
       name: "Run in Temp"
-      # ...
+      command_line: "pwd"
 ```
 
 ### Environment Variable Substitution
@@ -244,12 +178,9 @@ registry.DefaultItemProviderRegistry.Register("my-provider", MyProvider())
   itemProvider: "comma-separated"  # Returns: "dev,staging,prod"
   itemVariable: "ENV"
   commands:
-    - type: "command"
+    - type: "shell"
       name: "Deploy to ${ENV}"
-      command: "oscommand"
-      args:
-        - "./deploy.sh"
-        - "${ENV}"
+      command_line: "oscommand"
 ```
 
 ## Core Concepts
@@ -259,11 +190,17 @@ registry.DefaultItemProviderRegistry.Register("my-provider", MyProvider())
 The foundation of AVMTool is the `Runnable` interface, which defines anything that can be executed:
 
 ```go
+// Runnable is an interface for something that can be run as part of a batch (either a Command or a nested Batch).
 type Runnable interface {
-  Run(context.Context) Results
-  GetLabel() string
-  SetCwd(string)
-}
+ // Run executes the command or batch and returns the results.
+ // It should handle context cancellation and passing signals to any spawned process.
+ Run(context.Context) Results
+ // SetCwd sets the working directory for the command or batch.
+ // It should be called before Run() to ensure the command or batch runs in the correct directory.
+ SetCwd(string)
+ // InheritEnv sets the environment variables for the command or batch.
+ // It should not overwrite the existing environment variables, but rather add to them.
+ InheritEnv(map[string]string)
 ```
 
 ### Results

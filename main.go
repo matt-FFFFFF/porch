@@ -8,9 +8,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/matt-FFFFFF/avmtool/cmd"
-	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
-	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
+	"github.com/matt-FFFFFF/pporch/cmd"
+	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
+	"github.com/matt-FFFFFF/pporch/internal/signalbroker"
 )
 
 func main() {

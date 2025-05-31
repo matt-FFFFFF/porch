@@ -1,9 +1,0 @@
-name: "Shell Command Example"
-description: "Example using the new shell command type"
-commands:
-  - type: "shell"
-    name: "List Files"
-    exec: "ls"
-    args:
-      - "-la"
-    cwd: "/tmp"

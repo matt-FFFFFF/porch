@@ -8,19 +8,11 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/avmtool/internal/commandregistry"
-	"github.com/matt-FFFFFF/avmtool/internal/commands"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/commands"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 )
 
-const CommandType = "copycwdtotemp"
-
 var _ commands.Commander = (*Commander)(nil)
-
-// init registers the copycwdtotemp command type.
-func init() {
-	commandregistry.Register(CommandType, &Commander{})
-}
 
 // Commander is a struct that implements the commands.Commander interface.
 type Commander struct{}
@@ -32,5 +24,9 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		return nil, fmt.Errorf("failed to unmarshal copycwdtotemp command definition: %w", err)
 	}
 
-	return New(def.Cwd), nil
+	if def.WorkingDirectory == "" {
+		def.WorkingDirectory = "."
+	}
+
+	return New(def.WorkingDirectory), nil
 }

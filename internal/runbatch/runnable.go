@@ -8,17 +8,14 @@ import (
 )
 
 // Runnable is an interface for something that can be run as part of a batch (either a Command or a nested Batch).
-//
-// Run() executes the command or batch and returns the results.
-// It should handle context cancellation and passing signals to any spawned process.
-//
-// SetCwd() sets the working directory for the command or batch.
-// It should be called before Run() to ensure the command or batch runs in the correct directory.
-//
-// InheritEnv() sets the environment variables for the command or batch.
-// It should not overwrite the existing environment variables, but rather add to them.
 type Runnable interface {
+	// Run executes the command or batch and returns the results.
+	// It should handle context cancellation and passing signals to any spawned process.
 	Run(context.Context) Results
+	// SetCwd sets the working directory for the command or batch.
+	// It should be called before Run() to ensure the command or batch runs in the correct directory.
 	SetCwd(string)
+	// InheritEnv sets the environment variables for the command or batch.
+	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)
 }

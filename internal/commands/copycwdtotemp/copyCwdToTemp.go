@@ -10,8 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/matt-FFFFFF/avmtool/internal/commands"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/commands"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 	"github.com/spf13/afero"
 )
 
@@ -32,12 +32,12 @@ var (
 )
 
 const (
-	// SixFourFour is the file mode for non-executable files created in the temporary directory.
-	SixFourFour = 0o644
-	// SevenFiveFive is the file mode for directories created in the temporary directory.
-	SevenFiveFive = 0o755
-	// TempDirSuffixLength is the length of the random suffix for the temporary directory.
-	TempDirSuffixLength = 8
+	// sixFourFour is the file mode for non-executable files created in the temporary directory.
+	sixFourFour = 0o644
+	// sevenFiveFive is the file mode for directories created in the temporary directory.
+	sevenFiveFive = 0o755
+	// tempDirSuffixLength is the length of the random suffix for the temporary directory.
+	tempDirSuffixLength = 8
 )
 
 // TempDirPath returns the temporary directory to use.
@@ -61,9 +61,9 @@ func New(cwd string) *runbatch.FunctionCommand {
 	ret := &runbatch.FunctionCommand{
 		Label: "Copy current working directory to temporary directory",
 		Func: func(ctx context.Context, cwd string, _ ...string) runbatch.FunctionCommandReturn {
-			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", TempDirSuffixLength))
+			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", tempDirSuffixLength))
 			// Create a temporary directory in the OS temp directory
-			err := FS.MkdirAll(tmpDir, SevenFiveFive)
+			err := FS.MkdirAll(tmpDir, sevenFiveFive)
 			if err != nil {
 				return runbatch.FunctionCommandReturn{
 					Err: err,
@@ -96,7 +96,7 @@ func New(cwd string) *runbatch.FunctionCommand {
 
 					// If it's a directory, create it
 					if info.IsDir() {
-						return FS.MkdirAll(dstPath, SevenFiveFive)
+						return FS.MkdirAll(dstPath, sevenFiveFive)
 					}
 
 					// If it's a file, copy it
@@ -105,7 +105,7 @@ func New(cwd string) *runbatch.FunctionCommand {
 						return errors.Join(ErrFileCopy, err)
 					}
 
-					return afero.WriteFile(FS, dstPath, srcFile, SixFourFour)
+					return afero.WriteFile(FS, dstPath, srcFile, sixFourFour)
 				}
 			})
 

@@ -10,8 +10,8 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/avmtool/internal/commands"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/commands"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 )
 
 var (
@@ -19,6 +19,8 @@ var (
 	ErrUnknownCommandType = errors.New("unknown command type")
 	// ErrCommandCreation is returned when a command cannot be created.
 	ErrCommandCreation = errors.New("failed to create command")
+	// ErrCommandUnmarshal is returned when a command cannot be unmarshaled.
+	ErrCommandUnmarshal = errors.New("failed to unmarshal command definition")
 )
 
 // Registry holds the mapping between command types and their commanders.
@@ -42,7 +44,7 @@ type RawCommand struct {
 func CreateRunnableFromYAML(ctx context.Context, yamlData []byte) (runbatch.Runnable, error) {
 	var rawCmd RawCommand
 	if err := yaml.Unmarshal(yamlData, &rawCmd); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal command: %w", err)
+		return nil, errors.Join(ErrCommandUnmarshal, err)
 	}
 
 	commander, exists := DefaultRegistry[rawCmd.Type]

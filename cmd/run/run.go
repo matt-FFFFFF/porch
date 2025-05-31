@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package run
 
 import (
@@ -6,8 +9,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/matt-FFFFFF/avmtool/internal/config"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/config"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 	"github.com/urfave/cli/v3"
 )
 

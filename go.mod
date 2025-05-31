@@ -1,4 +1,4 @@
-module github.com/matt-FFFFFF/avmtool
+module github.com/matt-FFFFFF/pporch
 
 go 1.24.2
 

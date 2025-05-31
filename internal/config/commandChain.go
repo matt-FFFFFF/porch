@@ -9,19 +9,18 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/avmtool/internal/commandregistry"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/commandregistry"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 
-	_ "github.com/matt-FFFFFF/avmtool/internal/commands/copycwdtotemp"
-	_ "github.com/matt-FFFFFF/avmtool/internal/commands/parallelcommand"
-	_ "github.com/matt-FFFFFF/avmtool/internal/commands/serialcommand"
-	_ "github.com/matt-FFFFFF/avmtool/internal/commands/shellcommand"
+	// blank import used to run init functions of all commands to register them.
+	_ "github.com/matt-FFFFFF/pporch/internal/allcommands"
 )
 
 var (
-	ErrTooManyRootCommands = errors.New("too many root commands")
-	ErrInvalidYaml         = errors.New("invalid YAML")
-	ErrNoCommands          = errors.New("no commands specified")
+	// ErrInvalidYaml is returned when the YAML configuration is invalid.
+	ErrInvalidYaml = errors.New("invalid YAML")
+	// ErrNoCommands is returned when no commands are specified in the configuration.
+	ErrNoCommands = errors.New("no commands specified")
 )
 
 // Definition represents the root configuration structure.
@@ -42,25 +41,27 @@ func BuildFromYAML(ctx context.Context, yamlData []byte) (runbatch.Runnable, err
 		return nil, ErrNoCommands
 	}
 
-	if len(def.Commands) > 1 {
-		return nil, ErrTooManyRootCommands
-	}
+	runnables := make([]runbatch.Runnable, 0, len(def.Commands))
 
-	// Convert the command to YAML and then process it
-	cmdYAML, err := yaml.Marshal(def.Commands[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal command: %w", err)
-	}
+	for _, cmd := range def.Commands {
+		// Convert the command to YAML and then process it
+		cmdYAML, err := yaml.Marshal(cmd)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal command: %w", err)
+		}
 
-	runnable, err := commandregistry.CreateRunnableFromYAML(ctx, cmdYAML)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create runnable: %w", err)
+		runnable, err := commandregistry.CreateRunnableFromYAML(ctx, cmdYAML)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create runnable: %w", err)
+		}
+
+		runnables = append(runnables, runnable)
 	}
 
 	// Wrap in a serial batch with the definition's metadata
 	result := &runbatch.SerialBatch{
 		Label:    def.Name,
-		Commands: []runbatch.Runnable{runnable},
+		Commands: runnables,
 	}
 
 	return result, nil

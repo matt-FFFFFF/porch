@@ -8,8 +8,8 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/avmtool/internal/commands"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/commands"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 )
 
 var _ commands.Commander = (*Commander)(nil)
@@ -24,5 +24,5 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		return nil, fmt.Errorf("failed to unmarshal shell command definition: %w", err)
 	}
 
-	return New(ctx, def.Name, def.Exec, def.Cwd, def.Args)
+	return New(ctx, def.Name, def.CommandLine, def.WorkingDirectory)
 }

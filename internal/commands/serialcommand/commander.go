@@ -9,19 +9,12 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/avmtool/internal/commandregistry"
-	"github.com/matt-FFFFFF/avmtool/internal/commands"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/commandregistry"
+	"github.com/matt-FFFFFF/pporch/internal/commands"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 )
 
-const CommandType = "serial"
-
 var _ commands.Commander = (*Commander)(nil)
-
-// init registers the serial command type.
-func init() {
-	commandregistry.Register(CommandType, &Commander{})
-}
 
 // Definition represents the YAML configuration for the serial command.
 type Definition struct {
@@ -40,6 +33,7 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 	}
 
 	var runnables []runbatch.Runnable
+
 	for i, cmd := range def.Commands {
 		cmdYAML, err := yaml.Marshal(cmd)
 		if err != nil {

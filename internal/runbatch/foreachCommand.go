@@ -13,6 +13,7 @@ import (
 var _ Runnable = (*ForEachCommand)(nil)
 
 const (
+	// ItemEnvVar is the environment variable name used to store the current item in the iteration.
 	ItemEnvVar = "ITEM"
 )
 
@@ -58,6 +59,7 @@ func (f *ForEachCommand) InheritEnv(env map[string]string) {
 		f.Env = maps.Clone(env)
 		return
 	}
+
 	for k, v := range maps.All(env) {
 		if _, ok := f.Env[k]; !ok {
 			f.Env[k] = v
@@ -99,6 +101,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		if newEnv == nil {
 			newEnv = make(map[string]string)
 		}
+
 		newEnv[ItemEnvVar] = item
 
 		foreachCommands[i] = &SerialBatch{

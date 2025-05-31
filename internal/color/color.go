@@ -67,7 +67,7 @@ const (
 	FgWhite
 
 	// used internally for 256 and 24-bit coloring.
-	foreground
+	foreground //nolint:unused
 )
 
 // Foreground Hi-Intensity text colors.
@@ -94,7 +94,7 @@ const (
 	BgWhite
 
 	// used internally for 256 and 24-bit coloring.
-	background
+	background //nolint:unused
 )
 
 // Background Hi-Intensity text colors.

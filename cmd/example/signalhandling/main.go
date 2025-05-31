@@ -9,9 +9,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
-	"github.com/matt-FFFFFF/avmtool/internal/runbatch"
-	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
+	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
+	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/pporch/internal/signalbroker"
 )
 
 // signal interrupts with the runbatch package.

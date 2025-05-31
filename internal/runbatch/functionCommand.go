@@ -58,7 +58,7 @@ func (f *FunctionCommand) SetCwd(cwd string) {
 }
 
 // InheritEnv is not implemented for FunctionCommand.
-func (f *FunctionCommand) InheritEnv(env map[string]string) {}
+func (f *FunctionCommand) InheritEnv(_ map[string]string) {}
 
 // Run implements the Runnable interface for FunctionCommand.
 func (f *FunctionCommand) Run(ctx context.Context) Results {

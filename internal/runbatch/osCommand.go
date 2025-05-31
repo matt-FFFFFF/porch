@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
-	"github.com/matt-FFFFFF/avmtool/internal/signalbroker"
+	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
+	"github.com/matt-FFFFFF/pporch/internal/signalbroker"
 )
 
 const (
@@ -62,6 +62,7 @@ func (c *OSCommand) InheritEnv(env map[string]string) {
 		c.Env = maps.Clone(env)
 		return
 	}
+
 	for k, v := range maps.All(env) {
 		if _, ok := c.Env[k]; !ok {
 			c.Env[k] = v

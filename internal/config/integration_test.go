@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/matt-FFFFFF/avmtool/internal/config"
+	"github.com/matt-FFFFFF/pporch/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

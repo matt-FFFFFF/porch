@@ -1,32 +1,33 @@
 name: "Complex Workflow Example"
 description: "Example showing nested serial and parallel commands"
 commands:
-  - type: "serial"
-    name: "Main Workflow"
+  - type: "shell"
+    name: "Setup"
+    command_line: "echo banana"
+
+  - type: "parallel"
+    name: "Parallel Tasks"
     commands:
       - type: "shell"
-        name: "Setup"
-        exec: "echo"
-        args:
-          - "Starting workflow"
-
-      - type: "parallel"
-        name: "Parallel Tasks"
-        commands:
-          - type: "shell"
-            name: "Task 1"
-            exec: "echo"
-            args:
-              - "Task 1 running"
-
-          - type: "shell"
-            name: "Task 2"
-            exec: "echo"
-            args:
-              - "Task 2 running"
+        name: "Task 1"
+        command_line: "echo Task 1 running"
 
       - type: "shell"
-        name: "Cleanup"
-        exec: "echo"
-        args:
-          - "Workflow complete"
+        name: "Task 3"
+        command_line: '>&2 echo "an error message" && exit 2 '
+
+      - type: "shell"
+        name: "Task 2"
+        command_line: "echo Task 2 running"
+
+  - type: "serial"
+    name: "Copy to tmp demo"
+    commands:
+      - type: "copycwdtotemp"
+        cwd: "."
+      - type: "shell"
+        name: "List files"
+        command_line: "ls -l"
+      - type: "shell"
+        name: "Print working directory"
+        command_line: "pwd"

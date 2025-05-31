@@ -32,6 +32,7 @@ func (b *ParallelBatch) InheritEnv(env map[string]string) {
 		b.Env = maps.Clone(env)
 		return
 	}
+
 	for k, v := range maps.All(env) {
 		if _, ok := b.Env[k]; !ok {
 			b.Env[k] = v

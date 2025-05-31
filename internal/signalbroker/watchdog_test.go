@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/matt-FFFFFF/avmtool/internal/ctxlog"
+	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
 )
 
 func TestWatch_FirstSignalNoCancel(t *testing.T) {

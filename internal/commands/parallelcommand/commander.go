@@ -14,14 +14,7 @@ import (
 	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 )
 
-const CommandType = "parallel"
-
 var _ commands.Commander = (*Commander)(nil)
-
-// init registers the parallel command type.
-func init() {
-	commandregistry.Register(CommandType, &Commander{})
-}
 
 // Definition represents the YAML configuration for the parallel command.
 type Definition struct {

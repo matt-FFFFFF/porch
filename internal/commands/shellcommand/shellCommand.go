@@ -1,7 +1,7 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// Package commandinpath provides a way to create an OSCommand that searches for a command in the system PATH.
+// Package shellcommand provides a way to create an OSCommand that searches for a command in the system PATH.
 package shellcommand
 
 import (
@@ -12,6 +12,7 @@ import (
 	"runtime"
 
 	"github.com/matt-FFFFFF/pporch/internal/commands"
+	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
 	"github.com/matt-FFFFFF/pporch/internal/runbatch"
 )
 
@@ -29,9 +30,11 @@ const (
 var _ commands.Commander = (*Commander)(nil)
 
 var (
+	// ErrCommandNotFound is returned when the command is not found in the system PATH or if the command is empty.
 	ErrCommandNotFound = errors.New("command not found")
 )
 
+// Definition is the YAML definition for the shell command.
 type Definition struct {
 	commands.BaseDefinition `yaml:",inline"`
 	CommandLine             string `yaml:"command_line"` // The command to execute, can be a path or a command name.
@@ -71,6 +74,7 @@ func defaultShell(ctx context.Context) string {
 	}
 
 	if shell := os.Getenv("SHELL"); shell != "" {
+		ctxlog.Debug(ctx, "Using SHELL environment variable", "shell", shell)
 		return shell
 	}
 

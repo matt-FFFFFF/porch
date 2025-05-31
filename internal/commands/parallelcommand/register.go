@@ -1,13 +1,13 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-package copycwdtotemp
+package parallelcommand
 
 import "github.com/matt-FFFFFF/pporch/internal/commandregistry"
 
-const commandType = "copycwdtotemp"
+const commandType = "parallel"
 
-// init registers the copycwdtotemp command type.
+// init registers the parallel command type.
 func init() {
 	commandregistry.Register(commandType, &Commander{})
 }

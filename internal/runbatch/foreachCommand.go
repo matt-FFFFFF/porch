@@ -145,7 +145,11 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 }
 
 // NewForEachCommand creates a new ForEachCommand.
-func NewForEachCommand(label string, provider ItemsProviderFunc, mode ForEachMode, commands []Runnable) *ForEachCommand {
+func NewForEachCommand(
+	label string,
+	provider ItemsProviderFunc,
+	mode ForEachMode,
+	commands []Runnable) *ForEachCommand {
 	return &ForEachCommand{
 		Label:         label,
 		ItemsProvider: provider,

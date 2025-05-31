@@ -11,11 +11,17 @@ import (
 	"golang.org/x/term"
 )
 
+const (
+	sbPadding = 16 // padding for the strings.Builder
+)
+
+// Code represents an ANSI control code for text formatting.
 type Code int
 
+// ControlString generates a string with ANSI control codes for text formatting.
 func ControlString(c ...Code) string {
 	sb := strings.Builder{}
-	sb.Grow(len(prefix) + len(suffix) + 4)
+	sb.Grow(len(prefix) + len(suffix) + sbPadding)
 	sb.WriteString(prefix)
 
 	for i, code := range c {
@@ -115,6 +121,8 @@ func init() {
 	enabled = isColorEnabled()
 }
 
+// Colorize returns a string with ANSI color codes applied.
+// It appends the reset code at the end of the string to reset the color.
 func Colorize(str string, colorCodes ...Code) string {
 	// If color output is not enabled, return the string as is
 	if !enabled {
@@ -122,7 +130,7 @@ func Colorize(str string, colorCodes ...Code) string {
 	}
 
 	sb := strings.Builder{}
-	sb.Grow(len(str) + len(prefix) + len(suffix) + len(reset) + 16)
+	sb.Grow(len(str) + len(prefix) + len(suffix) + len(reset) + sbPadding)
 	sb.WriteString(prefix)
 
 	for i, code := range colorCodes {
@@ -140,6 +148,8 @@ func Colorize(str string, colorCodes ...Code) string {
 	return sb.String()
 }
 
+// ColorizeNoReset returns a string with ANSI color codes applied.
+// It does not append the reset code at the end of the string.
 func ColorizeNoReset(str string, colorCodes ...Code) string {
 	// If color output is not enabled, return the string as is
 	if !enabled {
@@ -147,7 +157,7 @@ func ColorizeNoReset(str string, colorCodes ...Code) string {
 	}
 
 	sb := strings.Builder{}
-	sb.Grow(len(str) + len(prefix) + len(suffix) + 16)
+	sb.Grow(len(str) + len(prefix) + len(suffix) + sbPadding)
 	sb.WriteString(prefix)
 
 	for i, code := range colorCodes {

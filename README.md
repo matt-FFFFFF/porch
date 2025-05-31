@@ -1,6 +1,6 @@
-# AVMTool - A Powerful Command Orchestration Framework
+# pporch - A Powerful Process Orchestration Framework
 
-AVMTool is a sophisticated command orchestration framework for running and managing complex command workflows. It provides a flexible way to define, compose, and execute command chains with sophisticated flow control, parallel processing, and comprehensive error handling.
+pporch is a sophisticated process orchestration framework for running and managing complex command workflows. It provides a flexible way to define, compose, and execute command chains with sophisticated flow control, parallel processing, and comprehensive error handling.
 
 ## Features
 

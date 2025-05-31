@@ -73,7 +73,15 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 	// Print the status line
 	if options.ColorOutput {
-		fmt.Fprintf(w, "%s%s %s%s%s", indent, statusStr, labelPrefix, label, color.ControlString(color.Reset)) // nolint:errcheck
+		fmt.Fprintf( // nolint:errcheck
+			w,
+			"%s%s %s%s%s",
+			indent,
+			statusStr,
+			labelPrefix,
+			label,
+			color.ControlString(color.Reset),
+		)
 	} else {
 		fmt.Fprintf(w, "%s%s %s", indent, statusStr, label) // nolint:errcheck
 	}
@@ -83,7 +91,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		fmt.Fprintf(w, " (exit code: %d)", r.ExitCode) // nolint:errcheck
 	}
 
-	fmt.Fprintln(w)
+	fmt.Fprintln(w) // nolint:errcheck
 
 	// Add error message if there is one
 	if r.Error != nil {
@@ -91,7 +99,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		if !errors.Is(r.Error, ErrResultChildrenHasError) {
 			errMsg := r.Error.Error()
 			if options.ColorOutput {
-				fmt.Fprintf(
+				fmt.Fprintf( // nolint:errcheck
 					w,
 					"%s  %s %s%s\n",
 					indent,
@@ -100,7 +108,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 					color.ControlString(color.Reset),
 				)
 			} else {
-				fmt.Fprintf(w, "%s  ➜ Error: %s\n", indent, errMsg)
+				fmt.Fprintf(w, "%s  ➜ Error: %s\n", indent, errMsg) // nolint:errcheck
 			}
 		}
 	}
@@ -111,19 +119,19 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 	// Add stdout if requested and exists
 	if shouldShowDetails && options.IncludeStdOut && len(r.StdOut) > 0 {
-		fmt.Fprintf(w, "%s  ➜ Output:\n", indent)
-		fmt.Fprintf(w, "%s", formatOutput(r.StdOut, indent+"     "))
+		fmt.Fprintf(w, "%s  ➜ Output:\n", indent)                    // nolint:errcheck
+		fmt.Fprintf(w, "%s", formatOutput(r.StdOut, indent+"     ")) // nolint:errcheck
 	}
 
 	// Add stderr if requested and exists
 	if shouldShowDetails && options.IncludeStdErr && len(r.StdErr) > 0 {
 		if options.ColorOutput {
-			fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgYellow))
+			fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgYellow)) // nolint:errcheck
 		} else {
-			fmt.Fprintf(w, "%s  ➜ Error Output:\n", indent)
+			fmt.Fprintf(w, "%s  ➜ Error Output:\n", indent) // nolint:errcheck
 		}
 
-		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     "))
+		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     ")) // nolint:errcheck
 	}
 
 	// Process child results if any, with increased indentation

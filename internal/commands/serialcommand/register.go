@@ -5,9 +5,9 @@ package serialcommand
 
 import "github.com/matt-FFFFFF/pporch/internal/commandregistry"
 
-const CommandType = "serial"
+const commandType = "serial"
 
 // init registers the serial command type.
 func init() {
-	commandregistry.Register(CommandType, &Commander{})
+	commandregistry.Register(commandType, &Commander{})
 }

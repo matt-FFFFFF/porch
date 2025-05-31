@@ -18,7 +18,7 @@ var _ commands.Commander = (*Commander)(nil)
 type Commander struct{}
 
 // Create creates a new runnable command and implements the commands.Commander interface.
-func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
+func (c *Commander) Create(_ context.Context, payload []byte) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal copycwdtotemp command definition: %w", err)

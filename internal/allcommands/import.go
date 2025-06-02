@@ -7,6 +7,7 @@ package allcommands
 import (
 	// Import all command packages to trigger their init() functions.
 	_ "github.com/matt-FFFFFF/porch/internal/commands/copycwdtotemp"
+	_ "github.com/matt-FFFFFF/porch/internal/commands/foreachdirectory"
 	_ "github.com/matt-FFFFFF/porch/internal/commands/parallelcommand"
 	_ "github.com/matt-FFFFFF/porch/internal/commands/serialcommand"
 	_ "github.com/matt-FFFFFF/porch/internal/commands/shellcommand"

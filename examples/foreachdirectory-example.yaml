@@ -1,0 +1,12 @@
+name: "For Each Directory Example"
+description: "Example showing nested serial and parallel commands"
+commands:
+  - type: "foreachdirectory"
+    name: "For Each Directory"
+    working_directory: "./internal/"
+    mode: "parallel"
+    depth: 1
+    commands:
+      - type: "shell"
+        name: "echo item var"
+        command_line: "echo $ITEM"

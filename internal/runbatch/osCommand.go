@@ -45,10 +45,9 @@ var (
 // OSCommand represents a single command to be run in the batch.
 type OSCommand struct {
 	*BaseCommand
-	Args  []string          // Arguments to the command, do not include the executable name itself.
-	Env   map[string]string // Environment variables.
-	Path  string            // The command to run (e.g. executable full path).
-	sigCh chan os.Signal    // Channel to receive signals, allows mocking in test.
+	Args  []string       // Arguments to the command, do not include the executable name itself.
+	Path  string         // The command to run (e.g. executable full path).
+	sigCh chan os.Signal // Channel to receive signals, allows mocking in test.
 }
 
 // Run implements the Runnable interface for OSCommand.
@@ -102,7 +101,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		Files: []*os.File{os.Stdin, wOut, wErr},
 	})
 	startTime := time.Now()
-	startTimeStr := startTime.Format(time.DateTime)
+	startTimeStr := startTime.Format(ctxlog.TimeFormat)
 
 	fullLabel := FullLabel(c)
 	fmt.Printf("%s: process started at %s\n", fullLabel, startTimeStr)
@@ -170,7 +169,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	state, psErr := ps.Wait()
 
-	fmt.Printf("%s: process finished at %s\n", fullLabel, time.Now().Format(time.DateTime))
+	fmt.Printf("%s: process finished at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
 
 	logger.Debug("process finished", "exitCode", res.ExitCode)
 

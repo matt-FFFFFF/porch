@@ -18,10 +18,9 @@ import (
 
 func TestCommandRun_Success(t *testing.T) {
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("echo test", "", RunOnSuccess, nil, nil),
+		BaseCommand: NewBaseCommand("echo test", "", RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
 		Path:        "/bin/echo",
 		Args:        []string{"hello"},
-		Env:         map[string]string{"FOO": "BAR"},
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -82,10 +81,9 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 
 	tempDir := t.TempDir()
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("env and cwd test", tempDir, RunOnSuccess, nil, nil),
+		BaseCommand: NewBaseCommand("env and cwd test", tempDir, RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
 		Path:        "/bin/sh",
 		Args:        []string{"-c", "echo $FOO; pwd"},
-		Env:         map[string]string{"FOO": "BAR"},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)

@@ -6,6 +6,8 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
@@ -51,6 +53,9 @@ type BaseDefinition struct {
 
 // ToBaseCommand converts the BaseDefinition to a runbatch.BaseCommand.
 func (d *BaseDefinition) ToBaseCommand() (*runbatch.BaseCommand, error) {
+	if d.RunsOnCondition == "" {
+		d.RunsOnCondition = runbatch.RunOnSuccess.String()
+	}
 	ro, err := runbatch.NewRunCondition(d.RunsOnCondition)
 	if err != nil {
 		return nil, errors.Join(ErrYamlUnmarshal, err)
@@ -60,7 +65,7 @@ func (d *BaseDefinition) ToBaseCommand() (*runbatch.BaseCommand, error) {
 		Label:           d.Name,
 		Cwd:             d.WorkingDirectory,
 		RunsOnCondition: ro,
-		RunsOnExitCodes: d.RunsOnExitCodes,
-		Env:             d.Env,
+		RunsOnExitCodes: slices.Clone(d.RunsOnExitCodes),
+		Env:             maps.Clone(d.Env),
 	}, nil
 }

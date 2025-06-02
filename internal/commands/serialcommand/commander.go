@@ -51,11 +51,11 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		}
 
 		runnable, err := commandregistry.CreateRunnableFromYAML(ctx, cmdYAML)
-		runnable.SetParent(serialBatch)
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
+
+		runnable.SetParent(serialBatch)
 
 		runnables = append(runnables, runnable)
 	}

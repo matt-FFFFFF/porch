@@ -21,8 +21,12 @@ const (
 // It takes a context and the current working directory, and returns a list of items and an error.
 type ItemsProviderFunc func(ctx context.Context, workingDirectory string) ([]string, error)
 
-// ErrItemsProviderFailed is returned when the items provider function fails.
-var ErrItemsProviderFailed = errors.New("items provider function failed")
+var (
+	// ErrItemsProviderFailed is returned when the items provider function fails.
+	ErrItemsProviderFailed = errors.New("items provider function failed")
+	// ErrInvalidForEachMode is returned when an invalid foreach mode is specified.
+	ErrInvalidForEachMode = errors.New("invalid foreach mode specified, must be 'serial' or 'parallel'")
+)
 
 // ForEachMode determines whether the commands are executed in serial or parallel.
 type ForEachMode int
@@ -34,6 +38,17 @@ const (
 	ForEachParallel
 )
 
+func (m ForEachMode) String() string {
+	switch m {
+	case ForEachSerial:
+		return "serial"
+	case ForEachParallel:
+		return "parallel"
+	default:
+		return "unknown"
+	}
+}
+
 // ForEachCommand executes a list of commands for each item returned by an items provider function.
 type ForEachCommand struct {
 	*BaseCommand
@@ -42,13 +57,17 @@ type ForEachCommand struct {
 	Mode          ForEachMode
 }
 
-// GetLabel returns the label of the batch.
-func (f *ForEachCommand) GetLabel() string {
-	if f.Label == "" {
-		return "ForEach Command"
+// ParseForEachMode converts a string to a ForEachMode.
+// If the string is not valid, it returns an ErrInvalidForEachMode error.
+func ParseForEachMode(mode string) (ForEachMode, error) {
+	switch mode {
+	case "serial":
+		return ForEachSerial, nil
+	case "parallel":
+		return ForEachParallel, nil
+	default:
+		return 0, ErrInvalidForEachMode
 	}
-
-	return f.Label
 }
 
 // Run implements the Runnable interface for ForEachCommand.
@@ -92,17 +111,28 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
-			fmt.Sprintf("[%s]", f.Label),
+			fmt.Sprintf("[%s]", item),
 			f.Cwd,
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
 		)
-		foreachCommands[i] = &SerialBatch{
+
+		// Create the serial batch for this item
+		serialBatch := &SerialBatch{
 			BaseCommand: base,
-			Commands:    f.Commands,
 		}
-		foreachCommands[i].SetParent(run)
+
+		// Clone the commands for each iteration to avoid shared state
+		clonedCommands := make([]Runnable, len(f.Commands))
+		for j, cmd := range f.Commands {
+			clonedCommands[j] = cloneRunnable(cmd)
+			// Set the parent of each cloned command to this serial batch
+			clonedCommands[j].SetParent(serialBatch)
+		}
+
+		serialBatch.Commands = clonedCommands
+		foreachCommands[i] = serialBatch
 	}
 
 	base := NewBaseCommand(f.Label, f.Cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env))
@@ -110,6 +140,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 	// Handle different execution modes
 	if f.Mode == ForEachParallel {
+		base.Label = f.Label + " (parallel)"
 		run = &ParallelBatch{
 			BaseCommand: base,
 			Commands:    foreachCommands,
@@ -117,14 +148,19 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 	}
 
 	if f.Mode == ForEachSerial {
+		base.Label = f.Label + " (serial)"
 		run = &SerialBatch{
 			BaseCommand: base,
 			Commands:    foreachCommands,
 		}
 	}
 
+	// Now set the parent for each foreach command to the run batch
+	for _, foreachCmd := range foreachCommands {
+		foreachCmd.SetParent(run)
+	}
+
 	results := run.Run(ctx)
-	result.Children = results
 
 	// If any child has an error, set the error on the parent
 	if results.HasError() {
@@ -132,7 +168,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		result.ExitCode = -1
 	}
 
-	return Results{result}
+	return results
 }
 
 // NewForEachCommand creates a new ForEachCommand.

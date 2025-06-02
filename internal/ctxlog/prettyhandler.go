@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	timeFormat = "[15:04:05.000]"
+	TimeFormat = "[15:04:05.000]"
 )
 
 var jsonFormatter = colorjson.NewFormatter()
@@ -123,7 +123,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	timeAttr := slog.Attr{
 		Key:   slog.TimeKey,
-		Value: slog.StringValue(r.Time.Format(timeFormat)),
+		Value: slog.StringValue(r.Time.Format(TimeFormat)),
 	}
 	if h.r != nil {
 		timeAttr = h.r([]string{}, timeAttr)

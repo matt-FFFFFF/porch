@@ -6,20 +6,21 @@ package parallelcommand
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/pporch/internal/commandregistry"
-	"github.com/matt-FFFFFF/pporch/internal/commands"
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/commandregistry"
+	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
 var _ commands.Commander = (*Commander)(nil)
 
-// Definition represents the YAML configuration for the parallel command.
-type Definition struct {
+// definition represents the YAML configuration for the parallel command.
+type definition struct {
 	commands.BaseDefinition `yaml:",inline"`
-	Commands                []interface{} `yaml:"commands"`
+	Commands                []any `yaml:"commands"`
 }
 
 // Commander is a struct that implements the commands.Commander interface.
@@ -27,12 +28,21 @@ type Commander struct{}
 
 // Create creates a new runnable command and implements the commands.Commander interface.
 func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
-	def := new(Definition)
+	def := new(definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal parallel command definition: %w", err)
+		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
 	}
 
 	var runnables []runbatch.Runnable
+
+	base, err := def.ToBaseCommand()
+	if err != nil {
+		return nil, errors.Join(commands.NewErrCommandCreate("parallelcommand"), err)
+	}
+
+	parallalBatch := &runbatch.ParallelBatch{
+		BaseCommand: base,
+	}
 
 	for i, cmd := range def.Commands {
 		cmdYAML, err := yaml.Marshal(cmd)
@@ -41,6 +51,8 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		}
 
 		runnable, err := commandregistry.CreateRunnableFromYAML(ctx, cmdYAML)
+		runnable.SetParent(parallalBatch)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
@@ -48,8 +60,7 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		runnables = append(runnables, runnable)
 	}
 
-	return &runbatch.ParallelBatch{
-		Label:    def.Name,
-		Commands: runnables,
-	}, nil
+	parallalBatch.Commands = runnables
+
+	return parallalBatch, nil
 }

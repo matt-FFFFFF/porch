@@ -1,4 +1,4 @@
-module github.com/matt-FFFFFF/pporch
+module github.com/matt-FFFFFF/porch
 
 go 1.24.2
 

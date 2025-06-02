@@ -4,11 +4,8 @@
 package runbatch
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"strings"
-	"time"
 )
 
 // ExampleWriteResults_stderrOutput demonstrates how to format stderr output with the result formatter.
@@ -70,59 +67,4 @@ func ExampleResults_WriteTextWithOptions_stderrOutput() {
 	//        Nested error 1
 	//        Nested error 2
 	//
-}
-
-// Example of using the formatter to display results.
-func Example_resultFormatting() {
-	// Create a context with a timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	// Create a batch with nested commands
-	batch := &SerialBatch{
-		Label: "Demo Batch",
-		Commands: []Runnable{
-			&OSCommand{
-				Path:  "/bin/echo",
-				Args:  []string{"Hello, world!"},
-				Label: "Greeting Command",
-			},
-			&SerialBatch{
-				Label: "Parallel Processes",
-				Commands: []Runnable{
-					&OSCommand{
-						Path:  "/bin/cat",
-						Args:  []string{"/etc/hosts"},
-						Label: "Show Hosts",
-					},
-					&OSCommand{
-						Path:  "/bin/sh",
-						Args:  []string{"-c", "echo 'This will fail' && exit 1"},
-						Label: "Failing Command",
-					},
-				},
-			},
-		},
-	}
-
-	// Run the batch
-	results := batch.Run(ctx)
-
-	// Output the results with different options
-	fmt.Println("Default Output (failures only):")
-	// Force color output for consistent example output
-	options := &OutputOptions{
-		IncludeStdOut:      false,
-		IncludeStdErr:      true,
-		ColorOutput:        false,
-		ShowSuccessDetails: false,
-	}
-	writeTextResults(os.Stdout, results, options) //nolint:errcheck
-	// Output:
-	// Default Output (failures only):
-	// ✗ Demo Batch (exit code: -1)
-	//   ✓ Greeting Command
-	//   ✗ Parallel Processes (exit code: -1)
-	//     ✓ Show Hosts
-	//     ✗ Failing Command (exit code: 1)
 }

@@ -12,7 +12,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,26 +23,22 @@ const (
 	srcDir = "src"
 )
 
-// CwdTrackerCommand is a simplified mock command that only tracks its cwd.
-type CwdTrackerCommand struct {
-	label       string
-	executedCwd string
+// cwdTrackerCommand is a simplified mock command that only tracks its cwd.
+type cwdTrackerCommand struct {
+	*runbatch.BaseCommand
 }
 
-func (c *CwdTrackerCommand) Run(_ context.Context) runbatch.Results {
-	return runbatch.Results{
-		{
-			Label:    c.label,
-			ExitCode: 0,
-		},
-	}
+func (c *cwdTrackerCommand) ShouldRun(_ runbatch.RunState) bool {
+	return true // Always run for the tracker command
 }
 
-func (c *CwdTrackerCommand) SetCwd(cwd string) {
-	c.executedCwd = cwd
+func (c *cwdTrackerCommand) Run(_ context.Context) runbatch.Results {
+	return runbatch.Results{&runbatch.Result{
+		Label:    c.Label,
+		ExitCode: 0, // Simulate success
+		Error:    nil,
+	}}
 }
-
-func (c *CwdTrackerCommand) InheritEnv(_ map[string]string) {}
 
 func TestCopyCwdToTemp(t *testing.T) {
 	// Create a mock filesystem
@@ -103,11 +99,15 @@ func TestCopyCwdToTemp(t *testing.T) {
 	// We need to capture what temp directory was created
 	var capturedTempDir string
 
-	f := New(cwd)
+	base := &runbatch.BaseCommand{
+		Label: "copyCwdToTemp",
+		Cwd:   cwd,
+	}
+	f := New(base)
 	results := f.Run(ctx)
 
 	// The temp dir should now be
-	capturedTempDir = filepath.Join("/tmp", "avmtool_testrun")
+	capturedTempDir = filepath.Join("/tmp", "porch_testrun")
 
 	// Check the results
 	require.Len(t, results, 1)
@@ -169,13 +169,17 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 		}
 
 		baseFs := afero.NewMemMapFs()
-		errPath := filepath.Join(TempDirPath(), "avmtool_testrun")
+		errPath := filepath.Join(TempDirPath(), "porch_testrun")
 		FS = &errorFS{fs: baseFs, errorPath: errPath} // Create an errorFS that will return an error for directory
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		f := New(cwd)
+		base := &runbatch.BaseCommand{
+			Label: "copyCwdToTemp",
+			Cwd:   cwd,
+		}
+		f := New(base)
 		results := f.Run(ctx)
 
 		require.Len(t, results, 1)
@@ -208,7 +212,11 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		f := New(cwd)
+		base := &runbatch.BaseCommand{
+			Label: "copyCwdToTemp",
+			Cwd:   cwd,
+		}
+		f := New(base)
 		results := f.Run(ctx)
 
 		require.Len(t, results, 1)
@@ -228,7 +236,11 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		cancel()
 
-		f := New(cwd)
+		base := &runbatch.BaseCommand{
+			Label: "copyCwdToTemp",
+			Cwd:   cwd,
+		}
+		f := New(base)
 		results := f.Run(ctx)
 
 		require.Len(t, results, 1)
@@ -242,7 +254,9 @@ func TestCwdChangePropagation(t *testing.T) {
 	const newCwd = tmpDir + "	/new_cwd_path"
 
 	cwdChangingCmd := &runbatch.FunctionCommand{
-		Label: "Change CWD",
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Change CWD",
+		},
 		Func: func(_ context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 			return runbatch.FunctionCommandReturn{
 				NewCwd: newCwd,
@@ -251,13 +265,17 @@ func TestCwdChangePropagation(t *testing.T) {
 	}
 
 	// Command that tracks its CWD
-	tracker := &CwdTrackerCommand{
-		label: "Subsequent command",
+	tracker := &cwdTrackerCommand{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Subsequent command",
+		},
 	}
 
 	// Create the batch
 	batch := &runbatch.SerialBatch{
-		Label:    "Test CWD change batch",
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "CWD Change Test Batch",
+		},
 		Commands: []runbatch.Runnable{cwdChangingCmd, tracker},
 	}
 
@@ -265,7 +283,7 @@ func TestCwdChangePropagation(t *testing.T) {
 	batch.Run(context.Background())
 
 	// Verify the tracker received the new CWD
-	assert.Equal(t, newCwd, tracker.executedCwd,
+	assert.Equal(t, newCwd, tracker.Cwd,
 		"The subsequent command should have received the new CWD")
 }
 
@@ -292,7 +310,7 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 		initialCwd     = "/test/initial/path"
 		tempDir        = tmpDir
 		randomSuffix   = "testrun"
-		expectedNewCwd = tempDir + "/avmtool_testrun"
+		expectedNewCwd = tempDir + "/porch_testrun"
 	)
 
 	// Setup temp directory
@@ -312,21 +330,29 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create our test commands
-	copyCwdCmd := New(initialCwd)
-	trackerCmd := &CwdTrackerCommand{
-		label: "Command after copy",
+	base := &runbatch.BaseCommand{
+		Label: "CopyCwdToTemp",
+		Cwd:   initialCwd,
+	}
+	copyCwdCmd := New(base)
+	trackerCmd := &cwdTrackerCommand{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Tracker Command",
+		},
 	}
 
 	// Create and run a serial batch with both commands
 	batch := &runbatch.SerialBatch{
-		Label:    "Copy and track batch",
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Test CopyCwdToTemp Batch",
+		},
 		Commands: []runbatch.Runnable{copyCwdCmd, trackerCmd},
 	}
 
 	batch.Run(context.Background())
 
 	// Verify the tracker picked up the new working directory
-	assert.Equal(t, expectedNewCwd, trackerCmd.executedCwd,
+	assert.Equal(t, expectedNewCwd, trackerCmd.Cwd,
 		"The CopyCwdToTemp command should have set the working directory for subsequent commands")
 
 	// Verify the file was copied to the new directory

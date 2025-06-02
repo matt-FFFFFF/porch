@@ -17,8 +17,8 @@ commands:
         command_line: '>&2 echo "an error message" && exit 2 '
 
       - type: "shell"
-        name: "Task 2"
-        command_line: "echo Task 2 running"
+        name: "Task 2 (long running)"
+        command_line: "sleep 20"
 
   - type: "serial"
     name: "Copy to tmp demo"

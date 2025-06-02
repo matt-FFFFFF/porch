@@ -7,8 +7,8 @@ import (
 	"context"
 	"testing"
 
-	_ "github.com/matt-FFFFFF/pporch/internal/allcommands" // Import all commands to register them
-	"github.com/matt-FFFFFF/pporch/internal/config"
+	_ "github.com/matt-FFFFFF/porch/internal/allcommands" // Import all commands to register them
+	"github.com/matt-FFFFFF/porch/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

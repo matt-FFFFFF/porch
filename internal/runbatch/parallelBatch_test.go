@@ -32,8 +32,23 @@ func (f *fakeParallelCmd) Run(_ context.Context) Results {
 	}}
 }
 
+// GetLabel returns the label of the batch.
+func (c *fakeParallelCmd) GetLabel() string {
+	return c.label
+}
+
+// GetParent returns the parent for this command.
+func (f *fakeParallelCmd) GetParent() Runnable {
+	return nil // No parent for the fake command
+}
+
+// SetParent sets the parent batch for the command.
+func (f *fakeParallelCmd) SetParent(_ Runnable) {
+	// No-op for the fake command
+}
+
 // SetCwd implements the Runnable interface for fakeParallelCmd.
-func (f *fakeParallelCmd) SetCwd(_ string) {
+func (f *fakeParallelCmd) SetCwd(_ string, _ bool) {
 	// No-op for the fake command
 }
 
@@ -41,11 +56,18 @@ func (f *fakeParallelCmd) InheritEnv(_ map[string]string) {
 	// No-op for the fake command
 }
 
+func (f *fakeParallelCmd) ShouldRun(_ RunState) bool {
+	// Always run for the fake command
+	return true
+}
+
 func TestParallelBatchRun_AllSuccess(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
 	batch := &ParallelBatch{
-		Label: "parallel-batch-success",
+		BaseCommand: &BaseCommand{
+			Label: "parallel-batch-success",
+		},
 		Commands: []Runnable{
 			&fakeParallelCmd{label: "cmd1", delay: 10 * time.Millisecond, exitCode: 0},
 			&fakeParallelCmd{label: "cmd2", delay: 20 * time.Millisecond, exitCode: 0},
@@ -67,7 +89,9 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
 	batch := &ParallelBatch{
-		Label: "parallel-batch-fail",
+		BaseCommand: &BaseCommand{
+			Label: "parallel-batch-fail",
+		},
 		Commands: []Runnable{
 			&fakeParallelCmd{label: "cmd1", delay: 10 * time.Millisecond, exitCode: 0},
 			&fakeParallelCmd{label: "cmd2", delay: 10 * time.Millisecond, exitCode: 1, err: os.ErrPermission},
@@ -94,7 +118,9 @@ func TestParallelBatchRun_Parallelism(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
 	batch := &ParallelBatch{
-		Label: "parallel-batch-parallelism",
+		BaseCommand: &BaseCommand{
+			Label: "parallel-batch-parallelism",
+		},
 		Commands: []Runnable{
 			&fakeParallelCmd{label: "cmd1", delay: 100 * time.Millisecond, exitCode: 0},
 			&fakeParallelCmd{label: "cmd2", delay: 100 * time.Millisecond, exitCode: 0},

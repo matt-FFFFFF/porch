@@ -9,17 +9,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"maps"
 	"os"
 	"path/filepath"
 	"slices"
+	"time"
 
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
-	"github.com/matt-FFFFFF/pporch/internal/signalbroker"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 )
 
 const (
-	maxBufferSize = 8 * 1024 * 1024 // 8MB
+	maxBufferSize  = 8 * 1024 * 1024  // 8MB
+	tickerInterval = 10 * time.Second // Interval for the process watchdog ticker
 )
 
 var _ Runnable = (*OSCommand)(nil)
@@ -43,31 +44,11 @@ var (
 
 // OSCommand represents a single command to be run in the batch.
 type OSCommand struct {
-	Path  string            // The command to run (e.g., executable name).
-	Cwd   string            // Working directory for the command, if empty then use previous working directory.
+	*BaseCommand
 	Args  []string          // Arguments to the command, do not include the executable name itself.
 	Env   map[string]string // Environment variables.
-	Label string            // Optional label or description.
+	Path  string            // The command to run (e.g. executable full path).
 	sigCh chan os.Signal    // Channel to receive signals, allows mocking in test.
-}
-
-// SetCwd sets the working directory for the command.
-func (c *OSCommand) SetCwd(cwd string) {
-	c.Cwd = cwd
-}
-
-// InheritEnv sets the environment variables for the batch.
-func (c *OSCommand) InheritEnv(env map[string]string) {
-	if len(c.Env) == 0 {
-		c.Env = maps.Clone(env)
-		return
-	}
-
-	for k, v := range maps.All(env) {
-		if _, ok := c.Env[k]; !ok {
-			c.Env[k] = v
-		}
-	}
 }
 
 // Run implements the Runnable interface for OSCommand.
@@ -120,6 +101,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		Env:   env,
 		Files: []*os.File{os.Stdin, wOut, wErr},
 	})
+	startTime := time.Now()
+	startTimeStr := startTime.Format(time.DateTime)
+
+	fullLabel := FullLabel(c)
+	fmt.Printf("%s: process started at %s\n", fullLabel, startTimeStr)
 
 	if err != nil {
 		res.Error = errors.Join(ErrCouldNotStartProcess, err)
@@ -135,11 +121,20 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	done := make(chan struct{})
 	wasKilled := make(chan struct{})
 
+	// watchdog for process signals and context cancellation
 	go func() {
 		signalCount := make(map[os.Signal]struct{})
 
+		ticker := time.NewTicker(tickerInterval)
+		defer ticker.Stop()
+
 		for {
 			select {
+			case <-ticker.C:
+				diff := time.Since(startTime)
+				diff = diff.Round(time.Second) // Round to the nearest second for display
+				fmt.Printf("%s: process running (%s)...\n", fullLabel, diff)
+
 			case s := <-c.sigCh:
 				// is this the second signal received of this type?
 				if _, ok := signalCount[s]; ok {
@@ -174,6 +169,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger.Debug("waiting for process to finish")
 
 	state, psErr := ps.Wait()
+
+	fmt.Printf("%s: process finished at %s\n", fullLabel, time.Now().Format(time.DateTime))
 
 	logger.Debug("process finished", "exitCode", res.ExitCode)
 

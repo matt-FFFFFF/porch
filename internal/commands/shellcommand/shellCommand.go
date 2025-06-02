@@ -11,9 +11,9 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/matt-FFFFFF/pporch/internal/commands"
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
 const (
@@ -34,8 +34,8 @@ var (
 	ErrCommandNotFound = errors.New("command not found")
 )
 
-// Definition is the YAML definition for the shell command.
-type Definition struct {
+// definition is the YAML definition for the shell command.
+type definition struct {
 	commands.BaseDefinition `yaml:",inline"`
 	CommandLine             string `yaml:"command_line"` // The command to execute, can be a path or a command name.
 }
@@ -43,7 +43,7 @@ type Definition struct {
 // New creates a new runbatch.OSCommand. It will search for the command in the system PATH.
 // It returns nil if the command is not found or if the command is empty.
 // On Windows, there is no need to add .exe to the command name.
-func New(ctx context.Context, label, command, cwd string) (*runbatch.OSCommand, error) {
+func New(ctx context.Context, base *runbatch.BaseCommand, command string) (*runbatch.OSCommand, error) {
 	if command == "" {
 		return nil, ErrCommandNotFound
 	}
@@ -56,10 +56,9 @@ func New(ctx context.Context, label, command, cwd string) (*runbatch.OSCommand, 
 	}
 
 	return &runbatch.OSCommand{
-		Label: label,
-		Path:  defaultShell(ctx),
-		Cwd:   cwd,
-		Args:  osCommandArgs,
+		BaseCommand: base,
+		Path:        defaultShell(ctx),
+		Args:        osCommandArgs,
 	}, nil
 }
 

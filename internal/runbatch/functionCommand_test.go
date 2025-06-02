@@ -21,8 +21,10 @@ func TestFunctionCommandRun_Success(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		Label: "success function",
-		Func:  successFunc,
+		BaseCommand: &BaseCommand{
+			Label: "success function",
+		},
+		Func: successFunc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -46,8 +48,10 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		Label: "failure function",
-		Func:  failFunc,
+		BaseCommand: &BaseCommand{
+			Label: "failure function",
+		},
+		Func: failFunc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -65,8 +69,10 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 func TestFunctionCommandRun_NilFunction(t *testing.T) {
 	// Test with a nil function
 	cmd := &FunctionCommand{
-		Label: "nil function",
-		Func:  nil,
+		BaseCommand: &BaseCommand{
+			Label: "nil function",
+		},
+		Func: nil,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -89,8 +95,10 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		Label: "timeout function",
-		Func:  longRunningFunc,
+		BaseCommand: &BaseCommand{
+			Label: "timeout function",
+		},
+		Func: longRunningFunc,
 	}
 
 	// Use a short timeout that will be exceeded
@@ -113,8 +121,10 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		Label: "panic function",
-		Func:  panicFunc,
+		BaseCommand: &BaseCommand{
+			Label: "panic function",
+		},
+		Func: panicFunc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -137,8 +147,10 @@ func TestFunctionCommandRun_Slow(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		Label: "slow function",
-		Func:  slowFunc,
+		BaseCommand: &BaseCommand{
+			Label: "slow function",
+		},
+		Func: slowFunc,
 	}
 
 	// Use a timeout longer than the function execution time
@@ -164,8 +176,10 @@ func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		Label: "blocking function",
-		Func:  blockingFunc,
+		BaseCommand: &BaseCommand{
+			Label: "blocking function",
+		},
+		Func: blockingFunc,
 	}
 
 	// Create a context that will be cancelled

@@ -11,17 +11,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCommandRun_Success(t *testing.T) {
 	cmd := &OSCommand{
-		Path:  "/bin/echo",
-		Args:  []string{"hello"},
-		Env:   map[string]string{"FOO": "BAR"},
-		Label: "echo test",
+		BaseCommand: NewBaseCommand("echo test", "", RunOnSuccess, nil, nil),
+		Path:        "/bin/echo",
+		Args:        []string{"hello"},
+		Env:         map[string]string{"FOO": "BAR"},
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -39,9 +39,9 @@ func TestCommandRun_Success(t *testing.T) {
 
 func TestCommandRun_Failure(t *testing.T) {
 	cmd := &OSCommand{
-		Path:  "/bin/sh",
-		Args:  []string{"-c", "exit 1"},
-		Label: "fail test",
+		BaseCommand: NewBaseCommand("fail test", "", RunOnSuccess, nil, nil),
+		Path:        "/bin/sh",
+		Args:        []string{"-c", "exit 1"},
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -56,9 +56,9 @@ func TestCommandRun_Failure(t *testing.T) {
 
 func TestCommandRun_NotFound(t *testing.T) {
 	cmd := &OSCommand{
-		Path:  "/not/a/real/command",
-		Args:  []string{""},
-		Label: "notfound test",
+		BaseCommand: NewBaseCommand("notfound test", "", RunOnSuccess, nil, nil),
+		Path:        "/not/a/real/command",
+		Args:        []string{""},
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -82,11 +82,10 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 
 	tempDir := t.TempDir()
 	cmd := &OSCommand{
-		Path:  "/bin/sh",
-		Args:  []string{"-c", "echo $FOO; pwd"},
-		Env:   map[string]string{"FOO": "BAR"},
-		Cwd:   tempDir,
-		Label: "env and cwd test",
+		BaseCommand: NewBaseCommand("env and cwd test", tempDir, RunOnSuccess, nil, nil),
+		Path:        "/bin/sh",
+		Args:        []string{"-c", "echo $FOO; pwd"},
+		Env:         map[string]string{"FOO": "BAR"},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -105,9 +104,9 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 
 func TestCommandRun_ContextCancelled(t *testing.T) {
 	cmd := &OSCommand{
-		Path:  "/bin/sleep",
-		Args:  []string{"10"},
-		Label: "sleep test",
+		BaseCommand: NewBaseCommand("sleep test", "", RunOnSuccess, nil, nil),
+		Path:        "/bin/sleep",
+		Args:        []string{"10"},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -127,10 +126,10 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 
 func TestCommandRun_SigInt(t *testing.T) {
 	cmd := &OSCommand{
-		Path:  "/bin/sleep",
-		Args:  []string{"10"},
-		Label: "sleep test",
-		sigCh: make(chan os.Signal, 1),
+		BaseCommand: NewBaseCommand("sleep test", "", RunOnSuccess, nil, nil),
+		Path:        "/bin/sleep",
+		Args:        []string{"10"},
+		sigCh:       make(chan os.Signal, 1),
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)

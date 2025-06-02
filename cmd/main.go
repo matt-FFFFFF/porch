@@ -5,7 +5,8 @@
 package cmd
 
 import (
-	"github.com/matt-FFFFFF/pporch/cmd/run"
+	"github.com/matt-FFFFFF/porch/cmd/run"
+	"github.com/matt-FFFFFF/porch/cmd/show"
 	"github.com/urfave/cli/v3"
 )
 
@@ -13,5 +14,6 @@ import (
 var RootCmd = &cli.Command{
 	Commands: []*cli.Command{
 		run.RunCmd,
+		show.ShowCmd,
 	},
 }

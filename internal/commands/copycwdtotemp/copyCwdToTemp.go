@@ -10,13 +10,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/matt-FFFFFF/pporch/internal/commands"
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/spf13/afero"
 )
 
-// Definition represents the YAML configuration for the copycwdtotemp command.
-type Definition struct {
+// definition represents the YAML configuration for the copycwdtotemp command.
+type definition struct {
 	commands.BaseDefinition `yaml:",inline"`
 }
 
@@ -57,11 +57,11 @@ var RandomName = func(prefix string, n int) string {
 // New creates a new command that copies the current working directory to a temporary directory.
 // It also sets the new working directory to the temporary directory for any subsequent
 // serial batch commands.
-func New(cwd string) *runbatch.FunctionCommand {
+func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
 	ret := &runbatch.FunctionCommand{
-		Label: "Copy current working directory to temporary directory",
+		BaseCommand: base,
 		Func: func(ctx context.Context, cwd string, _ ...string) runbatch.FunctionCommandReturn {
-			tmpDir := filepath.Join(TempDirPath(), RandomName("avmtool_", tempDirSuffixLength))
+			tmpDir := filepath.Join(TempDirPath(), RandomName("porch_", tempDirSuffixLength))
 			// Create a temporary directory in the OS temp directory
 			err := FS.MkdirAll(tmpDir, sevenFiveFive)
 			if err != nil {
@@ -121,7 +121,6 @@ func New(cwd string) *runbatch.FunctionCommand {
 			}
 		},
 	}
-	ret.SetCwd(cwd)
 
 	return ret
 }

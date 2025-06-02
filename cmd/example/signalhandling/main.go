@@ -9,9 +9,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
-	"github.com/matt-FFFFFF/pporch/internal/signalbroker"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 )
 
 // signal interrupts with the runbatch package.
@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("=== Signal Handling Demo ===")
 	fmt.Println("1. Press Ctrl+C once to gracefully cancel all processes")
 	fmt.Println("2. Press Ctrl+C twice to forcefully terminate")
-	fmt.Println("3. Wait 30 seconds for auto-timeout")
+	fmt.Println("3. Wait 10 seconds for auto-timeout")
 	fmt.Println("Running commands...")
 
 	// Run the batch with our context and signal channel
@@ -53,27 +53,37 @@ func main() {
 // and function commands to demonstrate handling both types.
 func createDemoBatch() *runbatch.SerialBatch {
 	return &runbatch.SerialBatch{
-		Label: "Signal Handling Demo",
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Signal Handling Demo",
+		},
 		Commands: []runbatch.Runnable{
 			// A simple OS command that completes quickly
 			&runbatch.OSCommand{
-				Path:  "/bin/sh",
-				Args:  []string{"-c", "echo Starting demo..."},
-				Label: "Echo Start",
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "Echo start",
+				},
+				Path: "/bin/sh",
+				Args: []string{"-c", "echo Starting demo..."},
 			},
 			// A parallel batch with multiple commands
 			&runbatch.ParallelBatch{
-				Label: "Parallel Commands",
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "Parallel Commands",
+				},
 				Commands: []runbatch.Runnable{
 					// A long-running command that will be interrupted
 					&runbatch.OSCommand{
-						Path:  "/bin/sleep",
-						Args:  []string{"10"},
-						Label: "Long Sleep",
+						BaseCommand: &runbatch.BaseCommand{
+							Label: "Long Sleep",
+						},
+						Path: "/bin/sleep",
+						Args: []string{"10"},
 					},
 					// A function command that checks for context cancellation
 					&runbatch.FunctionCommand{
-						Label: "Cancellable Function",
+						BaseCommand: &runbatch.BaseCommand{
+							Label: "Cancellable Function",
+						},
 						Func: func(ctx context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 							ticker := time.NewTicker(1 * time.Second)
 							defer ticker.Stop()
@@ -103,9 +113,11 @@ func createDemoBatch() *runbatch.SerialBatch {
 			},
 			// This command should never run if we interrupt
 			&runbatch.OSCommand{
-				Path:  "/bin/sh",
-				Args:  []string{"-c", "echo This should only print if no interruption occurred"},
-				Label: "Final Echo",
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "Final Echo",
+				},
+				Path: "/bin/sh",
+				Args: []string{"-c", "echo This should only print if no interruption occurred"},
 			},
 		},
 	}

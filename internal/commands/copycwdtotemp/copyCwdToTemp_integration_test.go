@@ -9,7 +9,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,21 +22,31 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 ./test.txt`
 	cwd, _ := os.Getwd()
 	path := path.Join(cwd, "testdata/copyCwdToTemp")
-	copyCommand := New(path)
+	base := &runbatch.BaseCommand{
+		Label: "copyCwdToTemp",
+		Cwd:   path,
+	}
+	copyCommand := New(base)
 	pwdCommand := &runbatch.OSCommand{
-		Label: "pwd",
-		Cwd:   "",
-		Path:  "/bin/sh",
-		Args:  []string{"-c", "pwd"},
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "pwd",
+			Cwd:   "",
+		},
+		Path: "/bin/sh",
+		Args: []string{"-c", "pwd"},
 	}
 	checkFilesCommand := &runbatch.OSCommand{
-		Label: "checkFiles",
-		Cwd:   "",
-		Path:  "/usr/bin/find",
-		Args:  []string{"."},
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "checkFiles",
+			Cwd:   "",
+		},
+		Path: "/usr/bin/find",
+		Args: []string{"."},
 	}
 	serialCommands := &runbatch.SerialBatch{
-		Label: "test",
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "test",
+		},
 		Commands: []runbatch.Runnable{
 			copyCommand,
 			pwdCommand,

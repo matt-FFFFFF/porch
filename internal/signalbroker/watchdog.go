@@ -7,7 +7,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 )
 
 // Watch monitors the signal channel and handles signals.

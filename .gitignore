@@ -1,4 +1,7 @@
-pporch
-pporch.exe
+porch
+porch.exe
 
 .vscode
+
+coverage.out
+coverage.html

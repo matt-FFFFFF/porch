@@ -10,8 +10,8 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/pporch/internal/commands"
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
 var (
@@ -34,28 +34,28 @@ func Register(commandType string, commander commands.Commander) {
 	DefaultRegistry[commandType] = commander
 }
 
-// RawCommand represents a command with its type and raw YAML data.
-type RawCommand struct {
-	Type string      `yaml:"type"`
-	Data interface{} `yaml:",inline"`
+// commandType represents a command with its type and raw YAML data.
+type commandType struct {
+	Type string `yaml:"type"`
+	Data any    `yaml:",inline"`
 }
 
 // CreateRunnableFromYAML creates a runnable from YAML data using the registered commanders.
 func CreateRunnableFromYAML(ctx context.Context, yamlData []byte) (runbatch.Runnable, error) {
-	var rawCmd RawCommand
-	if err := yaml.Unmarshal(yamlData, &rawCmd); err != nil {
+	var cmdType commandType
+	if err := yaml.Unmarshal(yamlData, &cmdType); err != nil {
 		return nil, errors.Join(ErrCommandUnmarshal, err)
 	}
 
-	commander, exists := DefaultRegistry[rawCmd.Type]
+	commander, exists := DefaultRegistry[cmdType.Type]
 	if !exists {
-		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandType, rawCmd.Type)
+		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandType, cmdType.Type)
 	}
 
 	// Re-marshal the original data to pass to the commander
 	runnable, err := commander.Create(ctx, yamlData)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s: %v", ErrCommandCreation, rawCmd.Type, err)
+		return nil, fmt.Errorf("%w: %s: %v", ErrCommandCreation, cmdType.Type, err)
 	}
 
 	return runnable, nil

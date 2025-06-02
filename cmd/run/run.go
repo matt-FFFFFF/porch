@@ -5,13 +5,12 @@ package run
 
 import (
 	"context"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"os"
 
-	"github.com/matt-FFFFFF/pporch/internal/config"
-	"github.com/matt-FFFFFF/pporch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/config"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/urfave/cli/v3"
 )
 
@@ -63,9 +62,10 @@ var RunCmd = &cli.Command{
 				return fmt.Errorf("failed to create output file: %w", err)
 			}
 			defer f.Close() //nolint:errcheck
-			if err := gob.NewEncoder(f).Encode(res); err != nil {
+			if err := res.WriteBinary(f); err != nil {
 				return fmt.Errorf("failed to write results to file: %w", err)
 			}
+			return nil
 		}
 		opts := runbatch.DefaultOutputOptions()
 		opts.IncludeStdOut = true

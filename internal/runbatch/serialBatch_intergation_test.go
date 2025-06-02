@@ -17,10 +17,16 @@ func TestSerialBatchRun_Integration_AllSuccess(t *testing.T) {
 	defer cancel()
 
 	batch := &SerialBatch{
-		Label: "integration-batch-success",
+		BaseCommand: &BaseCommand{
+			Label: "integration-batch-success",
+		},
 		Commands: []Runnable{
-			&OSCommand{Path: "/bin/echo", Args: []string{"hello"}, Label: "echo1"},
-			&OSCommand{Path: "/bin/echo", Args: []string{"world"}, Label: "echo2"},
+			&OSCommand{Path: "/bin/echo", Args: []string{"hello"}, BaseCommand: &BaseCommand{
+				Label: "echo1",
+			}},
+			&OSCommand{Path: "/bin/echo", Args: []string{"world"}, BaseCommand: &BaseCommand{
+				Label: "echo2",
+			}},
 		},
 	}
 	results := batch.Run(ctx)
@@ -38,10 +44,16 @@ func TestSerialBatchRun_Integration_OneFailure(t *testing.T) {
 	defer cancel()
 
 	batch := &SerialBatch{
-		Label: "integration-batch-fail",
+		BaseCommand: &BaseCommand{
+			Label: "integration-batch-fail",
+		},
 		Commands: []Runnable{
-			&OSCommand{Path: "/bin/echo", Args: []string{"ok"}, Label: "echo-ok"},
-			&OSCommand{Path: "/bin/false", Args: []string{}, Label: "fail-cmd"},
+			&OSCommand{Path: "/bin/echo", Args: []string{"ok"}, BaseCommand: &BaseCommand{
+				Label: "echo-ok",
+			}},
+			&OSCommand{Path: "/bin/false", Args: []string{}, BaseCommand: &BaseCommand{
+				Label: "fail-cmd",
+			}},
 		},
 	}
 	results := batch.Run(ctx)
@@ -54,21 +66,32 @@ func TestSerialBatchRun_Integration_OneFailure(t *testing.T) {
 }
 
 func TestSerialBatchRun_Integration_NestedBatch(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	childBatch := &SerialBatch{
-		Label: "child-integration",
+		BaseCommand: &BaseCommand{
+			Label: "child-integration",
+		},
 		Commands: []Runnable{
-			&OSCommand{Path: "/bin/echo", Args: []string{"child"}, Label: "child-echo"},
-			&OSCommand{Path: "/bin/sh", Args: []string{"-c", "exit 123"}, Label: "child-fail"},
+			&OSCommand{Path: "/bin/echo", Args: []string{"child"}, BaseCommand: &BaseCommand{
+				Label: "child-echo",
+			}},
+			&OSCommand{Path: "/bin/sh", Args: []string{"-c", "exit 123"}, BaseCommand: &BaseCommand{
+				Label: "child-fail",
+			}},
 		},
 	}
 	batch := &SerialBatch{
-		Label: "parent-integration",
+		BaseCommand: &BaseCommand{
+			Label: "parent-integration",
+		},
 		Commands: []Runnable{
 			childBatch,
-			&OSCommand{Path: "/bin/echo", Args: []string{"parent"}, Label: "parent-echo"},
+			&OSCommand{Path: "/bin/echo", Args: []string{"parent"}, BaseCommand: &BaseCommand{
+				Label:           "parent-echo",
+				RunsOnCondition: RunOnAlways,
+			}},
 		},
 	}
 	results := batch.Run(ctx)

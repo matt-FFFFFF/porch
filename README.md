@@ -1,6 +1,6 @@
-# pporch - A Powerful Process Orchestration Framework
+# porch - A Portable Process Orchestration Framework
 
-pporch is a sophisticated process orchestration framework for running and managing complex command workflows. It provides a flexible way to define, compose, and execute command chains with sophisticated flow control, parallel processing, and comprehensive error handling.
+porch is a sophisticated process orchestration framework for running and managing complex command workflows. It provides a flexible way to define, compose, and execute command chains with sophisticated flow control, parallel processing, and comprehensive error handling.
 
 ## Features
 
@@ -35,15 +35,15 @@ pporch is a sophisticated process orchestration framework for running and managi
 ## Installation
 
 ```bash
-go install github.com/matt-FFFFFF/pporch@latest
+go install github.com/matt-FFFFFF/porch@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/matt-FFFFFF/pporch.git
-cd avmtool
-go build -o avmtool
+git clone https://github.com/matt-FFFFFF/porch.git
+cd porch
+go build -o porch
 ```
 
 ## Quick Start
@@ -92,12 +92,12 @@ commands:
 Run it with:
 
 ```bash
-avmtool run workflow.yaml
+porch run workflow.yaml
 ```
 
 ## Command Types
 
-AVMTool supports several command types:
+Porch supports several command types:
 
 ### 1. Basic Command
 
@@ -141,7 +141,7 @@ Executes commands in parallel:
       # ...
 ```
 
-## Extending AVMTool
+## Extending porch
 
 ### Creating Custom Commands
 

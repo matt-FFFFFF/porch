@@ -5,7 +5,6 @@ package runbatch
 
 import (
 	"context"
-	"maps"
 	"slices"
 	"sync"
 )
@@ -14,30 +13,8 @@ var _ Runnable = (*ParallelBatch)(nil)
 
 // ParallelBatch represents a collection of commands, which can be run in parallel.
 type ParallelBatch struct {
-	Commands []Runnable        // The commands or nested batches to run
-	Label    string            // Optional label for the batch
-	Env      map[string]string // Environment variables to be passed to each command.
-}
-
-// SetCwd sets the working directory for the batch.
-func (b *ParallelBatch) SetCwd(cwd string) {
-	for _, cmd := range b.Commands {
-		cmd.SetCwd(cwd)
-	}
-}
-
-// InheritEnv sets the environment variables for the batch.
-func (b *ParallelBatch) InheritEnv(env map[string]string) {
-	if len(b.Env) == 0 {
-		b.Env = maps.Clone(env)
-		return
-	}
-
-	for k, v := range maps.All(env) {
-		if _, ok := b.Env[k]; !ok {
-			b.Env[k] = v
-		}
-	}
+	*BaseCommand
+	Commands []Runnable // The commands or nested batches to run
 }
 
 // Run implements the Runnable interface for ParallelBatch.
@@ -65,10 +42,6 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 
 	res := Results{&Result{
 		Label:    b.Label,
-		ExitCode: 0,
-		Error:    nil,
-		StdOut:   nil,
-		StdErr:   nil,
 		Children: children,
 	}}
 	if children.HasError() {

@@ -3,7 +3,7 @@
 
 package parallelcommand
 
-import "github.com/matt-FFFFFF/pporch/internal/commandregistry"
+import "github.com/matt-FFFFFF/porch/internal/commandregistry"
 
 const commandType = "parallel"
 

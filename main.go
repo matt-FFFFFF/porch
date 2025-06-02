@@ -8,9 +8,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/matt-FFFFFF/pporch/cmd"
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
-	"github.com/matt-FFFFFF/pporch/internal/signalbroker"
+	"github.com/matt-FFFFFF/porch/cmd"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 )
 
 func main() {
@@ -24,10 +24,10 @@ func main() {
 
 	err := cmd.RootCmd.Run(ctx, os.Args)
 	if err != nil {
-		ctxlog.Logger(ctx).Error("main", "detail", "command failed", "error", err)
+		ctxlog.Logger(ctx).Error("command failed", "error", err)
 		os.Exit(1)
 	}
 
-	ctxlog.Logger(ctx).Info("main", "detail", "command completed successfully")
+	ctxlog.Logger(ctx).Info("command completed successfully")
 	os.Exit(0)
 }

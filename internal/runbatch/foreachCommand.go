@@ -36,35 +36,19 @@ const (
 
 // ForEachCommand executes a list of commands for each item returned by an items provider function.
 type ForEachCommand struct {
-	Label         string
-	Cwd           string
+	*BaseCommand
 	ItemsProvider ItemsProviderFunc
 	Commands      []Runnable
 	Mode          ForEachMode
-	Env           map[string]string
 }
 
-// SetCwd sets the working directory for the command.
-func (f *ForEachCommand) SetCwd(cwd string) {
-	f.Cwd = cwd
-	// Also set the working directory for all child commands
-	for _, cmd := range f.Commands {
-		cmd.SetCwd(cwd)
-	}
-}
-
-// InheritEnv sets the environment variables for the batch.
-func (f *ForEachCommand) InheritEnv(env map[string]string) {
-	if len(f.Env) == 0 {
-		f.Env = maps.Clone(env)
-		return
+// GetLabel returns the label of the batch.
+func (f *ForEachCommand) GetLabel() string {
+	if f.Label == "" {
+		return "ForEach Command"
 	}
 
-	for k, v := range maps.All(env) {
-		if _, ok := f.Env[k]; !ok {
-			f.Env[k] = v
-		}
-	}
+	return f.Label
 }
 
 // Run implements the Runnable interface for ForEachCommand.
@@ -91,6 +75,10 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		return Results{result}
 	}
 
+	// This is the main runnable that will be executed.
+	// We use an interface type here to allow for different implementations (e.g., ParallelBatch).
+	var run Runnable
+
 	// the child command of a foreach must be a single batch, or a single command
 	foreachCommands := make([]Runnable, len(items))
 
@@ -103,32 +91,35 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		}
 
 		newEnv[ItemEnvVar] = item
-
+		base := NewBaseCommand(
+			fmt.Sprintf("[%s]", f.Label),
+			f.Cwd,
+			f.RunsOnCondition,
+			f.RunsOnExitCodes,
+			newEnv,
+		)
 		foreachCommands[i] = &SerialBatch{
-			Label:    fmt.Sprintf("%s: %s", f.Label, item),
-			Commands: f.Commands,
-			Env:      newEnv,
+			BaseCommand: base,
+			Commands:    f.Commands,
 		}
+		foreachCommands[i].SetParent(run)
 	}
 
-	// This is the main runnable that will be executed.
-	// We use an interface type here to allow for different implementations (e.g., ParallelBatch).
-	var run Runnable
+	base := NewBaseCommand(f.Label, f.Cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env))
+	base.SetParent(f.GetParent())
 
 	// Handle different execution modes
 	if f.Mode == ForEachParallel {
 		run = &ParallelBatch{
-			Label:    fmt.Sprintf("%s (parallel results)", f.Label),
-			Commands: foreachCommands,
-			Env:      maps.Clone(f.Env),
+			BaseCommand: base,
+			Commands:    foreachCommands,
 		}
 	}
 
 	if f.Mode == ForEachSerial {
 		run = &SerialBatch{
-			Label:    fmt.Sprintf("%s (serial results)", f.Label),
-			Commands: foreachCommands,
-			Env:      maps.Clone(f.Env),
+			BaseCommand: base,
+			Commands:    foreachCommands,
 		}
 	}
 
@@ -146,12 +137,12 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 // NewForEachCommand creates a new ForEachCommand.
 func NewForEachCommand(
-	label string,
+	base *BaseCommand,
 	provider ItemsProviderFunc,
 	mode ForEachMode,
 	commands []Runnable) *ForEachCommand {
 	return &ForEachCommand{
-		Label:         label,
+		BaseCommand:   base,
 		ItemsProvider: provider,
 		Commands:      commands,
 		Mode:          mode,

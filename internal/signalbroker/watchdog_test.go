@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/matt-FFFFFF/pporch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 )
 
 func TestWatch_FirstSignalNoCancel(t *testing.T) {

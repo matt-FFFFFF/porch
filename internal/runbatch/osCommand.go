@@ -45,9 +45,11 @@ var (
 // OSCommand represents a single command to be run in the batch.
 type OSCommand struct {
 	*BaseCommand
-	Args  []string       // Arguments to the command, do not include the executable name itself.
-	Path  string         // The command to run (e.g. executable full path).
-	sigCh chan os.Signal // Channel to receive signals, allows mocking in test.
+	Args             []string       // Arguments to the command, do not include the executable name itself.
+	Path             string         // The command to run (e.g. executable full path).
+	SuccessExitCodes []int          // Exit codes that indicate success, defaults to 0.
+	SkipExitCodes    []int          // Exit codes that indicate skip remaining tasks, defaults to rmpty.
+	sigCh            chan os.Signal // Channel to receive signals, allows mocking in test.
 }
 
 // Run implements the Runnable interface for OSCommand.
@@ -57,6 +59,14 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		With("label", c.Label)
 
 	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
+
+	if c.SuccessExitCodes == nil {
+		c.SuccessExitCodes = []int{0} // Default to success on exit code 0
+	}
+
+	if c.SkipExitCodes == nil {
+		c.SkipExitCodes = []int{} // Default to no skip exit codes
+	}
 
 	if c.sigCh == nil {
 		c.sigCh = signalbroker.New(ctx)
@@ -109,6 +119,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	if err != nil {
 		res.Error = errors.Join(ErrCouldNotStartProcess, err)
 		res.ExitCode = -1
+		res.Status = ResultStatusError
 
 		return Results{res}
 	}
@@ -118,7 +129,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	// This is the process watchdog that will kill the process if it exceeds the timeout
 	// or pass on any signals to the process.
 	done := make(chan struct{})
-	wasKilled := make(chan struct{})
+	// This allows us to track why the processes was killed.
+	wasKilled := make(chan error)
 
 	// watchdog for process signals and context cancellation
 	go func() {
@@ -139,7 +151,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				if _, ok := signalCount[s]; ok {
 					logger.Info("received duplicate signal, killing process", "signal", s.String())
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
-					killPs(ctx, wasKilled, ps)
+					killPs(ctx, ps)
+					wasKilled <- ErrSignalReceived
+					close(wasKilled)
 
 					return
 				}
@@ -148,14 +162,16 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				logger.Info("received signal", "signal", s.String())
 				fmt.Fprintf(wErr, "received signal: %s\n", s.String()) //nolint:errcheck
-
 				if err := ps.Signal(s); err != nil {
 					logger.Info("failed to send signal", "signal", s.String(), "error", err)
 				}
+				wasKilled <- ErrSignalReceived
 			case <-ctx.Done():
 				logger.Info("context done, killing process")
 				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
-				killPs(ctx, wasKilled, ps)
+				killPs(ctx, ps)
+				wasKilled <- ErrTimeoutExceeded
+				close(wasKilled)
 
 				return
 			case <-done:
@@ -171,26 +187,41 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	fmt.Printf("%s: process finished at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
 
-	logger.Debug("process finished", "exitCode", res.ExitCode)
-
-	close(done)
-
 	_ = wOut.Close()
 	_ = wErr.Close()
 	res.ExitCode = state.ExitCode()
 	res.Error = psErr
+	res.Status = ResultStatusUnknown
 
-	if res.ExitCode == -1 {
-		res.Error = errors.Join(res.Error, ErrSignalReceived)
-	}
+	logger.Debug("process finished", "exitCode", res.ExitCode)
 
-	// Check if the process was killed due to timeout
+	// Check if the process was killed due to timeout or signal
 	select {
-	case <-wasKilled:
-		res.Error = errors.Join(res.Error, ErrTimeoutExceeded)
+	case e := <-wasKilled:
+		res.Error = errors.Join(res.Error, e)
 		res.ExitCode = -1
+		res.Status = ResultStatusError
 	default:
 		close(wasKilled)
+	}
+
+	close(done)
+
+	switch {
+	// Exit code is success and error is nil or intentional skip. Return success.
+	case slices.Contains(c.SuccessExitCodes, res.ExitCode) && res.Error == nil:
+		logger.Debug("process exit code indicates success", "exitCode", res.ExitCode)
+		res.Status = ResultStatusSuccess
+	// Exit code is skippable and error is nil. Return success.
+	case slices.Contains(c.SkipExitCodes, res.ExitCode) && res.Error == nil:
+		logger.Debug("process exit code indicates skip remaining tasks", "exitCode", res.ExitCode)
+		res.Error = ErrSkipIntentional
+		res.Status = ResultStatusSuccess
+	// Exit code is not successful or process error is not nil. Return error.
+	// A non-zero exit code does not generate an error, so this needs to be an OR.
+	case res.Error != nil || !slices.Contains(c.SuccessExitCodes, res.ExitCode):
+		logger.Debug("process error", "error", res.Error, "exitCode", res.ExitCode)
+		res.Status = ResultStatusError
 	}
 
 	logger.Debug("read stdout")
@@ -240,11 +271,10 @@ func readAllUpToMax(ctx context.Context, r io.Reader, maxBufferSize int64) ([]by
 }
 
 // killPs kills the process and closes the notification channel.
-func killPs(ctx context.Context, ch chan struct{}, ps *os.Process) {
+func killPs(ctx context.Context, ps *os.Process) {
 	if err := ps.Kill(); err != nil {
-		ctxlog.Logger(ctx).Debug("process kill error", "pid", ps.Pid, "error", err)
+		ctxlog.Logger(ctx).Error("process kill error", "pid", ps.Pid, "error", err)
 	}
 
-	close(ch)
 	ctxlog.Logger(ctx).Info("process killed", "pid", ps.Pid)
 }

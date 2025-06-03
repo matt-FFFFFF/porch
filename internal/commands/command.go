@@ -56,6 +56,7 @@ func (d *BaseDefinition) ToBaseCommand() (*runbatch.BaseCommand, error) {
 	if d.RunsOnCondition == "" {
 		d.RunsOnCondition = runbatch.RunOnSuccess.String()
 	}
+
 	ro, err := runbatch.NewRunCondition(d.RunsOnCondition)
 	if err != nil {
 		return nil, errors.Join(ErrYamlUnmarshal, err)

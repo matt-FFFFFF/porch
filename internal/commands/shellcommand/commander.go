@@ -29,5 +29,5 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		return nil, errors.Join(commands.NewErrCommandCreate("shellcommand"), err)
 	}
 
-	return New(ctx, base, def.CommandLine)
+	return New(ctx, base, def.CommandLine, def.SuccessExitCodes, def.SkipExitCodes)
 }

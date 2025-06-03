@@ -272,7 +272,7 @@ func TestResult_GobDecodeInvalidData(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := &Result{}
 			err := result.GobDecode(tt.data)
-			assert.Error(t, err, "GobDecode() should have failed with invalid data")
+			require.Error(t, err, "GobDecode() should have failed with invalid data")
 		})
 	}
 }

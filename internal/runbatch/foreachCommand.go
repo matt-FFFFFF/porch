@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"path/filepath"
 )
 
 var _ Runnable = (*ForEachCommand)(nil)
@@ -49,12 +50,57 @@ func (m ForEachMode) String() string {
 	}
 }
 
+// ForEachCwdStrategy determines how the current working directory (cwd) is modified for each item.
+type ForEachCwdStrategy int
+
+const (
+	// No cwd modification
+	CwdStrategyNone ForEachCwdStrategy = iota
+	// CwdItemRelative modifies the cwd to be relative to the item and the working directory of the foreach command.
+	CwdStrategyItemRelative
+	// CwdItemAbsolute modifies the cwd to be absolute based on the item.
+	CwdStrategyItemAbsolute
+)
+
+// String implements the Stringer interface for ForEachCwdStrategy.
+func (s ForEachCwdStrategy) String() string {
+	switch s {
+	case CwdStrategyNone:
+		return "none"
+	case CwdStrategyItemRelative:
+		return "item_relative"
+	case CwdStrategyItemAbsolute:
+		return "item_absolute"
+	default:
+		return "unknown"
+	}
+}
+
+// ParseCwdStrategy converts a string to a ForEachCwdStrategy.
+func ParseCwdStrategy(strategy string) (ForEachCwdStrategy, error) {
+	switch strategy {
+	case "none":
+		return CwdStrategyNone, nil
+	case "item_relative":
+		return CwdStrategyItemRelative, nil
+	case "item_absolute":
+		return CwdStrategyItemAbsolute, nil
+	default:
+		return -1, fmt.Errorf("invalid cwd strategy: %s", strategy)
+	}
+}
+
 // ForEachCommand executes a list of commands for each item returned by an items provider function.
 type ForEachCommand struct {
 	*BaseCommand
+	// ItemsProvider is a function that returns a list of items to iterate over.
 	ItemsProvider ItemsProviderFunc
-	Commands      []Runnable
-	Mode          ForEachMode
+	// Commands is the list of commands to execute for each item.
+	Commands []Runnable
+	// Mode determines how the commands are executed for each item.
+	Mode ForEachMode
+	// CwdStrategy is for modifying the current working directory for each item
+	CwdStrategy ForEachCwdStrategy
 }
 
 // ParseForEachMode converts a string to a ForEachMode.
@@ -66,7 +112,7 @@ func ParseForEachMode(mode string) (ForEachMode, error) {
 	case "parallel":
 		return ForEachParallel, nil
 	default:
-		return 0, ErrInvalidForEachMode
+		return -1, ErrInvalidForEachMode
 	}
 }
 
@@ -76,6 +122,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		Label:    f.Label,
 		ExitCode: 0,
 		Children: Results{},
+		Status:   ResultStatusSuccess,
 	}
 
 	// Get the items to iterate over
@@ -85,6 +132,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 			Label:    f.Label,
 			ExitCode: -1,
 			Error:    fmt.Errorf("%w: %v", ErrItemsProviderFailed, err),
+			Status:   ResultStatusError,
 		}}
 	}
 
@@ -109,10 +157,20 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 			newEnv = make(map[string]string)
 		}
 
+		var cwd string
+		switch f.CwdStrategy {
+		case CwdStrategyItemRelative:
+			cwd = filepath.Join(f.Cwd, item)
+		case CwdStrategyItemAbsolute:
+			cwd = item
+		default:
+			cwd = f.Cwd // No modification to cwd
+		}
+
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
 			fmt.Sprintf("[%s]", item),
-			f.Cwd,
+			cwd,
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
@@ -166,6 +224,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 	if results.HasError() {
 		result.Error = ErrResultChildrenHasError
 		result.ExitCode = -1
+		result.Status = ResultStatusError
 	}
 
 	return results

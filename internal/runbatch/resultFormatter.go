@@ -16,7 +16,6 @@ import (
 type OutputOptions struct {
 	IncludeStdOut      bool // Whether to include stdout in the output
 	IncludeStdErr      bool // Whether to include stderr in the output
-	ColorOutput        bool // Whether to use color in the output
 	ShowSuccessDetails bool // Whether to show details for successful commands
 }
 
@@ -25,7 +24,6 @@ func DefaultOutputOptions() *OutputOptions {
 	return &OutputOptions{
 		IncludeStdOut:      false,
 		IncludeStdErr:      true,
-		ColorOutput:        color.Enabled(),
 		ShowSuccessDetails: false,
 	}
 }
@@ -50,19 +48,18 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	// Format the status indicator
 	var statusStr, labelPrefix string
 
-	isError := r.Error != nil || r.ExitCode != 0
-
-	switch {
-	case options.ColorOutput && isError:
+	switch r.Status {
+	case ResultStatusSkipped:
+		statusStr = color.Colorize("~", color.FgYellow)               // Yellow tilde
+		labelPrefix = color.ControlString(color.Bold, color.FgYellow) // Bold yellow
+	case ResultStatusError:
 		statusStr = color.Colorize("✗", color.FgRed)               // Red X
 		labelPrefix = color.ControlString(color.Bold, color.FgRed) // Bold red
-	case options.ColorOutput && !isError:
+	case ResultStatusSuccess:
 		statusStr = color.Colorize("✓", color.FgGreen)               // Green checkmark
 		labelPrefix = color.ControlString(color.Bold, color.FgGreen) // Bold green
-	case !options.ColorOutput && isError:
-		statusStr = "✗" // Plain X
-	case !options.ColorOutput && !isError:
-		statusStr = "✓" // Plain checkmark
+	default:
+		statusStr = color.Colorize("?", color.FgWhite) // White question mark for unknown status
 	}
 
 	// Format the label
@@ -72,19 +69,15 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	}
 
 	// Print the status line
-	if options.ColorOutput {
-		fmt.Fprintf( // nolint:errcheck
-			w,
-			"%s%s %s%s%s",
-			indent,
-			statusStr,
-			labelPrefix,
-			label,
-			color.ControlString(color.Reset),
-		)
-	} else {
-		fmt.Fprintf(w, "%s%s %s", indent, statusStr, label) // nolint:errcheck
-	}
+	fmt.Fprintf( // nolint:errcheck
+		w,
+		"%s%s %s%s%s",
+		indent,
+		statusStr,
+		labelPrefix,
+		label,
+		color.ControlString(color.Reset),
+	)
 
 	// Add exit code if non-zero
 	if r.ExitCode != 0 {
@@ -95,21 +88,26 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 	// Add error message if there is one
 	if r.Error != nil {
+		var errColor color.Code
+		switch r.Status {
+		case ResultStatusSkipped:
+			errColor = color.FgYellow // Yellow for skipped
+		case ResultStatusError:
+			errColor = color.FgRed // Red for error
+		default:
+			errColor = color.FgWhite // Default to white for unknown status
+		}
 		// Skip printing ErrResultChildrenHasError since it's redundant with the actual errors
 		if !errors.Is(r.Error, ErrResultChildrenHasError) {
 			errMsg := r.Error.Error()
-			if options.ColorOutput {
-				fmt.Fprintf( // nolint:errcheck
-					w,
-					"%s  %s %s%s\n",
-					indent,
-					color.ColorizeNoReset("➜ Error:", color.FgRed),
-					errMsg,
-					color.ControlString(color.Reset),
-				)
-			} else {
-				fmt.Fprintf(w, "%s  ➜ Error: %s\n", indent, errMsg) // nolint:errcheck
-			}
+			fmt.Fprintf( // nolint:errcheck
+				w,
+				"%s  %s %s%s\n",
+				indent,
+				color.ColorizeNoReset("➜ Error:", errColor),
+				errMsg,
+				color.ControlString(color.Reset),
+			)
 		}
 	}
 
@@ -125,13 +123,8 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 	// Add stderr if requested and exists
 	if shouldShowDetails && options.IncludeStdErr && len(r.StdErr) > 0 {
-		if options.ColorOutput {
-			fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgYellow)) // nolint:errcheck
-		} else {
-			fmt.Fprintf(w, "%s  ➜ Error Output:\n", indent) // nolint:errcheck
-		}
-
-		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     ")) // nolint:errcheck
+		fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgYellow)) // nolint:errcheck
+		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     "))                          // nolint:errcheck
 	}
 
 	// Process child results if any, with increased indentation

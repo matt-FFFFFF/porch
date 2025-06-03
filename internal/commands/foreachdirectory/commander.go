@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package foreachdirectory
 
 import (
@@ -34,10 +37,20 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 		return nil, fmt.Errorf("failed to parse foreach mode: %q %w", def.Mode, err)
 	}
 
+	if def.WorkingDirectoryStrategy == "" {
+		def.WorkingDirectoryStrategy = runbatch.CwdStrategyNone.String()
+	}
+
+	strat, err := runbatch.ParseCwdStrategy(def.WorkingDirectoryStrategy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse working directory strategy: %q %w", def.WorkingDirectoryStrategy, err)
+	}
+
 	forEachCommand := &runbatch.ForEachCommand{
 		BaseCommand:   base,
 		ItemsProvider: foreachproviders.ListDirectoriesDepth(def.Depth, foreachproviders.IncludeHidden(def.IncludeHidden)),
 		Mode:          mode,
+		CwdStrategy:   strat,
 	}
 
 	for i, cmd := range def.Commands {

@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package foreachdirectory
 
 import (
@@ -86,9 +89,16 @@ commands:
 			require.NotNil(t, runnable)
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
 			require.True(t, ok, "Expected ForEachCommand, got %T", runnable)
-			assert.Equal(t, "For Each Directory", forEachCommand.BaseCommand.Label)
-			assert.Equal(t, "testdata/foreachdir", forEachCommand.BaseCommand.Cwd)
-			require.Equal(t, tc.mode, forEachCommand.Mode.String(), "Expected mode to be %q, got %q", tc.mode, forEachCommand.Mode.String())
+			assert.Equal(t, "For Each Directory", forEachCommand.Label)
+			assert.Equal(t, "testdata/foreachdir", forEachCommand.Cwd)
+			require.Equalf(
+				t,
+				tc.mode,
+				forEachCommand.Mode.String(),
+				"Expected mode to be %q, got %q",
+				tc.mode,
+				forEachCommand.Mode.String(),
+			)
 
 			results := runnable.Run(t.Context())
 			require.NotNil(t, results)
@@ -100,12 +110,14 @@ commands:
 				assert.Len(t, result.Children, 1, "Expected each directory to have 1 child command")
 				res := result.Children[0]
 				res.StdOut = res.StdOut[:len(res.StdOut)-1] // remove trailing newline
+
 				if _, ok := tc.expected[string(res.StdOut)]; ok {
 					delete(tc.expected, string(res.StdOut))
 					continue
 				}
 			}
-			require.Len(t, tc.expected, 0, "All expected items should have been processed")
+
+			require.Empty(t, tc.expected, "All expected items should have been processed")
 		})
 	}
 }

@@ -30,6 +30,13 @@ func (e *ErrFunctionCmdPanic) Error() string {
 	}
 }
 
+var (
+	// ErrSkipIntentional is returned to intentionally skip the remaining batch execution.
+	ErrSkipIntentional = errors.New("intentionally skip execution")
+	// ErrSkipOnError is returned to intentionally skip the remaining batch execution.
+	ErrSkipOnError = errors.New("skip execution due to previous error")
+)
+
 // NewErrFunctionCmdPanic creates a new ErrFunctionCmdPanic with the given value.
 func NewErrFunctionCmdPanic(v any) error {
 	return &ErrFunctionCmdPanic{v: v}
@@ -104,19 +111,34 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	res := &Result{
 		Label:    f.Label,
 		ExitCode: 0,
+		Status:   ResultStatusSuccess,
 	}
 	// Wait for either the function to complete or the context to be cancelled
 	select {
 	case fr := <-frCh:
 		if fr.Err != nil {
-			return Results{{Label: f.Label, ExitCode: -1, Error: fr.Err}}
+			return Results{
+				{
+					Label:    f.Label,
+					ExitCode: -1,
+					Error:    fr.Err,
+					Status:   ResultStatusError,
+				},
+			}
 		}
 
 		if fr.NewCwd != "" {
 			res.newCwd = fr.NewCwd
 		}
 	case <-ctx.Done():
-		return Results{{Label: f.Label, ExitCode: -1, Error: ctx.Err()}}
+		return Results{
+			{
+				Label:    f.Label,
+				ExitCode: -1,
+				Error:    ctx.Err(),
+				Status:   ResultStatusError,
+			},
+		}
 	}
 
 	return Results{res}

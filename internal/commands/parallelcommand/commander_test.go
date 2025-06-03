@@ -22,7 +22,6 @@ func TestCommander_Create_Success(t *testing.T) {
 	commandregistry.Register("shell", &shellcommand.Commander{})
 
 	t.Run("simple parallel command with shell commands", func(t *testing.T) {
-
 		ctx := context.Background()
 		commander := &Commander{}
 
@@ -51,10 +50,10 @@ commands:
 		require.True(t, ok, "Expected ParallelBatch, got %T", runnable)
 
 		// Check base command properties
-		assert.Equal(t, "Test Parallel Command", parallelBatch.BaseCommand.Label)
-		assert.Equal(t, "/tmp", parallelBatch.BaseCommand.Cwd)
-		assert.Equal(t, runbatch.RunOnSuccess, parallelBatch.BaseCommand.RunsOnCondition)
-		assert.Equal(t, map[string]string{"TEST_VAR": "test_value"}, parallelBatch.BaseCommand.Env)
+		assert.Equal(t, "Test Parallel Command", parallelBatch.Label)
+		assert.Equal(t, "/tmp", parallelBatch.Cwd)
+		assert.Equal(t, runbatch.RunOnSuccess, parallelBatch.RunsOnCondition)
+		assert.Equal(t, map[string]string{"TEST_VAR": "test_value"}, parallelBatch.Env)
 
 		// Check that we have the correct number of commands
 		assert.Len(t, parallelBatch.Commands, 2)
@@ -82,8 +81,8 @@ commands: []
 		parallelBatch, ok := runnable.(*runbatch.ParallelBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Empty Parallel Command", parallelBatch.BaseCommand.Label)
-		assert.Len(t, parallelBatch.Commands, 0)
+		assert.Equal(t, "Empty Parallel Command", parallelBatch.Label)
+		assert.Empty(t, parallelBatch.Commands)
 	})
 
 	t.Run("nested parallel commands", func(t *testing.T) {
@@ -112,7 +111,7 @@ commands:
 		parallelBatch, ok := runnable.(*runbatch.ParallelBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Nested Parallel Command", parallelBatch.BaseCommand.Label)
+		assert.Equal(t, "Nested Parallel Command", parallelBatch.Label)
 		assert.Len(t, parallelBatch.Commands, 2)
 	})
 
@@ -136,7 +135,7 @@ commands:
 		parallelBatch, ok := runnable.(*runbatch.ParallelBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Minimal Command", parallelBatch.BaseCommand.Label)
+		assert.Equal(t, "Minimal Command", parallelBatch.Label)
 		assert.Len(t, parallelBatch.Commands, 1)
 	})
 }
@@ -155,8 +154,8 @@ commands: [
 
 		runnable, err := commander.Create(ctx, yamlPayload)
 		assert.Nil(t, runnable)
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, commands.ErrYamlUnmarshal)
+		require.Error(t, err)
+		require.ErrorIs(t, err, commands.ErrYamlUnmarshal)
 	})
 
 	t.Run("invalid base definition", func(t *testing.T) {
@@ -175,10 +174,11 @@ commands:
 
 		runnable, err := commander.Create(ctx, yamlPayload)
 		assert.Nil(t, runnable)
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		var cmdCreateErr *commands.ErrCommandCreate
-		assert.ErrorAs(t, err, &cmdCreateErr)
+
+		require.ErrorAs(t, err, &cmdCreateErr)
 	})
 
 	t.Run("command with invalid sub-command", func(t *testing.T) {
@@ -196,7 +196,7 @@ commands:
 
 		runnable, err := commander.Create(ctx, yamlPayload)
 		assert.Nil(t, runnable)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create runnable for command 0")
 	})
 
@@ -265,7 +265,7 @@ func TestDefinition_Structure(t *testing.T) {
 	})
 }
 
-// TestCommander_CreateWithComplexYAML tests the commander with more complex YAML structures
+// TestCommander_CreateWithComplexYAML tests the commander with more complex YAML structures.
 func TestCommander_CreateWithComplexYAML(t *testing.T) {
 	commandregistry.Register(commandType, &Commander{})
 	commandregistry.Register("shell", &shellcommand.Commander{})
@@ -294,7 +294,7 @@ commands:
 		parallelBatch, ok := runnable.(*runbatch.ParallelBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Mixed Commands", parallelBatch.BaseCommand.Label)
+		assert.Equal(t, "Mixed Commands", parallelBatch.Label)
 		assert.Len(t, parallelBatch.Commands, 2)
 	})
 
@@ -324,10 +324,10 @@ commands:
 		parallelBatch, ok := runnable.(*runbatch.ParallelBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Env Test", parallelBatch.BaseCommand.Label)
-		assert.Equal(t, runbatch.RunOnAlways, parallelBatch.BaseCommand.RunsOnCondition)
-		assert.Contains(t, parallelBatch.BaseCommand.Env, "PARENT_VAR")
-		assert.Contains(t, parallelBatch.BaseCommand.Env, "COMPLEX_VAR")
-		assert.Equal(t, "value with spaces and symbols !@#$%", parallelBatch.BaseCommand.Env["COMPLEX_VAR"])
+		assert.Equal(t, "Env Test", parallelBatch.Label)
+		assert.Equal(t, runbatch.RunOnAlways, parallelBatch.RunsOnCondition)
+		assert.Contains(t, parallelBatch.Env, "PARENT_VAR")
+		assert.Contains(t, parallelBatch.Env, "COMPLEX_VAR")
+		assert.Equal(t, "value with spaces and symbols !@#$%", parallelBatch.Env["COMPLEX_VAR"])
 	})
 }

@@ -22,7 +22,6 @@ func TestCommander_Create_Success(t *testing.T) {
 	commandregistry.Register("shell", &shellcommand.Commander{})
 
 	t.Run("simple serial command with shell commands", func(t *testing.T) {
-
 		ctx := context.Background()
 		commander := &Commander{}
 
@@ -51,10 +50,10 @@ commands:
 		require.True(t, ok, "Expected SerialBatch, got %T", runnable)
 
 		// Check base command properties
-		assert.Equal(t, "Test Serial Command", serialBatch.BaseCommand.Label)
-		assert.Equal(t, "/tmp", serialBatch.BaseCommand.Cwd)
-		assert.Equal(t, runbatch.RunOnSuccess, serialBatch.BaseCommand.RunsOnCondition)
-		assert.Equal(t, map[string]string{"TEST_VAR": "test_value"}, serialBatch.BaseCommand.Env)
+		assert.Equal(t, "Test Serial Command", serialBatch.Label)
+		assert.Equal(t, "/tmp", serialBatch.Cwd)
+		assert.Equal(t, runbatch.RunOnSuccess, serialBatch.RunsOnCondition)
+		assert.Equal(t, map[string]string{"TEST_VAR": "test_value"}, serialBatch.Env)
 
 		// Check that we have the correct number of commands
 		assert.Len(t, serialBatch.Commands, 2)
@@ -82,8 +81,8 @@ commands: []
 		serialBatch, ok := runnable.(*runbatch.SerialBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Empty Serial Command", serialBatch.BaseCommand.Label)
-		assert.Len(t, serialBatch.Commands, 0)
+		assert.Equal(t, "Empty Serial Command", serialBatch.Label)
+		assert.Empty(t, serialBatch.Commands)
 	})
 
 	t.Run("nested serial commands", func(t *testing.T) {
@@ -112,7 +111,7 @@ commands:
 		serialBatch, ok := runnable.(*runbatch.SerialBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Nested Serial Command", serialBatch.BaseCommand.Label)
+		assert.Equal(t, "Nested Serial Command", serialBatch.Label)
 		assert.Len(t, serialBatch.Commands, 2)
 	})
 
@@ -136,7 +135,7 @@ commands:
 		serialBatch, ok := runnable.(*runbatch.SerialBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Minimal Command", serialBatch.BaseCommand.Label)
+		assert.Equal(t, "Minimal Command", serialBatch.Label)
 		assert.Len(t, serialBatch.Commands, 1)
 	})
 }
@@ -155,8 +154,8 @@ commands: [
 
 		runnable, err := commander.Create(ctx, yamlPayload)
 		assert.Nil(t, runnable)
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, commands.ErrYamlUnmarshal)
+		require.Error(t, err)
+		require.ErrorIs(t, err, commands.ErrYamlUnmarshal)
 	})
 
 	t.Run("invalid base definition", func(t *testing.T) {
@@ -175,10 +174,11 @@ commands:
 
 		runnable, err := commander.Create(ctx, yamlPayload)
 		assert.Nil(t, runnable)
-		assert.Error(t, err)
+		require.Error(t, err)
 
 		var cmdCreateErr *commands.ErrCommandCreate
-		assert.ErrorAs(t, err, &cmdCreateErr)
+
+		require.ErrorAs(t, err, &cmdCreateErr)
 	})
 
 	t.Run("command with invalid sub-command", func(t *testing.T) {
@@ -196,7 +196,7 @@ commands:
 
 		runnable, err := commander.Create(ctx, yamlPayload)
 		assert.Nil(t, runnable)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create runnable for command 0")
 	})
 
@@ -265,7 +265,7 @@ func TestDefinition_Structure(t *testing.T) {
 	})
 }
 
-// TestCommander_CreateWithComplexYAML tests the commander with more complex YAML structures
+// TestCommander_CreateWithComplexYAML tests the commander with more complex YAML structures.
 func TestCommander_CreateWithComplexYAML(t *testing.T) {
 	commandregistry.Register(commandType, &Commander{})
 	commandregistry.Register("shell", &shellcommand.Commander{})
@@ -294,7 +294,7 @@ commands:
 		serialBatch, ok := runnable.(*runbatch.SerialBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Mixed Commands", serialBatch.BaseCommand.Label)
+		assert.Equal(t, "Mixed Commands", serialBatch.Label)
 		assert.Len(t, serialBatch.Commands, 2)
 	})
 
@@ -324,10 +324,10 @@ commands:
 		serialBatch, ok := runnable.(*runbatch.SerialBatch)
 		require.True(t, ok)
 
-		assert.Equal(t, "Env Test", serialBatch.BaseCommand.Label)
-		assert.Equal(t, runbatch.RunOnAlways, serialBatch.BaseCommand.RunsOnCondition)
-		assert.Contains(t, serialBatch.BaseCommand.Env, "PARENT_VAR")
-		assert.Contains(t, serialBatch.BaseCommand.Env, "COMPLEX_VAR")
-		assert.Equal(t, "value with spaces and symbols !@#$%", serialBatch.BaseCommand.Env["COMPLEX_VAR"])
+		assert.Equal(t, "Env Test", serialBatch.Label)
+		assert.Equal(t, runbatch.RunOnAlways, serialBatch.RunsOnCondition)
+		assert.Contains(t, serialBatch.Env, "PARENT_VAR")
+		assert.Contains(t, serialBatch.Env, "COMPLEX_VAR")
+		assert.Equal(t, "value with spaces and symbols !@#$%", serialBatch.Env["COMPLEX_VAR"])
 	})
 }

@@ -49,8 +49,8 @@ func ListFiles(pattern string) func(ctx context.Context, workingDirectory string
 	}
 }
 
-// ListDirectoriesDepth is an item provider that lists all directories in a path.
-func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(ctx context.Context, workingDirectory string) ([]string, error) {
+// ListDirectoriesDepth is an item provider that lists all directories in a path at given depth.
+func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(context.Context, string) ([]string, error) {
 	return func(ctx context.Context, workingDirectory string) ([]string, error) {
 		// Find all directories in the given path
 		var dirs []string
@@ -85,6 +85,7 @@ func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(ctx conte
 			if err != nil {
 				return fmt.Errorf("failed to get relative path for %s: %w", path, err)
 			}
+
 			if depth > 0 && strings.Count(relPath, string(os.PathSeparator)) > depth-1 {
 				return filepath.SkipDir // Skip directories deeper than specified depth
 			}
@@ -94,6 +95,7 @@ func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(ctx conte
 				if err != nil {
 					return fmt.Errorf("failed to get relative path for %s: %w", path, err)
 				}
+
 				dirs = append(dirs, path)
 			}
 

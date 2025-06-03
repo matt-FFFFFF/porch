@@ -49,12 +49,15 @@ func TestNewPrettyHandler(t *testing.T) {
 			if handler == nil {
 				t.Error("NewPrettyHandler() returned nil")
 			}
+
 			if handler.h == nil {
 				t.Error("NewPrettyHandler() created handler with nil inner handler")
 			}
+
 			if handler.b == nil {
 				t.Error("NewPrettyHandler() created handler with nil buffer")
 			}
+
 			if handler.m == nil {
 				t.Error("NewPrettyHandler() created handler with nil mutex")
 			}
@@ -98,6 +101,7 @@ func TestPrettyHandler_Enabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler := NewPrettyHandler(tt.options)
+
 			got := handler.Enabled(context.Background(), tt.level)
 			if got != tt.want {
 				t.Errorf("PrettyHandler.Enabled() = %v, want %v", got, tt.want)
@@ -127,6 +131,7 @@ func TestPrettyHandler_WithAttrs(t *testing.T) {
 	if prettyHandler.b != handler.b {
 		t.Error("WithAttrs() should share the same buffer")
 	}
+
 	if prettyHandler.m != handler.m {
 		t.Error("WithAttrs() should share the same mutex")
 	}
@@ -150,6 +155,7 @@ func TestPrettyHandler_WithGroup(t *testing.T) {
 	if prettyHandler.b != handler.b {
 		t.Error("WithGroup() should share the same buffer")
 	}
+
 	if prettyHandler.m != handler.m {
 		t.Error("WithGroup() should share the same mutex")
 	}
@@ -255,13 +261,16 @@ func TestPrettyHandler_Handle(t *testing.T) {
 
 func TestPrettyHandler_Handle_WithReplaceAttr(t *testing.T) {
 	var buf bytes.Buffer
+
 	replaceAttr := func(groups []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.TimeKey {
 			return slog.Attr{} // Remove time
 		}
+
 		if a.Key == "secret" {
 			return slog.String("secret", "[REDACTED]")
 		}
+
 		return a
 	}
 
@@ -332,7 +341,6 @@ func TestFunctionalOptions(t *testing.T) {
 
 	t.Run("WithAutoColour", func(t *testing.T) {
 		_ = NewPrettyHandler(nil, WithAutoColour())
-
 		// The value depends on the color.Enabled() function
 		// We just test that it sets the field
 		// (the value could be true or false depending on environment)
@@ -392,6 +400,7 @@ func TestSuppressDefaults_WithNext(t *testing.T) {
 		if a.Key == "transform" {
 			return slog.String("transform", "transformed")
 		}
+
 		return a
 	}
 
@@ -518,7 +527,9 @@ func TestPrettyHandler_LevelColors(t *testing.T) {
 
 	for _, level := range levels {
 		buf.Reset()
+
 		record := slog.NewRecord(time.Now(), level, "test message", 0)
+
 		err := handler.Handle(context.Background(), record)
 		if err != nil {
 			t.Errorf("Handle() returned error for level %v: %v", level, err)

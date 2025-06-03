@@ -1,0 +1,29 @@
+name: Terraform unit test
+description: Terraform unit tests for root module and submodules
+commands:
+  - type: copycwdtotemp
+    name: Copy current working directory to temp
+    cwd: "."
+  - type: shell
+    name: Clean Terraform
+    command_line: |
+      find . -type d -name .terraform | xargs -n1 rm -rf && \
+      find . -type f -name .terraform.lock.hcl | xargs -n1 rm -f && \
+      find . -type f -name *.tfstate* | xargs -n1 rm -f && \
+  - type: foreachdirectory
+    working_directory: "./modules"
+    mode: parallel
+    commands:
+      - type: shell
+        name: "Terraform Init"
+        command_line: "terraform init -input=false -no-color"
+      - type: shell
+        name: "Terraform Validate"
+        command_line: "terraform validate -no-color"
+      - type: shell
+        name: "Terraform Plan"
+        command_line: "terraform plan -input=false -no-color -out=tfplan"
+  - type: shell
+    name: Clean up
+    command_line: |
+      rm -fr $(pwd)

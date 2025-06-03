@@ -104,6 +104,7 @@ func TestLogger(t *testing.T) {
 				if logger == nil {
 					t.Errorf("Logger() returned nil")
 				}
+
 				if logger == DefaultLogger {
 					t.Errorf("Logger() should not return DefaultLogger when context has logger")
 				}
@@ -167,6 +168,7 @@ func TestLoggingFunctions(t *testing.T) {
 			if !strings.Contains(output, tt.expected) {
 				t.Errorf("Expected log output to contain %q, got: %s", tt.expected, output)
 			}
+
 			if !strings.Contains(output, tt.message) {
 				t.Errorf("Expected log output to contain message %q, got: %s", tt.message, output)
 			}
@@ -183,9 +185,11 @@ func TestLogLevelFromEnv(t *testing.T) {
 
 	exec = filepath.Base(exec)
 	ext := filepath.Ext(exec)
+
 	if ext == ".exe" {
 		exec = exec[:len(exec)-len(ext)]
 	}
+
 	exec = strings.ToUpper(exec)
 	envName := strings.ToUpper(exec + "_LOG_LEVEL")
 
@@ -299,6 +303,7 @@ func TestLevelVar(t *testing.T) {
 	originalLevel := LevelVar.Level()
 
 	LevelVar.Set(slog.LevelDebug)
+
 	if LevelVar.Level() != slog.LevelDebug {
 		t.Error("LevelVar.Set() should update the level")
 	}

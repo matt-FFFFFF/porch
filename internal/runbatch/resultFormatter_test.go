@@ -18,6 +18,7 @@ func TestWriteResults_SimpleSuccess(t *testing.T) {
 			Label:    "simple-command",
 			ExitCode: 0,
 			StdOut:   []byte("success output"),
+			Status:   ResultStatusSuccess,
 		},
 	}
 
@@ -26,7 +27,6 @@ func TestWriteResults_SimpleSuccess(t *testing.T) {
 	opts := &OutputOptions{
 		IncludeStdOut:      true,
 		IncludeStdErr:      true,
-		ColorOutput:        false,
 		ShowSuccessDetails: true,
 	}
 
@@ -46,6 +46,7 @@ func TestWriteResults_SimpleFailure(t *testing.T) {
 			ExitCode: 1,
 			Error:    errors.New("command failed"),
 			StdErr:   []byte("error details"),
+			Status:   ResultStatusError,
 		},
 	}
 
@@ -54,7 +55,6 @@ func TestWriteResults_SimpleFailure(t *testing.T) {
 	opts := &OutputOptions{
 		IncludeStdOut: false,
 		IncludeStdErr: true,
-		ColorOutput:   false,
 	}
 
 	err := writeTextResults(&buf, results, opts)
@@ -74,12 +74,14 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 			Label:    "child-success",
 			ExitCode: 0,
 			StdOut:   []byte("child success output"),
+			Status:   ResultStatusSuccess,
 		},
 		{
 			Label:    "child-failure",
 			ExitCode: 2,
 			Error:    errors.New("child command failed"),
 			StdErr:   []byte("child error details"),
+			Status:   ResultStatusError,
 		},
 	}
 
@@ -89,6 +91,7 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 			ExitCode: -1,
 			Error:    ErrResultChildrenHasError,
 			Children: childResults,
+			Status:   ResultStatusError,
 		},
 	}
 
@@ -97,7 +100,6 @@ func TestWriteResults_HierarchicalResults(t *testing.T) {
 	opts := &OutputOptions{
 		IncludeStdOut: true,
 		IncludeStdErr: true,
-		ColorOutput:   false,
 	}
 
 	err := writeTextResults(&buf, results, opts)
@@ -148,6 +150,7 @@ func TestWriteResults_StdErrFormatting(t *testing.T) {
 			ExitCode: 1,
 			Error:    errors.New("command failed"),
 			StdErr:   []byte("Error line 1\nError line 2\nError line 3\n  Indented error line"),
+			Status:   ResultStatusError,
 		},
 	}
 
@@ -156,7 +159,6 @@ func TestWriteResults_StdErrFormatting(t *testing.T) {
 	opts := &OutputOptions{
 		IncludeStdOut: false,
 		IncludeStdErr: true,
-		ColorOutput:   false,
 	}
 
 	err := writeTextResults(&buf, results, opts)

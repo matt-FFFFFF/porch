@@ -33,25 +33,30 @@ OuterLoop:
 			cmd.InheritEnv(b.Env)
 			cmd.SetCwd(b.Cwd, false)
 
-			if !cmd.ShouldRun(state) {
+			switch cmd.ShouldRun(state) {
+			case ShouldRunActionSkip:
 				results = append(results, &Result{
-					Label:   cmd.GetLabel(),
-					Skipped: true,
+					Label:  cmd.GetLabel(),
+					Status: ResultStatusSkipped,
+					Error:  ErrSkipIntentional,
+				})
+				continue OuterLoop
+			case ShouldRunActionError:
+				results = append(results, &Result{
+					Label:  cmd.GetLabel(),
+					Status: ResultStatusSkipped,
+					Error:  ErrSkipOnError,
 				})
 				continue OuterLoop
 			}
+
 			childResults := cmd.Run(ctx)
 
-			state.ExitCode = childResults[len(childResults)-1].ExitCode
-			state.Err = childResults[len(childResults)-1].Error
+			state.ExitCode = childResults[0].ExitCode
+			state.Err = childResults[0].Error
 
-			// Update cwd for future commands if the current command has changed it
-			if len(childResults) != 1 {
-				newCwd = ""
-			}
-			if len(childResults) == 1 && !childResults.HasError() {
-				newCwd = childResults[0].newCwd
-			}
+			newCwd = childResults[0].newCwd
+
 			if newCwd != "" && i < len(b.Commands)-1 {
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
@@ -74,6 +79,7 @@ OuterLoop:
 	if results.HasError() {
 		res[0].ExitCode = -1
 		res[0].Error = ErrResultChildrenHasError
+		res[0].Status = ResultStatusError
 	}
 
 	return res

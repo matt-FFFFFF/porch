@@ -13,6 +13,11 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 )
 
+var (
+	version = "dev"
+	commit  = "unknown"
+)
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -21,6 +26,13 @@ func main() {
 	sigCh := signalbroker.New(ctx)
 
 	go signalbroker.Watch(ctx, sigCh, cancel)
+
+	cmd.RootCmd.Version = version
+	cmd.RootCmd.ExtraInfo = func() map[string]string {
+		return map[string]string{
+			"commit": commit,
+		}
+	}
 
 	err := cmd.RootCmd.Run(ctx, os.Args)
 	if err != nil {

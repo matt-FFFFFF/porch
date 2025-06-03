@@ -19,7 +19,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "echo hello")
+		cmd, err := New(ctx, base, "echo hello", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -37,7 +37,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "echo hello world")
+		cmd, err := New(ctx, base, "echo hello world", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -52,7 +52,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, `echo "hello world"`)
+		cmd, err := New(ctx, base, `echo "hello world"`, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -67,7 +67,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "echo 'hello world'")
+		cmd, err := New(ctx, base, "echo 'hello world'", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -82,7 +82,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "echo hello | grep hello")
+		cmd, err := New(ctx, base, "echo hello | grep hello", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -97,7 +97,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "echo hello > output.txt")
+		cmd, err := New(ctx, base, "echo hello > output.txt", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -112,7 +112,7 @@ func TestNew_Success(t *testing.T) {
 		ctx := context.Background()
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "echo $HOME")
+		cmd, err := New(ctx, base, "echo $HOME", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -128,7 +128,7 @@ func TestNew_Success(t *testing.T) {
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
 		complexCmd := `find /tmp -name "*.txt" | grep "test" | head -5 > results.txt && echo "Done"`
-		cmd, err := New(ctx, base, complexCmd)
+		cmd, err := New(ctx, base, complexCmd, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -144,7 +144,7 @@ func TestNew_Success(t *testing.T) {
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
 		specialCmd := `echo "Special chars: !@#$%^&*()[]{}|\\;:'\",.<>?/~"`
-		cmd, err := New(ctx, base, specialCmd)
+		cmd, err := New(ctx, base, specialCmd, nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -160,9 +160,9 @@ func TestNew_EmptyCommand(t *testing.T) {
 	ctx := context.Background()
 	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
-	cmd, err := New(ctx, base, "")
+	cmd, err := New(ctx, base, "", nil, nil)
 	assert.Nil(t, cmd)
-	assert.ErrorIs(t, err, ErrCommandNotFound)
+	require.ErrorIs(t, err, ErrCommandNotFound)
 }
 
 func TestNew_WhitespaceOnlyCommand(t *testing.T) {
@@ -174,7 +174,7 @@ func TestNew_WhitespaceOnlyCommand(t *testing.T) {
 
 	for _, wsCmd := range whitespaceCommands {
 		t.Run("whitespace: "+wsCmd, func(t *testing.T) {
-			cmd, err := New(ctx, base, wsCmd)
+			cmd, err := New(ctx, base, wsCmd, nil, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -196,6 +196,7 @@ func TestDefaultShell(t *testing.T) {
 			// Test with no SystemRoot env var
 			originalSystemRoot := os.Getenv(winSystemRootEnv)
 			os.Unsetenv(winSystemRootEnv)
+
 			defer func() {
 				if originalSystemRoot != "" {
 					os.Setenv(winSystemRootEnv, originalSystemRoot)
@@ -211,6 +212,7 @@ func TestDefaultShell(t *testing.T) {
 			originalSystemRoot := os.Getenv(winSystemRootEnv)
 			customRoot := `D:\CustomWindows`
 			os.Setenv(winSystemRootEnv, customRoot)
+
 			defer func() {
 				if originalSystemRoot != "" {
 					os.Setenv(winSystemRootEnv, originalSystemRoot)
@@ -228,6 +230,7 @@ func TestDefaultShell(t *testing.T) {
 			originalShell := os.Getenv("SHELL")
 			customShell := "/usr/bin/zsh"
 			os.Setenv("SHELL", customShell)
+
 			defer func() {
 				if originalShell != "" {
 					os.Setenv("SHELL", originalShell)
@@ -243,6 +246,7 @@ func TestDefaultShell(t *testing.T) {
 		t.Run("unix without SHELL env var", func(t *testing.T) {
 			originalShell := os.Getenv("SHELL")
 			os.Unsetenv("SHELL")
+
 			defer func() {
 				if originalShell != "" {
 					os.Setenv("SHELL", originalShell)
@@ -256,6 +260,7 @@ func TestDefaultShell(t *testing.T) {
 		t.Run("unix with empty SHELL env var", func(t *testing.T) {
 			originalShell := os.Getenv("SHELL")
 			os.Setenv("SHELL", "")
+
 			defer func() {
 				if originalShell != "" {
 					os.Setenv("SHELL", originalShell)
@@ -276,7 +281,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 	t.Run("with custom working directory", func(t *testing.T) {
 		base := runbatch.NewBaseCommand("test", "/tmp", runbatch.RunOnSuccess, nil, nil)
 
-		cmd, err := New(ctx, base, "pwd")
+		cmd, err := New(ctx, base, "pwd", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -287,7 +292,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 		env := map[string]string{"TEST_VAR": "test_value"}
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, env)
 
-		cmd, err := New(ctx, base, "echo $TEST_VAR")
+		cmd, err := New(ctx, base, "echo $TEST_VAR", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -297,7 +302,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 	t.Run("with custom run condition", func(t *testing.T) {
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnError, nil, nil)
 
-		cmd, err := New(ctx, base, "echo error handler")
+		cmd, err := New(ctx, base, "echo error handler", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -308,7 +313,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 		exitCodes := []int{1, 2, 3}
 		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnExitCodes, exitCodes, nil)
 
-		cmd, err := New(ctx, base, "echo custom exit codes")
+		cmd, err := New(ctx, base, "echo custom exit codes", nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, cmd)
 
@@ -400,7 +405,7 @@ func TestNew_CommandLineEdgeCases(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd, err := New(ctx, base, tc.command)
+			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -411,8 +416,8 @@ func TestNew_CommandLineEdgeCases(t *testing.T) {
 			if runtime.GOOS == GOOSWindows {
 				expectedArgs = []string{commandSwitchWindows, tc.command}
 			}
-			assert.Equal(t, expectedArgs, cmd.Args)
 
+			assert.Equal(t, expectedArgs, cmd.Args)
 		})
 	}
 }

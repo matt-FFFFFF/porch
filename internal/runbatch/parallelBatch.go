@@ -47,6 +47,7 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	if children.HasError() {
 		res[0].ExitCode = -1
 		res[0].Error = ErrResultChildrenHasError
+		res[0].Status = ResultStatusError
 	}
 
 	return res

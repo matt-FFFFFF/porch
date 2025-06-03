@@ -71,7 +71,7 @@ func TestCommandRun_NotFound(t *testing.T) {
 	var notFoundErr *os.PathError
 
 	require.ErrorAs(t, res.Error, &notFoundErr, "expected PathError")
-	assert.ErrorIs(t, res.Error, ErrCouldNotStartProcess, "expected error to be ErrCouldNotStartProcess")
+	require.ErrorIs(t, res.Error, ErrCouldNotStartProcess, "expected error to be ErrCouldNotStartProcess")
 }
 
 func TestCommandRun_EnvAndCwd(t *testing.T) {
@@ -118,7 +118,6 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 	require.Error(t, res.Error, "expected error for killed process, got nil")
 	require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded, "expected context to be done, but it was not")
 	require.ErrorIs(t, res.Error, ErrTimeoutExceeded, "expected error to be ErrTimeoutExceeded")
-	require.ErrorIs(t, res.Error, ErrSignalReceived, "expected error to be ErrSignalReceived")
 	assert.Contains(t, string(res.StdErr), "killing", "expected stderr to mention killed")
 }
 

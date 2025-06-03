@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package shellcommand
 
 import (
@@ -29,7 +32,7 @@ command_line: "echo hello"
 
 		osCommand, ok := runnable.(*runbatch.OSCommand)
 		require.True(t, ok)
-		assert.Equal(t, "Simple Test", osCommand.BaseCommand.Label)
+		assert.Equal(t, "Simple Test", osCommand.Label)
 		assert.Contains(t, osCommand.Args, "echo hello")
 	})
 
@@ -66,14 +69,14 @@ env:
 
 		osCommand, ok := runnable.(*runbatch.OSCommand)
 		require.True(t, ok)
-		assert.Equal(t, "Complex Test", osCommand.BaseCommand.Label)
+		assert.Equal(t, "Complex Test", osCommand.Label)
 		assert.Contains(t, osCommand.Args, "echo test")
-		assert.Equal(t, "/tmp", osCommand.BaseCommand.Cwd)
-		assert.Equal(t, runbatch.RunOnSuccess, osCommand.BaseCommand.RunsOnCondition)
-		assert.Contains(t, osCommand.BaseCommand.Env, "TEST_VAR")
-		assert.Equal(t, "test_value", osCommand.BaseCommand.Env["TEST_VAR"])
-		assert.Contains(t, osCommand.BaseCommand.Env, "ANOTHER_VAR")
-		assert.Equal(t, "another_value", osCommand.BaseCommand.Env["ANOTHER_VAR"])
+		assert.Equal(t, "/tmp", osCommand.Cwd)
+		assert.Equal(t, runbatch.RunOnSuccess, osCommand.RunsOnCondition)
+		assert.Contains(t, osCommand.Env, "TEST_VAR")
+		assert.Equal(t, "test_value", osCommand.Env["TEST_VAR"])
+		assert.Contains(t, osCommand.Env, "ANOTHER_VAR")
+		assert.Equal(t, "another_value", osCommand.Env["ANOTHER_VAR"])
 	})
 
 	t.Run("command with error condition", func(t *testing.T) {
@@ -90,7 +93,7 @@ runs_on_condition: "error"
 
 		osCommand, ok := runnable.(*runbatch.OSCommand)
 		require.True(t, ok)
-		assert.Equal(t, runbatch.RunOnError, osCommand.BaseCommand.RunsOnCondition)
+		assert.Equal(t, runbatch.RunOnError, osCommand.RunsOnCondition)
 	})
 
 	t.Run("command with always condition", func(t *testing.T) {
@@ -107,11 +110,11 @@ runs_on_condition: "always"
 
 		osCommand, ok := runnable.(*runbatch.OSCommand)
 		require.True(t, ok)
-		assert.Equal(t, runbatch.RunOnAlways, osCommand.BaseCommand.RunsOnCondition)
+		assert.Equal(t, runbatch.RunOnAlways, osCommand.RunsOnCondition)
 	})
 }
 
-// TestCommander_Create_Errors tests error conditions in Create method
+// TestCommander_Create_Errors tests error conditions in Create method.
 func TestCommander_Create_Errors(t *testing.T) {
 	ctx := context.Background()
 	commander := &Commander{}
@@ -123,7 +126,7 @@ invalid: yaml: content
 `)
 
 		runnable, err := commander.Create(ctx, yamlPayload)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, runnable)
 	})
 
@@ -135,7 +138,7 @@ command_line: ""
 `)
 
 		runnable, err := commander.Create(ctx, yamlPayload)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "command not found")
 	})
@@ -147,7 +150,7 @@ name: "Missing Command"
 `)
 
 		runnable, err := commander.Create(ctx, yamlPayload)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "command not found")
 	})
@@ -161,18 +164,18 @@ runs_on_condition: "invalid_condition"
 `)
 
 		runnable, err := commander.Create(ctx, yamlPayload)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "unknown RunCondition")
 	})
 }
 
-// TestCommander_Interface tests that Commander implements the commands.Commander interface
+// TestCommander_Interface tests that Commander implements the commands.Commander interface.
 func TestCommander_Interface(t *testing.T) {
 	var _ commands.Commander = &Commander{}
 }
 
-// TestDefinition_Structure tests the Definition struct fields and validation
+// TestDefinition_Structure tests the Definition struct fields and validation.
 func TestDefinition_Structure(t *testing.T) {
 	t.Run("definition with all fields", func(t *testing.T) {
 		def := definition{
@@ -197,7 +200,7 @@ func TestDefinition_Structure(t *testing.T) {
 	})
 }
 
-// TestCommander_Create_EdgeCases tests edge cases and additional coverage
+// TestCommander_Create_EdgeCases tests edge cases and additional coverage.
 func TestCommander_Create_EdgeCases(t *testing.T) {
 	ctx := context.Background()
 	commander := &Commander{}
@@ -215,7 +218,7 @@ environment: {}
 
 		osCommand, ok := runnable.(*runbatch.OSCommand)
 		require.True(t, ok)
-		assert.Empty(t, osCommand.BaseCommand.Env)
+		assert.Empty(t, osCommand.Env)
 	})
 
 	t.Run("whitespace in command line", func(t *testing.T) {
@@ -251,7 +254,7 @@ command_line: "dir"
 	}
 }
 
-// TestDefaultShell_WindowsEdgeCases adds specific tests for Windows edge cases that may not be covered
+// TestDefaultShell_WindowsEdgeCases adds specific tests for Windows edge cases that may not be covered.
 func TestDefaultShell_WindowsEdgeCases(t *testing.T) {
 	if runtime.GOOS != GOOSWindows {
 		t.Skip("Windows-specific tests")
@@ -262,6 +265,7 @@ func TestDefaultShell_WindowsEdgeCases(t *testing.T) {
 	t.Run("windows with empty SystemRoot", func(t *testing.T) {
 		originalSystemRoot := os.Getenv(winSystemRootEnv)
 		os.Setenv(winSystemRootEnv, "")
+
 		defer func() {
 			if originalSystemRoot != "" {
 				os.Setenv(winSystemRootEnv, originalSystemRoot)
@@ -276,20 +280,20 @@ func TestDefaultShell_WindowsEdgeCases(t *testing.T) {
 	})
 }
 
-// TestNew_ErrorCoverage ensures error paths are covered
+// TestNew_ErrorCoverage ensures error paths are covered.
 func TestNew_ErrorCoverage(t *testing.T) {
 	ctx := context.Background()
 	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
 	t.Run("empty command returns error", func(t *testing.T) {
-		cmd, err := New(ctx, base, "")
+		cmd, err := New(ctx, base, "", nil, nil)
 		assert.Nil(t, cmd)
-		assert.ErrorIs(t, err, ErrCommandNotFound)
+		require.ErrorIs(t, err, ErrCommandNotFound)
 		assert.Equal(t, "command not found", err.Error())
 	})
 }
 
-// TestCommander_CreateWithDifferentYAMLFormats tests various YAML input formats
+// TestCommander_CreateWithDifferentYAMLFormats tests various YAML input formats.
 func TestCommander_CreateWithDifferentYAMLFormats(t *testing.T) {
 	ctx := context.Background()
 	commander := &Commander{}
@@ -321,7 +325,7 @@ runs_on_condition: "` + tc.condition + `"
 				osCommand, ok := runnable.(*runbatch.OSCommand)
 				require.True(t, ok)
 
-				assert.Equal(t, tc.expected, osCommand.BaseCommand.RunsOnCondition)
+				assert.Equal(t, tc.expected, osCommand.RunsOnCondition)
 			})
 		}
 	})
@@ -351,7 +355,7 @@ env:
 			"VAR3": "value with spaces",
 			"VAR4": "value_with_special_chars_!@#$%",
 		}
-		assert.Equal(t, expectedEnv, osCommand.BaseCommand.Env)
+		assert.Equal(t, expectedEnv, osCommand.Env)
 	})
 
 	t.Run("YAML with exit codes", func(t *testing.T) {
@@ -370,7 +374,7 @@ runs_on_exit_codes: [0, 1, 2, 255]
 		osCommand, ok := runnable.(*runbatch.OSCommand)
 		require.True(t, ok)
 
-		assert.Equal(t, runbatch.RunOnExitCodes, osCommand.BaseCommand.RunsOnCondition)
-		assert.Equal(t, []int{0, 1, 2, 255}, osCommand.BaseCommand.RunsOnExitCodes)
+		assert.Equal(t, runbatch.RunOnExitCodes, osCommand.RunsOnCondition)
+		assert.Equal(t, []int{0, 1, 2, 255}, osCommand.RunsOnExitCodes)
 	})
 }

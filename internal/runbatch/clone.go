@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package runbatch
 
 import (
@@ -5,14 +8,16 @@ import (
 	"slices"
 )
 
-// cloneRunnable creates a deep copy of a Runnable to avoid shared state between foreach iterations
+// cloneRunnable creates a deep copy of a Runnable to avoid shared state between foreach iterations.
 func cloneRunnable(r Runnable) Runnable {
 	switch cmd := r.(type) {
 	case *OSCommand:
 		return &OSCommand{
-			BaseCommand: cloneBaseCommand(cmd.BaseCommand),
-			Args:        slices.Clone(cmd.Args),
-			Path:        cmd.Path,
+			BaseCommand:      cloneBaseCommand(cmd.BaseCommand),
+			Args:             slices.Clone(cmd.Args),
+			Path:             cmd.Path,
+			SuccessExitCodes: slices.Clone(cmd.SuccessExitCodes),
+			SkipExitCodes:    slices.Clone(cmd.SkipExitCodes),
 			// sigCh is left nil - it will be initialized during run if needed
 		}
 	case *FunctionCommand:
@@ -25,6 +30,7 @@ func cloneRunnable(r Runnable) Runnable {
 		for i, subCmd := range cmd.Commands {
 			clonedCommands[i] = cloneRunnable(subCmd)
 		}
+
 		return &SerialBatch{
 			BaseCommand: cloneBaseCommand(cmd.BaseCommand),
 			Commands:    clonedCommands,
@@ -34,6 +40,7 @@ func cloneRunnable(r Runnable) Runnable {
 		for i, subCmd := range cmd.Commands {
 			clonedCommands[i] = cloneRunnable(subCmd)
 		}
+
 		return &ParallelBatch{
 			BaseCommand: cloneBaseCommand(cmd.BaseCommand),
 			Commands:    clonedCommands,
@@ -43,6 +50,7 @@ func cloneRunnable(r Runnable) Runnable {
 		for i, subCmd := range cmd.Commands {
 			clonedCommands[i] = cloneRunnable(subCmd)
 		}
+
 		return &ForEachCommand{
 			BaseCommand:   cloneBaseCommand(cmd.BaseCommand),
 			ItemsProvider: cmd.ItemsProvider,
@@ -55,7 +63,7 @@ func cloneRunnable(r Runnable) Runnable {
 	}
 }
 
-// cloneBaseCommand creates a deep copy of a BaseCommand
+// cloneBaseCommand creates a deep copy of a BaseCommand.
 func cloneBaseCommand(base *BaseCommand) *BaseCommand {
 	return &BaseCommand{
 		Label:           base.Label,

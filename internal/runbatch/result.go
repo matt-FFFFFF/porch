@@ -25,27 +25,55 @@ type Results []*Result
 // gobResult is a helper struct for gob encoding/decoding that handles the error interface
 // and unexported fields.
 type gobResult struct {
-	ExitCode int     `json:"exit_code"`       // Exit code of the command or batch
-	ErrorMsg string  `json:"error,omitempty"` // Store error message as string instead of reflect.Value
-	HasError bool    `json:"has_error"`       // Track whether there was an error
-	Skipped  bool    `json:"skipped"`         // Track whether the command was skipped
-	StdOut   []byte  `json:"stdout"`
-	StdErr   []byte  `json:"stderr"`
-	Label    string  `json:"label"`
-	Children Results `json:"children,omitempty"` // Nested results for tree output
-	NewCwd   string  `json:"new_cwd,omitempty"`  // Exported version of newCwd
+	ExitCode int          `json:"exit_code"`       // Exit code of the command or batch
+	ErrorMsg string       `json:"error,omitempty"` // Store error message as string instead of reflect.Value
+	HasError bool         `json:"has_error"`       // Track whether there was an error
+	Status   ResultStatus `json:"status"`          // Track whether the command was skipped
+	StdOut   []byte       `json:"stdout"`
+	StdErr   []byte       `json:"stderr"`
+	Label    string       `json:"label"`
+	Children Results      `json:"children,omitempty"` // Nested results for tree output
+	NewCwd   string       `json:"new_cwd,omitempty"`  // Exported version of newCwd
 }
 
 // Result represents the outcome of running a command or batch.
 type Result struct {
-	ExitCode int     // Exit code of the command or batch
-	Error    error   // Error, if any
-	Skipped  bool    // Whether the command was skipped
-	StdOut   []byte  // Output from the command(s)
-	StdErr   []byte  // Error output from the command(s)
-	Label    string  // Label of the command or batch
-	Children Results // Nested results for tree output
-	newCwd   string  // New working directory, if changed. Only used for serial batches.
+	ExitCode int          // Exit code of the command or batch.
+	Error    error        // Error, if any.
+	Status   ResultStatus // The status of the resul, e.g. success, error, skipped.
+	StdOut   []byte       // Output from the command(s).
+	StdErr   []byte       // Error output from the command(s).
+	Label    string       // Label of the command or batch.
+	Children Results      // Nested results for tree output.
+	newCwd   string       // New working directory, if changed. Only used for serial batches.
+}
+
+type ResultStatus int
+
+const (
+	ResultStatusSuccess ResultStatus = iota
+	ResultStatusSkipped
+	ResultStatusWarning
+	ResultStatusError
+	ResultStatusUnknown
+)
+
+// String implements the Stringer interface for ResultStatus.
+func (rs ResultStatus) String() string {
+	switch rs {
+	case ResultStatusSuccess:
+		return "success"
+	case ResultStatusSkipped:
+		return "skipped"
+	case ResultStatusWarning:
+		return "warning"
+	case ResultStatusError:
+		return "error"
+	case ResultStatusUnknown:
+		return "unknown"
+	default:
+		return "unknown"
+	}
 }
 
 // GobEncode implements the gob.GobEncoder interface for Result.
@@ -54,7 +82,7 @@ func (r *Result) GobEncode() ([]byte, error) {
 		ExitCode: r.ExitCode,
 		StdOut:   r.StdOut,
 		StdErr:   r.StdErr,
-		Skipped:  r.Skipped,
+		Status:   r.Status,
 		Label:    r.Label,
 		Children: r.Children,
 		NewCwd:   r.newCwd,
@@ -93,7 +121,7 @@ func (r *Result) GobDecode(data []byte) error {
 	r.Label = gr.Label
 	r.Children = gr.Children
 	r.newCwd = gr.NewCwd
-	r.Skipped = gr.Skipped
+	r.Status = gr.Status
 
 	// Convert error message back to error
 	if gr.HasError {
@@ -106,7 +134,7 @@ func (r *Result) GobDecode(data []byte) error {
 // HasError if any of the results in the hierarchy has an error or non-zero exit code.
 func (r Results) HasError() bool {
 	for v := range slices.Values(r) {
-		if v.Error != nil || v.ExitCode != 0 {
+		if v.Status == ResultStatusError {
 			return true
 		}
 

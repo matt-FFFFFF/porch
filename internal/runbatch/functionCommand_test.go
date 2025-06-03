@@ -111,7 +111,7 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode, "expected -1 exit code for cancelled context")
 	require.Error(t, res.Error, "expected error for cancelled context")
-	assert.ErrorIs(t, res.Error, context.DeadlineExceeded, "expected deadline exceeded error")
+	require.ErrorIs(t, res.Error, context.DeadlineExceeded, "expected deadline exceeded error")
 }
 
 func TestFunctionCommandRun_PanicHandling(t *testing.T) {

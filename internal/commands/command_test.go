@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestErrCommandCreate tests the ErrCommandCreate error type
+// TestErrCommandCreate tests the ErrCommandCreate error type.
 func TestErrCommandCreate(t *testing.T) {
 	t.Run("Error method returns formatted string", func(t *testing.T) {
 		err := &ErrCommandCreate{cmdName: "test-command"}
@@ -33,7 +33,7 @@ func TestErrCommandCreate(t *testing.T) {
 	})
 }
 
-// TestNewErrCommandCreate tests the NewErrCommandCreate function
+// TestNewErrCommandCreate tests the NewErrCommandCreate function.
 func TestNewErrCommandCreate(t *testing.T) {
 	t.Run("creates ErrCommandCreate with command name", func(t *testing.T) {
 		cmdName := "shell-command"
@@ -42,7 +42,8 @@ func TestNewErrCommandCreate(t *testing.T) {
 		require.Error(t, err)
 
 		var cmdErr *ErrCommandCreate
-		assert.True(t, errors.As(err, &cmdErr))
+
+		require.ErrorAs(t, err, &cmdErr)
 		assert.Equal(t, cmdName, cmdErr.cmdName)
 		assert.Equal(t, `failed to create command "shell-command"`, err.Error())
 	})
@@ -53,8 +54,9 @@ func TestNewErrCommandCreate(t *testing.T) {
 		require.Error(t, err)
 
 		var cmdErr *ErrCommandCreate
-		assert.True(t, errors.As(err, &cmdErr))
-		assert.Equal(t, "", cmdErr.cmdName)
+
+		require.ErrorAs(t, err, &cmdErr)
+		assert.Empty(t, cmdErr.cmdName)
 	})
 
 	t.Run("returns error interface", func(t *testing.T) {
@@ -63,7 +65,7 @@ func TestNewErrCommandCreate(t *testing.T) {
 	})
 }
 
-// TestBaseDefinition_ToBaseCommand tests the ToBaseCommand method
+// TestBaseDefinition_ToBaseCommand tests the ToBaseCommand method.
 func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 	t.Run("successful conversion with all fields", func(t *testing.T) {
 		def := &BaseDefinition{
@@ -100,7 +102,7 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 		require.NotNil(t, baseCmd)
 
 		assert.Equal(t, "Minimal Command", baseCmd.Label)
-		assert.Equal(t, "", baseCmd.Cwd)
+		assert.Empty(t, baseCmd.Cwd)
 		assert.Equal(t, runbatch.RunOnSuccess, baseCmd.RunsOnCondition)
 		assert.Nil(t, baseCmd.RunsOnExitCodes)
 		assert.Nil(t, baseCmd.Env)
@@ -155,9 +157,9 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 		}
 
 		baseCmd, err := def.ToBaseCommand()
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, baseCmd)
-		assert.True(t, errors.Is(err, ErrYamlUnmarshal))
+		require.ErrorIs(t, err, ErrYamlUnmarshal)
 		assert.Contains(t, err.Error(), "unknown RunCondition value")
 	})
 
@@ -226,7 +228,7 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 	})
 }
 
-// TestBaseDefinition_Struct tests the BaseDefinition struct fields and YAML tags
+// TestBaseDefinition_Struct tests the BaseDefinition struct fields and YAML tags.
 func TestBaseDefinition_Struct(t *testing.T) {
 	t.Run("struct has correct YAML tags", func(t *testing.T) {
 		def := BaseDefinition{
@@ -250,16 +252,16 @@ func TestBaseDefinition_Struct(t *testing.T) {
 	t.Run("zero value struct", func(t *testing.T) {
 		def := BaseDefinition{}
 
-		assert.Equal(t, "", def.Type)
-		assert.Equal(t, "", def.Name)
-		assert.Equal(t, "", def.WorkingDirectory)
-		assert.Equal(t, "", def.RunsOnCondition)
+		assert.Empty(t, def.Type)
+		assert.Empty(t, def.Name)
+		assert.Empty(t, def.WorkingDirectory)
+		assert.Empty(t, def.RunsOnCondition)
 		assert.Nil(t, def.RunsOnExitCodes)
 		assert.Nil(t, def.Env)
 	})
 }
 
-// TestErrYamlUnmarshal tests the ErrYamlUnmarshal variable
+// TestErrYamlUnmarshal tests the ErrYamlUnmarshal variable.
 func TestErrYamlUnmarshal(t *testing.T) {
 	t.Run("error message is correct", func(t *testing.T) {
 		expected := "failed to decode YAML command definition, please check the syntax and structure of your YAML file"
@@ -268,7 +270,7 @@ func TestErrYamlUnmarshal(t *testing.T) {
 
 	t.Run("can be used with errors.Is", func(t *testing.T) {
 		wrappedErr := errors.Join(ErrYamlUnmarshal, errors.New("yaml syntax error"))
-		assert.True(t, errors.Is(wrappedErr, ErrYamlUnmarshal))
+		require.ErrorIs(t, wrappedErr, ErrYamlUnmarshal)
 	})
 
 	t.Run("can be used with errors.Join", func(t *testing.T) {
@@ -280,7 +282,7 @@ func TestErrYamlUnmarshal(t *testing.T) {
 	})
 }
 
-// TestBaseDefinition_EdgeCases tests edge cases and boundary conditions
+// TestBaseDefinition_EdgeCases tests edge cases and boundary conditions.
 func TestBaseDefinition_EdgeCases(t *testing.T) {
 	t.Run("very long command name", func(t *testing.T) {
 		longName := make([]byte, 1000)
@@ -347,7 +349,7 @@ func TestBaseDefinition_EdgeCases(t *testing.T) {
 	})
 }
 
-// TestBaseDefinition_Mutability tests that ToBaseCommand doesn't modify the original
+// TestBaseDefinition_Mutability tests that ToBaseCommand doesn't modify the original.
 func TestBaseDefinition_Mutability(t *testing.T) {
 	t.Run("ToBaseCommand doesn't modify original definition", func(t *testing.T) {
 		originalEnv := map[string]string{"KEY": "value"}

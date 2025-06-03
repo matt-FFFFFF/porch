@@ -1,8 +1,6 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-//go:build integration
-
 package shellcommand
 
 import (
@@ -248,7 +246,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			base := runbatch.NewBaseCommand("integration-test", "", runbatch.RunOnSuccess, nil, nil)
 
 			// Create the command
-			cmd, err := New(ctx, base, tc.command)
+			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -331,7 +329,7 @@ func TestCommandWithEnvironmentVariables_Integration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			base := runbatch.NewBaseCommand("env-test", "", runbatch.RunOnSuccess, nil, tc.env)
 
-			cmd, err := New(ctx, base, tc.command)
+			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -377,7 +375,7 @@ func TestCommandWithWorkingDirectory_Integration(t *testing.T) {
 
 	base := runbatch.NewBaseCommand("cwd-test", tempDir, runbatch.RunOnSuccess, nil, nil)
 
-	cmd, err := New(ctx, base, command)
+	cmd, err := New(ctx, base, command, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -411,7 +409,7 @@ func TestCommandTimeout_Integration(t *testing.T) {
 		command = `sleep 5`
 	}
 
-	cmd, err := New(ctx, base, command)
+	cmd, err := New(ctx, base, command, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -427,7 +425,7 @@ func TestCommandTimeout_Integration(t *testing.T) {
 	assert.Equal(t, -1, result.ExitCode,
 		"expected command to be killed. StdOut: %s, StdErr: %s",
 		string(result.StdOut), string(result.StdErr))
-	assert.Error(t, result.Error, "expected error due to timeout")
+	require.Error(t, result.Error, "expected error due to timeout")
 }
 
 func TestCommandFailure_Integration(t *testing.T) {
@@ -476,7 +474,7 @@ func TestCommandFailure_Integration(t *testing.T) {
 
 			base := runbatch.NewBaseCommand("failure-test", "", runbatch.RunOnSuccess, nil, nil)
 
-			cmd, err := New(ctx, base, tc.command)
+			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 

@@ -6,10 +6,8 @@ package main //nolint:revive
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
-	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 )
@@ -17,9 +15,7 @@ import (
 // signal interrupts with the runbatch package.
 func main() {
 	// Create a signal broker that listens for interrupt and termination signals
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) //nolint:mnd
-	ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second) //nolint:mnd
 
 	defer cancel()
 
@@ -35,7 +31,7 @@ func main() {
 	fmt.Println("=== Signal Handling Demo ===")
 	fmt.Println("1. Press Ctrl+C once to gracefully cancel all processes")
 	fmt.Println("2. Press Ctrl+C twice to forcefully terminate")
-	fmt.Println("3. Wait 10 seconds for auto-timeout")
+	fmt.Println("3. Wait 15 seconds for auto-timeout")
 	fmt.Println("Running commands...")
 
 	// Run the batch with our context and signal channel
@@ -77,7 +73,7 @@ func createDemoBatch() *runbatch.SerialBatch {
 							Label: "Long Sleep",
 						},
 						Path: "/bin/sleep",
-						Args: []string{"10"},
+						Args: []string{"20"},
 					},
 					// A function command that checks for context cancellation
 					&runbatch.FunctionCommand{

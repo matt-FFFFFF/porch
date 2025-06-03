@@ -37,13 +37,15 @@ var (
 // definition is the YAML definition for the shell command.
 type definition struct {
 	commands.BaseDefinition `yaml:",inline"`
-	CommandLine             string `yaml:"command_line"` // The command to execute, can be a path or a command name.
+	CommandLine             string `yaml:"command_line"`                 // The command to execute, can be a path or a command name.
+	SuccessExitCodes        []int  `yaml:"success_exit_codes,omitempty"` // Exit codes that indicate success, defaults to 0.
+	SkipExitCodes           []int  `yaml:"skip_exit_codes,omitempty"`    // Exit codes that indicate skip remaining tasks, defaults to empty.
 }
 
 // New creates a new runbatch.OSCommand. It will search for the command in the system PATH.
 // It returns nil if the command is not found or if the command is empty.
 // On Windows, there is no need to add .exe to the command name.
-func New(ctx context.Context, base *runbatch.BaseCommand, command string) (*runbatch.OSCommand, error) {
+func New(ctx context.Context, base *runbatch.BaseCommand, command string, successExitCodes []int, skipExitCodes []int) (*runbatch.OSCommand, error) {
 	if command == "" {
 		return nil, ErrCommandNotFound
 	}
@@ -56,9 +58,11 @@ func New(ctx context.Context, base *runbatch.BaseCommand, command string) (*runb
 	}
 
 	return &runbatch.OSCommand{
-		BaseCommand: base,
-		Path:        defaultShell(ctx),
-		Args:        osCommandArgs,
+		BaseCommand:      base,
+		Path:             defaultShell(ctx),
+		Args:             osCommandArgs,
+		SuccessExitCodes: successExitCodes,
+		SkipExitCodes:    skipExitCodes,
 	}, nil
 }
 

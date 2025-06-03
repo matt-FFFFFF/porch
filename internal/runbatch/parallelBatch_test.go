@@ -56,9 +56,9 @@ func (f *fakeParallelCmd) InheritEnv(_ map[string]string) {
 	// No-op for the fake command
 }
 
-func (f *fakeParallelCmd) ShouldRun(_ RunState) bool {
+func (f *fakeParallelCmd) ShouldRun(_ RunState) ShouldRunAction {
 	// Always run for the fake command
-	return true
+	return ShouldRunActionRun
 }
 
 func TestParallelBatchRun_AllSuccess(t *testing.T) {

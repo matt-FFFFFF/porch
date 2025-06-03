@@ -16,6 +16,7 @@ func ExampleResults_WriteTextWithOptions_stderrOutput() {
 		ExitCode: 1,
 		Error:    fmt.Errorf("command failed with output error"),
 		StdErr:   []byte("Error message line 1\nError message line 2\n  Indented error line\nAnother error line"),
+		Status:   ResultStatusError,
 	}
 
 	nestedCmd := &Result{
@@ -23,6 +24,7 @@ func ExampleResults_WriteTextWithOptions_stderrOutput() {
 		ExitCode: 2,
 		Error:    fmt.Errorf("nested command timed out"),
 		StdErr:   []byte("Nested error 1\nNested error 2"),
+		Status:   ResultStatusError,
 	}
 
 	// Create a parent result that contains both commands
@@ -31,6 +33,7 @@ func ExampleResults_WriteTextWithOptions_stderrOutput() {
 		ExitCode: -1,
 		Error:    ErrResultChildrenHasError,
 		Children: Results{cmdWithStderr, nestedCmd},
+		Status:   ResultStatusError,
 	}
 
 	results := Results{parentResult}
@@ -42,7 +45,6 @@ func ExampleResults_WriteTextWithOptions_stderrOutput() {
 	options := &OutputOptions{
 		IncludeStdOut:      false,
 		IncludeStdErr:      true,
-		ColorOutput:        false,
 		ShowSuccessDetails: false,
 	}
 

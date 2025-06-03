@@ -22,7 +22,6 @@ func Watch(ctx context.Context, sigCh chan os.Signal, cancel context.CancelFunc)
 				"signal", sig.String())
 			close(sigCh)
 			cancel()
-
 			return
 		}
 

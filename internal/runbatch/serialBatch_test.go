@@ -14,47 +14,22 @@ import (
 )
 
 type fakeCmd struct {
-	label    string
+	*BaseCommand
 	exitCode int
 	err      error
 }
 
 func (f *fakeCmd) Run(_ context.Context) Results {
+	status := ResultStatusSuccess
+	if f.err != nil || f.exitCode != 0 {
+		status = ResultStatusError
+	}
 	return Results{&Result{
-		Label:    f.label,
+		Label:    f.Label,
 		ExitCode: f.exitCode,
 		Error:    f.err,
+		Status:   status,
 	}}
-}
-
-// GetParent returns the parent batch of the command.
-func (f *fakeCmd) GetParent() Runnable {
-	// No-op for the fake command
-	return nil
-}
-
-// SetParent sets the parent batch for the command.
-func (f *fakeCmd) SetParent(_ Runnable) {
-	// No-op for the fake command
-}
-
-// GetLabel returns the label of the batch.
-func (c *fakeCmd) GetLabel() string {
-	return c.label
-}
-
-func (f *fakeCmd) SetCwd(_ string, _ bool) {
-	// No-op for the fake command
-}
-
-// InheritEnv sets the environment variables for the batch.
-func (f *fakeCmd) InheritEnv(_ map[string]string) {
-	// No-op for the fake command
-}
-
-func (f *fakeCmd) ShouldRun(_ RunState) bool {
-	// Always run for the fake command
-	return true
 }
 
 func TestSerialBatchRun_AllSuccess(t *testing.T) {
@@ -65,8 +40,18 @@ func TestSerialBatchRun_AllSuccess(t *testing.T) {
 			Label: "batch1",
 		},
 		Commands: []Runnable{
-			&fakeCmd{label: "cmd1", exitCode: 0},
-			&fakeCmd{label: "cmd2", exitCode: 0},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmd1",
+				},
+				exitCode: 0,
+			},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmd2",
+				},
+				exitCode: 0,
+			},
 		},
 	}
 	results := batch.Run(context.Background())
@@ -85,8 +70,19 @@ func TestSerialBatchRun_OneFailure(t *testing.T) {
 			Label: "batch2",
 		},
 		Commands: []Runnable{
-			&fakeCmd{label: "cmd1", exitCode: 0},
-			&fakeCmd{label: "cmd2", exitCode: 1, err: os.ErrPermission},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmd1",
+				},
+				exitCode: 0,
+			},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmd2",
+				},
+				exitCode: 1,
+				err:      os.ErrPermission,
+			},
 		},
 	}
 	results := batch.Run(context.Background())
@@ -105,8 +101,19 @@ func TestSerialBatchRun_NestedBatch(t *testing.T) {
 			Label: "child",
 		},
 		Commands: []Runnable{
-			&fakeCmd{label: "cmdA", exitCode: 0},
-			&fakeCmd{label: "cmdB", exitCode: 1, err: os.ErrNotExist},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmdA",
+				},
+				exitCode: 0,
+			},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmdB",
+				},
+				exitCode: 1,
+				err:      os.ErrNotExist,
+			},
 		},
 	}
 	batch := &SerialBatch{
@@ -115,7 +122,12 @@ func TestSerialBatchRun_NestedBatch(t *testing.T) {
 		},
 		Commands: []Runnable{
 			childBatch,
-			&fakeCmd{label: "cmdC", exitCode: 0},
+			&fakeCmd{
+				BaseCommand: &BaseCommand{
+					Label: "cmdC",
+				},
+				exitCode: 0,
+			},
 		},
 	}
 	childBatch.SetParent(batch)
@@ -123,5 +135,5 @@ func TestSerialBatchRun_NestedBatch(t *testing.T) {
 	assert.Len(t, results, 1)
 	res := results[0]
 	assert.Equal(t, -1, res.ExitCode)
-	assert.ErrorIs(t, res.Error, ErrResultChildrenHasError)
+	require.ErrorIs(t, res.Error, ErrResultChildrenHasError)
 }

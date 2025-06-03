@@ -16,4 +16,5 @@ var RootCmd = &cli.Command{
 		run.RunCmd,
 		show.ShowCmd,
 	},
+	Name: "porch",
 }

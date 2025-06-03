@@ -28,8 +28,8 @@ type cwdTrackerCommand struct {
 	*runbatch.BaseCommand
 }
 
-func (c *cwdTrackerCommand) ShouldRun(_ runbatch.RunState) bool {
-	return true // Always run for the tracker command
+func (c *cwdTrackerCommand) ShouldRun(_ runbatch.RunState) runbatch.ShouldRunAction {
+	return runbatch.ShouldRunActionRun
 }
 
 func (c *cwdTrackerCommand) Run(_ context.Context) runbatch.Results {
@@ -184,7 +184,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		require.Len(t, results, 1)
 		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
-		assert.ErrorIs(t, results[0].Error, os.ErrPermission)
+		require.ErrorIs(t, results[0].Error, os.ErrPermission)
 	})
 
 	// Test case: WalkDir error
@@ -221,7 +221,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 		require.Len(t, results, 1)
 		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
-		assert.Error(t, results[0].Error)
+		require.Error(t, results[0].Error)
 	})
 
 	t.Run("context canceled", func(t *testing.T) {

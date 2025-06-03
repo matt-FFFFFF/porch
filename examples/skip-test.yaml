@@ -1,0 +1,14 @@
+name: "Skip test"
+description: "Example showing skip control"
+commands:
+  - type: "shell"
+    name: "echo pwd"
+    command_line: "echo $(pwd)"
+  - type: "shell"
+    name: skip test
+    command_line: "exit 2"
+    skip_exit_codes:
+      - 2
+  - type: "shell"
+    name: should not run
+    command_line: "echo should not run"

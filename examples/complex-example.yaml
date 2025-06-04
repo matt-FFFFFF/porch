@@ -1,10 +1,10 @@
+# yaml-language-server: $schema=/Users/matt/code/porch/schema.json
 name: "Complex Workflow Example"
 description: "Example showing nested serial and parallel commands"
 commands:
   - type: "shell"
     name: "Setup"
     command_line: "echo banana"
-
   - type: "parallel"
     name: "Parallel Tasks"
     commands:
@@ -24,6 +24,7 @@ commands:
     name: "Copy to tmp demo"
     commands:
       - type: "copycwdtotemp"
+        name: "Copy current directory to temp"
         cwd: "."
       - type: "shell"
         name: "List files"

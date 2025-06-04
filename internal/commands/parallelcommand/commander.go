@@ -14,21 +14,23 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/schema"
 )
 
 var _ commands.Commander = (*Commander)(nil)
-var _ commands.SchemaProvider = (*Commander)(nil)
-var _ commands.SchemaWriter = (*Commander)(nil)
+var _ schema.Provider = (*Commander)(nil)
+var _ schema.Writer = (*Commander)(nil)
 
 // Commander is a struct that implements the commands.Commander interface.
 type Commander struct {
-	schemaGenerator *commands.BaseSchemaGenerator
+	schemaGenerator *schema.BaseSchemaGenerator
 }
 
 // NewCommander creates a new parallelcommand Commander.
 func NewCommander() *Commander {
 	c := &Commander{}
-	c.schemaGenerator = commands.NewBaseSchemaGenerator(c)
+	c.schemaGenerator = schema.NewBaseSchemaGenerator()
+
 	return c
 }
 
@@ -43,7 +45,7 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 
 	base, err := def.ToBaseCommand()
 	if err != nil {
-		return nil, errors.Join(commands.NewErrCommandCreate("parallelcommand"), err)
+		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}
 
 	parallalBatch := &runbatch.ParallelBatch{
@@ -72,14 +74,16 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 }
 
 // GetSchemaFields returns the schema fields for the parallelcommand type.
-func (c *Commander) GetSchemaFields() []commands.SchemaField {
+func (c *Commander) GetSchemaFields() []schema.Field {
 	def := &Definition{}
-	generator := commands.NewSchemaGenerator()
-	schema, err := generator.GenerateSchema("parallelcommand", def)
+	generator := schema.NewGenerator()
+
+	schemaObj, err := generator.Generate(commandType, def)
 	if err != nil {
-		return []commands.SchemaField{}
+		return []schema.Field{}
 	}
-	return schema.Fields
+
+	return schemaObj.Fields
 }
 
 // GetCommandType returns the command type string.
@@ -96,17 +100,17 @@ func (c *Commander) GetCommandDescription() string {
 func (c *Commander) GetExampleDefinition() interface{} {
 	return &Definition{
 		BaseDefinition: commands.BaseDefinition{
-			Type: commandType,
+			Type: "parallelcommand",
 			Name: "example-parallel-command",
 		},
 		Commands: []any{
 			map[string]any{
-				"type":         "shell",
+				"type":         "shellcommand",
 				"name":         "first-command",
 				"command_line": "echo 'First command (parallel)'",
 			},
 			map[string]any{
-				"type":         "shell",
+				"type":         "shellcommand",
 				"name":         "second-command",
 				"command_line": "echo 'Second command (parallel)'",
 			},
@@ -114,13 +118,13 @@ func (c *Commander) GetExampleDefinition() interface{} {
 	}
 }
 
-// WriteYAMLSchema writes the YAML schema documentation to the provided writer.
-func (c *Commander) WriteYAMLSchema(w io.Writer) error {
+// WriteYAMLExample writes the YAML schema documentation to the provided writer.
+func (c *Commander) WriteYAMLExample(w io.Writer) error {
 	return c.schemaGenerator.WriteYAMLSchema(w)
 }
 
-// WriteMarkdownSchema writes the Markdown schema documentation to the provided writer.
-func (c *Commander) WriteMarkdownSchema(w io.Writer) error {
+// WriteMarkdownDoc writes the Markdown schema documentation to the provided writer.
+func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
 	return c.schemaGenerator.WriteMarkdownSchema(w)
 }
 

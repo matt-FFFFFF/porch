@@ -5,8 +5,8 @@
 package cmd
 
 import (
+	"github.com/matt-FFFFFF/porch/cmd/config"
 	"github.com/matt-FFFFFF/porch/cmd/run"
-	"github.com/matt-FFFFFF/porch/cmd/schema"
 	"github.com/matt-FFFFFF/porch/cmd/show"
 	"github.com/urfave/cli/v3"
 )
@@ -14,9 +14,9 @@ import (
 // RootCmd is the root command for the CLI.
 var RootCmd = &cli.Command{
 	Commands: []*cli.Command{
+		config.ConfigCmd,
 		run.RunCmd,
 		show.ShowCmd,
-		schema.SchemaCmd,
 	},
 	Name: "porch",
 	Description: `Porch is a sophisticated Go-based process orchestration framework

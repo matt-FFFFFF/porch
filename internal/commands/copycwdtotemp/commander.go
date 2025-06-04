@@ -11,21 +11,23 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/schema"
 )
 
 var _ commands.Commander = (*Commander)(nil)
-var _ commands.SchemaProvider = (*Commander)(nil)
-var _ commands.SchemaWriter = (*Commander)(nil)
+var _ schema.Provider = (*Commander)(nil)
+var _ schema.Writer = (*Commander)(nil)
 
 // Commander is a struct that implements the commands.Commander interface.
 type Commander struct {
-	schemaGenerator *commands.BaseSchemaGenerator
+	schemaGenerator *schema.BaseSchemaGenerator
 }
 
 // NewCommander creates a new copycwdtotemp Commander.
 func NewCommander() *Commander {
 	c := &Commander{}
-	c.schemaGenerator = commands.NewBaseSchemaGenerator(c)
+	c.schemaGenerator = schema.NewBaseSchemaGenerator()
+
 	return c
 }
 
@@ -49,14 +51,16 @@ func (c *Commander) Create(_ context.Context, payload []byte) (runbatch.Runnable
 }
 
 // GetSchemaFields returns the schema fields for the copycwdtotemp type.
-func (c *Commander) GetSchemaFields() []commands.SchemaField {
+func (c *Commander) GetSchemaFields() []schema.Field {
 	def := &Definition{}
-	generator := commands.NewSchemaGenerator()
-	schema, err := generator.GenerateSchema(commandType, def)
+	generator := schema.NewGenerator()
+
+	schemaObj, err := generator.Generate(commandType, def)
 	if err != nil {
-		return []commands.SchemaField{}
+		return []schema.Field{}
 	}
-	return schema.Fields
+
+	return schemaObj.Fields
 }
 
 // GetCommandType returns the command type string.
@@ -79,13 +83,13 @@ func (c *Commander) GetExampleDefinition() interface{} {
 	}
 }
 
-// WriteYAMLSchema writes the YAML schema documentation to the provided writer.
-func (c *Commander) WriteYAMLSchema(w io.Writer) error {
+// WriteYAMLExample writes the YAML schema documentation to the provided writer.
+func (c *Commander) WriteYAMLExample(w io.Writer) error {
 	return c.schemaGenerator.WriteYAMLSchema(w)
 }
 
-// WriteMarkdownSchema writes the Markdown schema documentation to the provided writer.
-func (c *Commander) WriteMarkdownSchema(w io.Writer) error {
+// WriteMarkdownDoc writes the Markdown schema documentation to the provided writer.
+func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
 	return c.schemaGenerator.WriteMarkdownSchema(w)
 }
 

@@ -13,6 +13,14 @@ import (
 	"slices"
 )
 
+const (
+	resultStatusUnknownStr = "unknown"
+	resultStatusSuccessStr = "success"
+	resultStatusSkippedStr = "skipped"
+	resultStatusWarningStr = "warning"
+	resultStatusErrorStr   = "error"
+)
+
 // ErrResultChildrenHasError is the error returned when a result has children with at least one error.
 var ErrResultChildrenHasError = fmt.Errorf("result has children with errors")
 
@@ -77,18 +85,16 @@ const (
 func (rs ResultStatus) String() string {
 	switch rs {
 	case ResultStatusSuccess:
-		return "success"
+		return resultStatusSuccessStr
 	case ResultStatusSkipped:
-		return "skipped"
+		return resultStatusSkippedStr
 	case ResultStatusWarning:
-		return "warning"
+		return resultStatusWarningStr
 	case ResultStatusError:
-		return "error"
-	case ResultStatusUnknown:
-		return "unknown"
-	default:
-		return "unknown"
+		return resultStatusErrorStr
 	}
+
+	return resultStatusUnknownStr
 }
 
 // GobEncode implements the gob.GobEncoder interface for Result.
@@ -140,7 +146,7 @@ func (r *Result) GobDecode(data []byte) error {
 
 	// Convert error message back to error
 	if gr.HasError {
-		r.Error = fmt.Errorf("%w: %s", ErrGobDecode, gr.ErrorMsg)
+		r.Error = errors.New(gr.ErrorMsg)
 	}
 
 	return nil

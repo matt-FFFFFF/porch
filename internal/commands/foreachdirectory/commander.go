@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
@@ -16,13 +17,24 @@ import (
 )
 
 var _ commands.Commander = (*Commander)(nil)
+var _ commands.SchemaProvider = (*Commander)(nil)
+var _ commands.SchemaWriter = (*Commander)(nil)
 
 // Commander implements the commands.Commander interface for the foreachdirectory command.
-type Commander struct{}
+type Commander struct {
+	schemaGenerator *commands.BaseSchemaGenerator
+}
+
+// NewCommander creates a new foreachdirectory Commander.
+func NewCommander() *Commander {
+	c := &Commander{}
+	c.schemaGenerator = commands.NewBaseSchemaGenerator(c)
+	return c
+}
 
 // Create creates a new runnable command based on the provided YAML payload.
 func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
-	def := new(definition)
+	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
 	}
@@ -31,7 +43,7 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 
 	base, err := def.ToBaseCommand()
 	if err != nil {
-		return nil, errors.Join(commands.NewErrCommandCreate("foreachdirectory"), err)
+		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}
 
 	mode, err := runbatch.ParseForEachMode(def.Mode)
@@ -74,4 +86,61 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 	forEachCommand.Commands = runnables
 
 	return forEachCommand, nil
+}
+
+// GetSchemaFields returns the schema fields for the foreachdirectory type.
+func (c *Commander) GetSchemaFields() []commands.SchemaField {
+	def := &Definition{}
+	generator := commands.NewSchemaGenerator()
+	schema, err := generator.GenerateSchema(commandType, def)
+	if err != nil {
+		return []commands.SchemaField{}
+	}
+	return schema.Fields
+}
+
+// GetCommandType returns the command type string.
+func (c *Commander) GetCommandType() string {
+	return commandType
+}
+
+// GetCommandDescription returns a description of what this command does.
+func (c *Commander) GetCommandDescription() string {
+	return "Executes commands in each directory found by traversing the filesystem"
+}
+
+// GetExampleDefinition returns an example definition for YAML generation.
+func (c *Commander) GetExampleDefinition() interface{} {
+	return &Definition{
+		BaseDefinition: commands.BaseDefinition{
+			Type: commandType,
+			Name: "example-foreach-directory",
+		},
+		Mode:                     "parallel",
+		Depth:                    2,
+		IncludeHidden:            false,
+		WorkingDirectoryStrategy: "item_relative",
+		Commands: []any{
+			map[string]any{
+				"type":         "shellcommand",
+				"name":         "directory-command",
+				"command_line": "pwd && ls -la",
+			},
+		},
+	}
+}
+
+// WriteYAMLSchema writes the YAML schema documentation to the provided writer.
+func (c *Commander) WriteYAMLSchema(w io.Writer) error {
+	return c.schemaGenerator.WriteYAMLSchema(w)
+}
+
+// WriteMarkdownSchema writes the Markdown schema documentation to the provided writer.
+func (c *Commander) WriteMarkdownSchema(w io.Writer) error {
+	return c.schemaGenerator.WriteMarkdownSchema(w)
+}
+
+// WriteJSONSchema writes the JSON schema to the provided writer.
+func (c *Commander) WriteJSONSchema(w io.Writer) error {
+	return c.schemaGenerator.WriteJSONSchema(w)
 }

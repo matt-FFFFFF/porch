@@ -10,15 +10,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/spf13/afero"
 )
-
-// definition represents the YAML configuration for the copycwdtotemp command.
-type definition struct {
-	commands.BaseDefinition `yaml:",inline"`
-}
 
 // FS is a filesystem abstraction used for file operations.
 // Default is the OS filesystem, but can be replaced with a mock for testing.

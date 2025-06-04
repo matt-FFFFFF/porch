@@ -64,8 +64,17 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 			Label: "parallel-batch-fail",
 		},
 		Commands: []Runnable{
-			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd1"}, delay: 10 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd2"}, delay: 10 * time.Millisecond, exitCode: 1, err: os.ErrPermission},
+			&fakeParallelCmd{
+				BaseCommand: &BaseCommand{Label: "cmd1"},
+				delay:       10 * time.Millisecond,
+				exitCode:    0,
+			},
+			&fakeParallelCmd{
+				BaseCommand: &BaseCommand{Label: "cmd2"},
+				delay:       10 * time.Millisecond,
+				exitCode:    1,
+				err:         os.ErrPermission,
+			},
 		},
 	}
 	ctx := context.Background()

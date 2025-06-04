@@ -7,23 +7,53 @@ commands:
   - type: shell
     name: Clean Terraform
     command_line: |
+      echo $(pwd) && \
       find . -type d -name .terraform | xargs -n1 rm -rf && \
       find . -type f -name .terraform.lock.hcl | xargs -n1 rm -f && \
-      find . -type f -name *.tfstate* | xargs -n1 rm -f && \
-  - type: foreachdirectory
-    working_directory: "./modules"
-    mode: parallel
+      find . -type f -name *.tfstate* | xargs -n1 rm -f
+  - type: parallel
+    name: Unit tests
+    env:
+      TF_IN_AUTOMATION: "1"
     commands:
-      - type: shell
-        name: "Terraform Init"
-        command_line: "terraform init -input=false -no-color"
-      - type: shell
-        name: "Terraform Validate"
-        command_line: "terraform validate -no-color"
-      - type: shell
-        name: "Terraform Plan"
-        command_line: "terraform plan -input=false -no-color -out=tfplan"
+      - type: foreachdirectory
+        name: submodules
+        working_directory: "./modules"
+        mode: parallel
+        commands:
+          - type: shell
+            name: Check for unit tests
+            command_line: |
+              if [ ! -d ./tests/unit ]; then
+                echo "No unit tests found in $(pwd)"
+                exit 99
+              fi
+            skip_exit_codes: [99]
+          - type: shell
+            name: "Terraform Init"
+            command_line: "terraform init -test-directory ./tests/unit"
+          - type: shell
+            name: "Terraform Test"
+            command_line: "terraform test -test-directory ./tests/unit"
+      - type: serial
+        name: root module
+        commands:
+          - type: shell
+            name: Check for unit tests
+            command_line: |
+              if [ ! -d ./tests/unit ]; then
+                echo "No unit tests found in $(pwd)"
+                exit 99
+              fi
+            skip_exit_codes: [99]
+          - type: shell
+            name: "Terraform Init"
+            command_line: "terraform init -test-directory ./tests/unit"
+          - type: shell
+            name: "Terraform Test"
+            command_line: "terraform test -test-directory ./tests/unit"
   - type: shell
     name: Clean up
     command_line: |
       rm -fr $(pwd)
+    runs_on_condition: always

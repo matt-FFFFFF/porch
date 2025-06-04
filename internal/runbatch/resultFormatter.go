@@ -146,8 +146,12 @@ func formatOutput(output []byte, indent string) string {
 	lines := strings.Split(string(output), "\n")
 	// Add indentation to each line and join them back together
 	for i, line := range lines {
+		if line == "" {
+			continue // Skip empty lines
+		}
+
 		lines[i] = indent + line
 	}
 
-	return strings.Join(lines, "\n") + "\n"
+	return strings.Join(lines, "\n")
 }

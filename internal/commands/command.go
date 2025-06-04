@@ -35,22 +35,6 @@ func NewErrCommandCreate(cmdName string) error {
 	return &ErrCommandCreate{cmdName: cmdName}
 }
 
-// BaseDefinition contains fields common to all command types.
-type BaseDefinition struct {
-	// Type is the type of command, e.g., "shell", "serial", "parallel", etc.
-	Type string `yaml:"type"`
-	// Name is the descriptive name of the command.
-	Name string `yaml:"name"`
-	// WorkingDirectory is the directory in which the command should be run.
-	WorkingDirectory string `yaml:"working_directory,omitempty"`
-	// RunsOnCondition can be success, error, always, or exit-codes.
-	RunsOnCondition string `yaml:"runs_on_condition,omitempty"`
-	// RunsOnExitCodes is used when RunsOn is set to exit-codes.
-	RunsOnExitCodes []int `yaml:"runs_on_exit_codes,omitempty"`
-	// Env is a map of environment variables to be set for the command.
-	Env map[string]string `yaml:"env,omitempty"`
-}
-
 // ToBaseCommand converts the BaseDefinition to a runbatch.BaseCommand.
 func (d *BaseDefinition) ToBaseCommand() (*runbatch.BaseCommand, error) {
 	if d.RunsOnCondition == "" {

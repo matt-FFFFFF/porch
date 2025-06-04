@@ -246,7 +246,7 @@ commands: []
 
 func TestDefinition_Structure(t *testing.T) {
 	t.Run("definition includes BaseDefinition", func(t *testing.T) {
-		def := &definition{}
+		def := &Definition{}
 
 		// Should be able to access BaseDefinition fields
 		def.Type = "serial"

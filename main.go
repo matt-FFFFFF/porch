@@ -34,12 +34,7 @@ func main() {
 		}
 	}
 
-	err := cmd.RootCmd.Run(ctx, os.Args)
-	if err != nil {
-		ctxlog.Logger(ctx).Error("command failed", "error", err)
-		os.Exit(1)
-	}
+	_ = cmd.RootCmd.Run(ctx, os.Args) // Err is handled by cli framework
 
 	ctxlog.Logger(ctx).Info("command completed successfully")
-	os.Exit(0)
 }

@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/matt-FFFFFF/porch/internal/allcommands" // Import all commands to register them
 	"github.com/matt-FFFFFF/porch/internal/config"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -99,28 +100,86 @@ commands:
 	assert.NotNil(t, runnable)
 }
 
-func TestBatchSkipAndErrorHandling(t *testing.T) {
+func TestSerialBatchSkipAndErrorHandling(t *testing.T) {
 	yamlData := `
-name: "Complex Batch with Skip and Error Handling"
+name: "Batch with Skip and Error Handling"
 description: "Example showing skip and error handling in a complex batch"
 commands:
-  - type: "serial"
-    commands:
-    - type: "shell"
-      name: "Inner Command 1"
-      command_line: "echo 'inner command 1 success'"
-    - type: "shell"
-      name: "Inner Command 2"
-      command_line: "/bin/asdasd"
-    - type: "shell"
-      name: "Inner Command 3 (should not run)"
-      command_line: "echo 'inner command 3 success'"
+  - type: "shell"
+    name: "Inner Command 1"
+    command_line: "echo 'inner command 1 success'"
+  - type: "shell"
+    name: "Inner Command 2"
+    command_line: "/bin/notexist" # This will fail
+  - type: "shell"
+    name: "Inner Command 3 (should not run)"
+    command_line: "echo 'inner command 3 success'"
 `
 
 	ctx := context.Background()
 	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
+
 	// Run the runnable and check results
-	_ = runnable.Run(ctx)
+	res := runnable.Run(ctx)
+	require.Len(t, res, 1)
+	assert.Len(t, res[0].Children, 3)
+	require.Error(t, res[0].Error)
+	assert.Equal(t, runbatch.ResultStatusError, res[0].Status)
+	assert.Equal(t, -1, res[0].ExitCode)
+
+	// Check that the second command failed and the third was skipped
+	assert.Equal(t, "Inner Command 2", res[0].Children[1].Label)
+	assert.Equal(t, runbatch.ResultStatusError, res[0].Children[1].Status)
+	assert.Equal(t, "Inner Command 3 (should not run)", res[0].Children[2].Label)
+	assert.Equal(t, runbatch.ResultStatusSkipped, res[0].Children[2].Status)
+	require.ErrorIs(t, res[0].Children[2].Error, runbatch.ErrSkipOnError)
+	//res.WriteText(os.Stdout)
+}
+
+func TestSerialBatchSkipOnExitCodeAndErrorHandling(t *testing.T) {
+	yamlData := `
+name: "Batch with Skip and Error Handling"
+description: "Example showing skip and error handling in a complex batch"
+commands:
+  - type: "shell"
+    name: "Inner Command 1"
+    command_line: "echo 'inner command 1 success'"
+  - type: "shell"
+    name: "Inner Command 2"
+    command_line: "exit 123" # This should succeed but skip the next command
+    skip_exit_codes: [123]
+  - type: "shell"
+    name: "Inner Command 3 (should not run)"
+    command_line: "echo 'inner command 3 success'"
+`
+
+	ctx := context.Background()
+	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	require.NoError(t, err)
+	assert.NotNil(t, runnable)
+
+	// Run the runnable and check results
+	res := runnable.Run(ctx)
+	require.Len(t, res, 1)
+	assert.Len(t, res[0].Children, 3)
+	require.NoError(t, res[0].Error)
+	assert.Equal(t, runbatch.ResultStatusSuccess, res[0].Status)
+	assert.Equal(t, 0, res[0].ExitCode)
+
+	// Check that the second command failed and the third was skipped
+	assert.Equal(t, "Inner Command 2", res[0].Children[1].Label)
+	assert.Equalf(
+		t,
+		runbatch.ResultStatusSuccess,
+		res[0].Children[1].Status,
+		"Expected Inner Command 2 to succeed but skip the next command. Got %s", res[0].Children[1].Status,
+	)
+	assert.Equal(t, 123, res[0].Children[1].ExitCode)
+	require.ErrorIs(t, res[0].Children[1].Error, runbatch.ErrSkipIntentional)
+	assert.Equal(t, "Inner Command 3 (should not run)", res[0].Children[2].Label)
+	assert.Equal(t, runbatch.ResultStatusSkipped, res[0].Children[2].Status)
+	require.ErrorIs(t, res[0].Children[2].Error, runbatch.ErrSkipIntentional)
+	//res.WriteText(os.Stdout)
 }

@@ -21,8 +21,11 @@ func (b *SerialBatch) Run(ctx context.Context) Results {
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""
 
-	previousStatus := ResultStatusSuccess
-	previousExitCode := 0
+	prevState := PreviousCommandStatus{
+		State:    ResultStatusSuccess,
+		ExitCode: 0,
+		Err:      nil,
+	}
 
 OuterLoop:
 	for i, cmd := range slices.All(b.Commands) {
@@ -34,7 +37,7 @@ OuterLoop:
 			cmd.InheritEnv(b.Env)
 			cmd.SetCwd(b.Cwd, false)
 
-			switch cmd.ShouldRun(previousStatus, previousExitCode) {
+			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
 				results = append(results, &Result{
 					Label:  cmd.GetLabel(),
@@ -53,8 +56,9 @@ OuterLoop:
 
 			childResults := cmd.Run(ctx)
 
-			previousStatus = childResults[0].Status
-			previousExitCode = childResults[0].ExitCode
+			prevState.State = childResults[0].Status
+			prevState.ExitCode = childResults[0].ExitCode
+			prevState.Err = childResults[0].Error
 
 			newCwd = childResults[0].newCwd
 

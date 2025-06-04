@@ -9,5 +9,5 @@ const commandType = "parallel"
 
 // init registers the parallel command type.
 func init() {
-	commandregistry.Register(commandType, &Commander{})
+	commandregistry.Register(commandType, NewCommander())
 }

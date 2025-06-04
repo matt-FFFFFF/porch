@@ -9,5 +9,5 @@ const commandType = "copycwdtotemp"
 
 // init registers the copycwdtotemp command type.
 func init() {
-	commandregistry.Register(commandType, &Commander{})
+	commandregistry.Register(commandType, NewCommander())
 }

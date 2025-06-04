@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"github.com/matt-FFFFFF/porch/cmd/run"
+	"github.com/matt-FFFFFF/porch/cmd/schema"
 	"github.com/matt-FFFFFF/porch/cmd/show"
 	"github.com/urfave/cli/v3"
 )
@@ -15,6 +16,17 @@ var RootCmd = &cli.Command{
 	Commands: []*cli.Command{
 		run.RunCmd,
 		show.ShowCmd,
+		schema.SchemaCmd,
 	},
 	Name: "porch",
+	Description: `Porch is a sophisticated Go-based process orchestration framework
+designed for running and managing complex command workflows. It provides a flexible,
+YAML-driven approach to define, compose, and execute command chains with advanced
+flow control, parallel processing, and comprehensive error handling.`,
+	Usage:     "porch run myfile.yaml",
+	Copyright: "Copyright (c) matt-FFFFFF 2025. All rights reserved.",
+	Authors: []any{
+		"Matt White (matt-FFFFFF)",
+	},
+	EnableShellCompletion: true,
 }

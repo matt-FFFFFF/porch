@@ -48,7 +48,7 @@ type OSCommand struct {
 	Args             []string       // Arguments to the command, do not include the executable name itself.
 	Path             string         // The command to run (e.g. executable full path).
 	SuccessExitCodes []int          // Exit codes that indicate success, defaults to 0.
-	SkipExitCodes    []int          // Exit codes that indicate skip remaining tasks, defaults to rmpty.
+	SkipExitCodes    []int          // Exit codes that indicate skip remaining tasks, defaults to empty.
 	sigCh            chan os.Signal // Channel to receive signals, allows mocking in test.
 }
 
@@ -114,7 +114,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	startTimeStr := startTime.Format(ctxlog.TimeFormat)
 
 	fullLabel := FullLabel(c)
-	fmt.Printf("%s: process started at %s\n", fullLabel, startTimeStr)
+	fmt.Printf("Starting %s: at %s\n", fullLabel, startTimeStr)
 
 	if err != nil {
 		res.Error = errors.Join(ErrCouldNotStartProcess, err)
@@ -144,7 +144,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 			case <-ticker.C:
 				diff := time.Since(startTime)
 				diff = diff.Round(time.Second) // Round to the nearest second for display
-				fmt.Printf("%s: process running (%s)...\n", fullLabel, diff)
+				fmt.Printf("Running %s: [%s]...\n", fullLabel, diff)
 
 			case s := <-c.sigCh:
 				// is this the second signal received of this type?
@@ -186,7 +186,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	state, psErr := ps.Wait()
 
-	fmt.Printf("%s: process finished at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
+	fmt.Printf("Finished %s: at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
 
 	_ = wOut.Close()
 	_ = wErr.Close()
@@ -222,9 +222,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	// A non-zero exit code does not generate an error, so this needs to be an OR.
 	case res.Error != nil || !slices.Contains(c.SuccessExitCodes, res.ExitCode):
 		logger.Debug("process error", "error", res.Error, "exitCode", res.ExitCode)
+
 		if res.ExitCode == 0 {
 			res.ExitCode = -1 // If exit code is 0 but there is an error, set exit code to -1
 		}
+
 		res.Status = ResultStatusError
 	}
 

@@ -26,6 +26,7 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	for _, cmd := range b.Commands {
 		wg.Add(1)
 		cmd.InheritEnv(b.Env)
+		cmd.SetCwd(b.Cwd, false)
 
 		go func(c Runnable) {
 			defer wg.Done()
@@ -43,6 +44,7 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	res := Results{&Result{
 		Label:    b.Label,
 		Children: children,
+		Status:   ResultStatusSuccess,
 	}}
 	if children.HasError() {
 		res[0].ExitCode = -1

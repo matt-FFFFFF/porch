@@ -9,5 +9,5 @@ const commandType = "shell"
 
 // init registers the shell command type.
 func init() {
-	commandregistry.Register(commandType, &Commander{})
+	commandregistry.Register(commandType, NewCommander())
 }

@@ -9,5 +9,5 @@ const commandType = "foreachdirectory"
 
 // init registers the foreachdirectory command type.
 func init() {
-	commandregistry.Register(commandType, &Commander{})
+	commandregistry.Register(commandType, NewCommander())
 }

@@ -4,7 +4,9 @@
 package runbatch
 
 import (
+	"errors"
 	"maps"
+	"path/filepath"
 	"slices"
 )
 
@@ -17,6 +19,16 @@ type BaseCommand struct {
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command
 	parent          Runnable          // The parent command or batch, if any
+}
+
+// PreviousCommandStatus holds the state of the previous command execution.
+type PreviousCommandStatus struct {
+	// State is the result status of the previous command.
+	State ResultStatus
+	// ExitCode is the exit code of the previous command.
+	ExitCode int
+	// Err is the error from the previous command, if any.
+	Err error
 }
 
 // NewBaseCommand creates a new BaseCommand with the specified parameters.
@@ -65,6 +77,10 @@ func (c *BaseCommand) SetCwd(cwd string, overwrite bool) {
 		return
 	}
 
+	if !filepath.IsAbs(c.Cwd) {
+		c.Cwd = filepath.Join(cwd, c.Cwd)
+	}
+
 	c.Cwd = cwd
 }
 
@@ -84,24 +100,31 @@ func (c *BaseCommand) InheritEnv(env map[string]string) {
 
 // ShouldRun checks if the command should run based on the current state.
 // It returns a ShouldRunAction indicating whether to run, skip, or error.
-func (c *BaseCommand) ShouldRun(state ResultStatus, exitCode int) ShouldRunAction {
+func (c *BaseCommand) ShouldRun(prev PreviousCommandStatus) ShouldRunAction {
 	switch c.RunsOnCondition {
 	case RunOnAlways:
 		return ShouldRunActionRun
 	case RunOnSuccess:
-		if state != ResultStatusSuccess {
+		if prev.State != ResultStatusSuccess {
 			return ShouldRunActionError
 		}
-		return ShouldRunActionRun
-	case RunOnExitCodes:
-		if !slices.Contains(c.RunsOnExitCodes, exitCode) {
+
+		if errors.Is(prev.Err, ErrSkipIntentional) {
 			return ShouldRunActionSkip
 		}
+
+		return ShouldRunActionRun
+	case RunOnExitCodes:
+		if !slices.Contains(c.RunsOnExitCodes, prev.ExitCode) {
+			return ShouldRunActionSkip
+		}
+
 		return ShouldRunActionRun
 	case RunOnError:
-		if state != ResultStatusError {
+		if prev.State != ResultStatusError {
 			return ShouldRunActionError
 		}
+
 		return ShouldRunActionRun
 	}
 

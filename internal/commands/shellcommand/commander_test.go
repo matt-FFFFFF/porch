@@ -184,7 +184,7 @@ func TestCommander_Interface(t *testing.T) {
 // TestDefinition_Structure tests the Definition struct fields and validation.
 func TestDefinition_Structure(t *testing.T) {
 	t.Run("definition with all fields", func(t *testing.T) {
-		def := definition{
+		def := Definition{
 			BaseDefinition: commands.BaseDefinition{
 				Type:             "shell",
 				Name:             "Test Command",

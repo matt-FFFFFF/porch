@@ -9,5 +9,5 @@ const commandType = "serial"
 
 // init registers the serial command type.
 func init() {
-	commandregistry.Register(commandType, &Commander{})
+	commandregistry.Register(commandType, NewCommander())
 }

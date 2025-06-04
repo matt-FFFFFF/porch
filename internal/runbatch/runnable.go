@@ -26,5 +26,5 @@ type Runnable interface {
 	// SetParent sets the parent for this command or batch.
 	SetParent(Runnable)
 	// ShouldRun returns true if the command or batch should be run.
-	ShouldRun(state ResultStatus, exitCode int) ShouldRunAction
+	ShouldRun(state PreviousCommandStatus) ShouldRunAction
 }

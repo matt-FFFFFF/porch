@@ -5,7 +5,6 @@ package run
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
@@ -15,7 +14,12 @@ import (
 )
 
 const (
-	fileArg = "file"
+	fileArg                  = "file"
+	outArg                   = "out"
+	outputStdErrFlag         = "output-stderr"
+	outputStdOutFlag         = "output-stdout"
+	outputSuccessDetailsFlag = "output-success-details"
+	writeFlag                = "write"
 )
 
 var (
@@ -31,48 +35,92 @@ var RunCmd = &cli.Command{
 	Description: "Run a command or batch of commands defined in a YAML file.",
 	Arguments: []cli.Argument{
 		&cli.StringArg{
-			Name: fileArg,
+			Name:      fileArg,
+			UsageText: "YAMLFILE",
+			Config: cli.StringConfig{
+				TrimSpace: true,
+			},
+		},
+		&cli.StringArg{
+			Name:      outArg,
+			UsageText: " [OUTFILE]",
+			Config: cli.StringConfig{
+				TrimSpace: true,
+			},
 		},
 	},
 	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:        "write",
-			Aliases:     []string{"w"},
-			DefaultText: "Write results to a file",
-			TakesFile:   true,
-			Usage:       "The file to write results to",
-			OnlyOnce:    true,
-			Required:    false,
+		&cli.BoolFlag{
+			Name:        outputSuccessDetailsFlag,
+			Aliases:     []string{"success"},
+			Usage:       "Include successful results in the output",
+			TakesFile:   false,
+			DefaultText: "false",
+			Value:       false,
+		},
+		&cli.BoolFlag{
+			Name:        outputStdErrFlag,
+			Aliases:     []string{"stderr"},
+			Usage:       "Include stderr output in the results",
+			Value:       true,
+			DefaultText: "true",
+			TakesFile:   false,
+		},
+		&cli.BoolFlag{
+			Name:        outputStdOutFlag,
+			Aliases:     []string{"stdout"},
+			Usage:       "Include stdout output in the results",
+			TakesFile:   false,
+			DefaultText: "false",
+			Value:       false,
 		},
 	},
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		bytes, err := os.ReadFile(cmd.StringArg(fileArg))
+	Action: actionFunc,
+}
+
+func actionFunc(ctx context.Context, cmd *cli.Command) error {
+	yamlFileName := cmd.StringArg(fileArg)
+	bytes, err := os.ReadFile(yamlFileName)
+
+	if yamlFileName == "" {
+		return cli.Exit("Please provide a YAML file to run", 1)
+	}
+
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("failed to read file %s: %s", yamlFileName, err.Error()), 1)
+	}
+
+	rb, err := config.BuildFromYAML(ctx, bytes)
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("failed to build config from file %s: %s", yamlFileName, err.Error()), 1)
+	}
+
+	res := rb.Run(ctx)
+
+	outFileName := cmd.StringArg(outArg)
+	if outFileName != "" {
+		f, err := os.Create(outFileName) // Create the output file if it doesn't exist
 		if err != nil {
-			return errors.Join(ErrReadFile, err)
+			return cli.Exit(fmt.Sprintf("Failed to create output file %s: %s", outFileName, err.Error()), 1)
 		}
-		rb, err := config.BuildFromYAML(ctx, bytes)
-		if err != nil {
-			return errors.Join(ErrBuildConfig, err)
+
+		defer f.Close() //nolint:errcheck
+
+		if err := res.WriteBinary(f); err != nil {
+			return cli.Exit(fmt.Sprintf("Failed to write results to file %s: %s", outFileName, err.Error()), 1)
 		}
-		outputFile := cmd.String("write")
-		res := rb.Run(ctx)
-		if outputFile != "" {
-			f, err := os.Create(outputFile) // Create the output file if it doesn't exist
-			if err != nil {
-				return fmt.Errorf("failed to create output file: %w", err)
-			}
-			defer f.Close() //nolint:errcheck
-			if err := res.WriteBinary(f); err != nil {
-				return fmt.Errorf("failed to write results to file: %w", err)
-			}
-			return nil
-		}
-		opts := runbatch.DefaultOutputOptions()
-		opts.IncludeStdOut = true
-		opts.ShowSuccessDetails = true
-		if err := res.WriteTextWithOptions(cmd.Writer, opts); err != nil {
-			return fmt.Errorf("failed to write results: %w", err)
-		}
+
 		return nil
-	},
+	}
+
+	opts := runbatch.DefaultOutputOptions()
+	opts.IncludeStdErr = cmd.Bool(outputStdErrFlag)
+	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
+	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
+
+	if err := res.WriteTextWithOptions(cmd.Writer, opts); err != nil {
+		return cli.Exit("Failed to write results: "+err.Error(), 1)
+	}
+
+	return nil
 }

@@ -18,8 +18,18 @@ const (
 	ItemEnvVar = "ITEM"
 )
 
+const (
+	forEachSerialString    = "serial"
+	forEachParallelString  = "parallel"
+	cwdStrategyNoneStr     = "none"
+	cwdStrategyRelativeStr = "item_relative"
+	cwdStrategyAbsoluteStr = "item_absolute"
+	unknownValue           = "unknown"
+)
+
 // ItemsProviderFunc is a function that returns a list of items to iterate over.
-// It takes a context and the current working directory, and returns a list of items and an error.
+// It takes a context and the current working directory,
+// and returns a list of items and an error.
 type ItemsProviderFunc func(ctx context.Context, workingDirectory string) ([]string, error)
 
 var (
@@ -27,6 +37,10 @@ var (
 	ErrItemsProviderFailed = errors.New("items provider function failed")
 	// ErrInvalidForEachMode is returned when an invalid foreach mode is specified.
 	ErrInvalidForEachMode = errors.New("invalid foreach mode specified, must be 'serial' or 'parallel'")
+	// ErrInvalidCwdStrategy is returned when an invalid cwd strategy is specified.
+	ErrInvalidCwdStrategy = errors.New(
+		"invalid cwd strategy specified, must be 'none', 'item_relative', or 'item_absolute'",
+	)
 )
 
 // ForEachMode determines whether the commands are executed in serial or parallel.
@@ -42,11 +56,11 @@ const (
 func (m ForEachMode) String() string {
 	switch m {
 	case ForEachSerial:
-		return "serial"
+		return forEachSerialString
 	case ForEachParallel:
-		return "parallel"
+		return forEachParallelString
 	default:
-		return "unknown"
+		return unknownValue
 	}
 }
 
@@ -54,11 +68,12 @@ func (m ForEachMode) String() string {
 type ForEachCwdStrategy int
 
 const (
-	// No cwd modification
+	// CwdStrategyNone means no cwd modification.
 	CwdStrategyNone ForEachCwdStrategy = iota
-	// CwdItemRelative modifies the cwd to be relative to the item and the working directory of the foreach command.
+	// CwdStrategyItemRelative modifies the cwd to be relative to the item and
+	// the working directory of the foreach command.
 	CwdStrategyItemRelative
-	// CwdItemAbsolute modifies the cwd to be absolute based on the item.
+	// CwdStrategyItemAbsolute modifies the cwd to be absolute based on the item.
 	CwdStrategyItemAbsolute
 )
 
@@ -66,27 +81,27 @@ const (
 func (s ForEachCwdStrategy) String() string {
 	switch s {
 	case CwdStrategyNone:
-		return "none"
+		return cwdStrategyNoneStr
 	case CwdStrategyItemRelative:
-		return "item_relative"
+		return cwdStrategyRelativeStr
 	case CwdStrategyItemAbsolute:
-		return "item_absolute"
+		return cwdStrategyAbsoluteStr
 	default:
-		return "unknown"
+		return unknownValue
 	}
 }
 
 // ParseCwdStrategy converts a string to a ForEachCwdStrategy.
 func ParseCwdStrategy(strategy string) (ForEachCwdStrategy, error) {
 	switch strategy {
-	case "none":
+	case cwdStrategyNoneStr:
 		return CwdStrategyNone, nil
-	case "item_relative":
+	case cwdStrategyRelativeStr:
 		return CwdStrategyItemRelative, nil
-	case "item_absolute":
+	case cwdStrategyAbsoluteStr:
 		return CwdStrategyItemAbsolute, nil
 	default:
-		return -1, fmt.Errorf("invalid cwd strategy: %s", strategy)
+		return -1, ErrInvalidCwdStrategy
 	}
 }
 
@@ -107,9 +122,9 @@ type ForEachCommand struct {
 // If the string is not valid, it returns an ErrInvalidForEachMode error.
 func ParseForEachMode(mode string) (ForEachMode, error) {
 	switch mode {
-	case "serial":
+	case forEachSerialString:
 		return ForEachSerial, nil
-	case "parallel":
+	case forEachParallelString:
 		return ForEachParallel, nil
 	default:
 		return -1, ErrInvalidForEachMode
@@ -158,6 +173,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		}
 
 		var cwd string
+
 		switch f.CwdStrategy {
 		case CwdStrategyItemRelative:
 			cwd = filepath.Join(f.Cwd, item)

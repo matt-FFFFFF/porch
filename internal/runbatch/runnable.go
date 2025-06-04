@@ -26,11 +26,5 @@ type Runnable interface {
 	// SetParent sets the parent for this command or batch.
 	SetParent(Runnable)
 	// ShouldRun returns true if the command or batch should be run.
-	ShouldRun(state RunState) ShouldRunAction
-}
-
-// RunState represents the state of the previous run of a command or batch.
-type RunState struct {
-	ExitCode int   // Exit code of the last run
-	Err      error // Error of the last run
+	ShouldRun(state ResultStatus, exitCode int) ShouldRunAction
 }

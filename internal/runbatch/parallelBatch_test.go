@@ -15,7 +15,7 @@ import (
 )
 
 type fakeParallelCmd struct {
-	label    string
+	*BaseCommand
 	delay    time.Duration
 	exitCode int
 	err      error
@@ -26,39 +26,10 @@ func (f *fakeParallelCmd) Run(_ context.Context) Results {
 	time.Sleep(f.delay)
 
 	return Results{&Result{
-		Label:    f.label,
+		Label:    f.Label,
 		ExitCode: f.exitCode,
 		Error:    f.err,
 	}}
-}
-
-// GetLabel returns the label of the batch.
-func (c *fakeParallelCmd) GetLabel() string {
-	return c.label
-}
-
-// GetParent returns the parent for this command.
-func (f *fakeParallelCmd) GetParent() Runnable {
-	return nil // No parent for the fake command
-}
-
-// SetParent sets the parent batch for the command.
-func (f *fakeParallelCmd) SetParent(_ Runnable) {
-	// No-op for the fake command
-}
-
-// SetCwd implements the Runnable interface for fakeParallelCmd.
-func (f *fakeParallelCmd) SetCwd(_ string, _ bool) {
-	// No-op for the fake command
-}
-
-func (f *fakeParallelCmd) InheritEnv(_ map[string]string) {
-	// No-op for the fake command
-}
-
-func (f *fakeParallelCmd) ShouldRun(_ RunState) ShouldRunAction {
-	// Always run for the fake command
-	return ShouldRunActionRun
 }
 
 func TestParallelBatchRun_AllSuccess(t *testing.T) {
@@ -69,8 +40,8 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 			Label: "parallel-batch-success",
 		},
 		Commands: []Runnable{
-			&fakeParallelCmd{label: "cmd1", delay: 10 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{label: "cmd2", delay: 20 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd1"}, delay: 10 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd2"}, delay: 20 * time.Millisecond, exitCode: 0},
 		},
 	}
 	ctx := context.Background()
@@ -93,8 +64,8 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 			Label: "parallel-batch-fail",
 		},
 		Commands: []Runnable{
-			&fakeParallelCmd{label: "cmd1", delay: 10 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{label: "cmd2", delay: 10 * time.Millisecond, exitCode: 1, err: os.ErrPermission},
+			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd1"}, delay: 10 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd2"}, delay: 10 * time.Millisecond, exitCode: 1, err: os.ErrPermission},
 		},
 	}
 	ctx := context.Background()
@@ -122,8 +93,8 @@ func TestParallelBatchRun_Parallelism(t *testing.T) {
 			Label: "parallel-batch-parallelism",
 		},
 		Commands: []Runnable{
-			&fakeParallelCmd{label: "cmd1", delay: 100 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{label: "cmd2", delay: 100 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd1"}, delay: 100 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd2"}, delay: 100 * time.Millisecond, exitCode: 0},
 		},
 	}
 	ctx := context.Background()

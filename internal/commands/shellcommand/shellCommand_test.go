@@ -191,7 +191,7 @@ func TestNew_WhitespaceOnlyCommand(t *testing.T) {
 func TestDefaultShell(t *testing.T) {
 	ctx := context.Background()
 
-	if runtime.GOOS == GOOSWindows {
+	if runtime.GOOS == GOOSWindows { // nolint:nestif
 		t.Run("windows default shell", func(t *testing.T) {
 			// Test with no SystemRoot env var
 			originalSystemRoot := os.Getenv(winSystemRootEnv)

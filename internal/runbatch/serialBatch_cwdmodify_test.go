@@ -44,18 +44,21 @@ func TestSerialBatchCwdPropagation(t *testing.T) {
 		},
 		exitCode: 0,
 		newCwd:   "/new/path",
+		status:   ResultStatusSuccess,
 	}
 	cmd2 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
 			Label: "cmd2",
 			Cwd:   "/initial/path"},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 	cmd3 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
 			Label: "cmd3",
 			Cwd:   "/initial/path"},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 
 	batch := &SerialBatch{
@@ -98,6 +101,7 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 		},
 		exitCode: 0,
 		newCwd:   "/path/1",
+		status:   ResultStatusSuccess,
 	}
 	cmd2 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
@@ -106,6 +110,7 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 		},
 		exitCode: 0,
 		newCwd:   "/path/2",
+		status:   ResultStatusSuccess,
 	}
 	cmd3 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
@@ -113,6 +118,7 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 			Cwd:   "/initial/path",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 
 	batch := &SerialBatch{
@@ -141,6 +147,7 @@ func TestSerialBatchCwdNoChange(t *testing.T) {
 			Cwd:   "/initial/path",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 	cmd2 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
@@ -148,6 +155,7 @@ func TestSerialBatchCwdNoChange(t *testing.T) {
 			Cwd:   "/initial/path",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 	cmd3 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
@@ -155,6 +163,7 @@ func TestSerialBatchCwdNoChange(t *testing.T) {
 			Cwd:   "/initial/path",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 
 	batch := &SerialBatch{
@@ -220,6 +229,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 			Cwd:   "",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 	innerCmd2 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
@@ -227,6 +237,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 			Cwd:   "",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 
 	innerBatch := &SerialBatch{
@@ -244,6 +255,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 		},
 		exitCode: 0,
 		newCwd:   "/new/path",
+		status:   ResultStatusSuccess,
 	}
 	outerCmd2 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
@@ -251,6 +263,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 			Cwd:   "/initial/path",
 		},
 		exitCode: 0,
+		status:   ResultStatusSuccess,
 	}
 
 	outerBatch := &SerialBatch{

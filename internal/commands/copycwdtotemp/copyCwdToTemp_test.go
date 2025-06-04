@@ -28,15 +28,12 @@ type cwdTrackerCommand struct {
 	*runbatch.BaseCommand
 }
 
-func (c *cwdTrackerCommand) ShouldRun(_ runbatch.RunState) runbatch.ShouldRunAction {
-	return runbatch.ShouldRunActionRun
-}
-
 func (c *cwdTrackerCommand) Run(_ context.Context) runbatch.Results {
 	return runbatch.Results{&runbatch.Result{
 		Label:    c.Label,
 		ExitCode: 0, // Simulate success
 		Error:    nil,
+		Status:   runbatch.ResultStatusSuccess,
 	}}
 }
 

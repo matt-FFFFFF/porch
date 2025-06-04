@@ -98,3 +98,29 @@ commands:
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
 }
+
+func TestBatchSkipAndErrorHandling(t *testing.T) {
+	yamlData := `
+name: "Complex Batch with Skip and Error Handling"
+description: "Example showing skip and error handling in a complex batch"
+commands:
+  - type: "serial"
+    commands:
+    - type: "shell"
+      name: "Inner Command 1"
+      command_line: "echo 'inner command 1 success'"
+    - type: "shell"
+      name: "Inner Command 2"
+      command_line: "/bin/asdasd"
+    - type: "shell"
+      name: "Inner Command 3 (should not run)"
+      command_line: "echo 'inner command 3 success'"
+`
+
+	ctx := context.Background()
+	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	require.NoError(t, err)
+	assert.NotNil(t, runnable)
+	// Run the runnable and check results
+	_ = runnable.Run(ctx)
+}

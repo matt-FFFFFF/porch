@@ -4,7 +4,6 @@
 package runbatch
 
 import (
-	"errors"
 	"maps"
 	"slices"
 )
@@ -85,28 +84,25 @@ func (c *BaseCommand) InheritEnv(env map[string]string) {
 
 // ShouldRun checks if the command should run based on the current state.
 // It returns a ShouldRunAction indicating whether to run, skip, or error.
-func (c *BaseCommand) ShouldRun(state RunState) ShouldRunAction {
-	if c.RunsOnCondition == RunOnAlways {
-		// If the command always runs, return true
+func (c *BaseCommand) ShouldRun(state ResultStatus, exitCode int) ShouldRunAction {
+	switch c.RunsOnCondition {
+	case RunOnAlways:
 		return ShouldRunActionRun
-	}
-
-	if state.Err != nil {
-		if errors.Is(state.Err, ErrSkipIntentional) {
+	case RunOnSuccess:
+		if state != ResultStatusSuccess {
+			return ShouldRunActionError
+		}
+		return ShouldRunActionRun
+	case RunOnExitCodes:
+		if !slices.Contains(c.RunsOnExitCodes, exitCode) {
 			return ShouldRunActionSkip
 		}
-
-		// If there was an error in the previous run, check if the command runs on errors
-		if c.RunsOnCondition == RunOnError {
-			return ShouldRunActionRun
+		return ShouldRunActionRun
+	case RunOnError:
+		if state != ResultStatusError {
+			return ShouldRunActionError
 		}
-
-		if c.RunsOnCondition == RunOnExitCodes && slices.Contains(c.RunsOnExitCodes, state.ExitCode) {
-			// If the command runs on specific exit codes and the previous run's exit code matches, return true
-			return ShouldRunActionRun
-		}
-
-		return ShouldRunActionError
+		return ShouldRunActionRun
 	}
 
 	return ShouldRunActionRun

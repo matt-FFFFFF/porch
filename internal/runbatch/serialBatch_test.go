@@ -24,6 +24,7 @@ func (f *fakeCmd) Run(_ context.Context) Results {
 	if f.err != nil || f.exitCode != 0 {
 		status = ResultStatusError
 	}
+
 	return Results{&Result{
 		Label:    f.Label,
 		ExitCode: f.exitCode,

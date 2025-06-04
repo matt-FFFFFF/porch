@@ -38,24 +38,39 @@ type gobResult struct {
 
 // Result represents the outcome of running a command or batch.
 type Result struct {
-	ExitCode int          // Exit code of the command or batch.
-	Error    error        // Error, if any.
-	Status   ResultStatus // The status of the resul, e.g. success, error, skipped.
-	StdOut   []byte       // Output from the command(s).
-	StdErr   []byte       // Error output from the command(s).
-	Label    string       // Label of the command or batch.
-	Children Results      // Nested results for tree output.
-	newCwd   string       // New working directory, if changed. Only used for serial batches.
+	// Exit code of the command or batch.
+	ExitCode int
+	// Error, if any.
+	Error error
+	// The status of the result, e.g. success, error, skipped.
+	// The Default is ResultStatusUnknown, so always ensure to set this to something meaningful.
+	Status ResultStatus
+	// Output from the command(s).
+	StdOut []byte
+	// Error output from the command(s).
+	StdErr []byte
+	// Label of the command or batch.
+	Label string
+	// Nested results for tree output.
+	Children Results
+	// New working directory, if changed. Only processed by serial batches.
+	newCwd string
 }
 
+// ResultStatus summarizes the status of a command or batch result.
 type ResultStatus int
 
 const (
-	ResultStatusSuccess ResultStatus = iota
+	// ResultStatusUnknown indicates the result status is unknown.
+	ResultStatusUnknown ResultStatus = iota
+	// ResultStatusSuccess indicates the command or batch completed successfully.
+	ResultStatusSuccess
+	// ResultStatusSkipped indicates the command or batch was skipped.
 	ResultStatusSkipped
+	// ResultStatusWarning indicates the command or batch completed with warnings.
 	ResultStatusWarning
+	// ResultStatusError indicates the command or batch failed.
 	ResultStatusError
-	ResultStatusUnknown
 )
 
 // String implements the Stringer interface for ResultStatus.

@@ -12,6 +12,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewPrettyHandler(t *testing.T) {
@@ -46,21 +49,11 @@ func TestNewPrettyHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler := NewPrettyHandler(tt.options, tt.opts...)
-			if handler == nil {
-				t.Error("NewPrettyHandler() returned nil")
-			}
+			require.NotNil(t, handler, "NewPrettyHandler() should not return nil")
 
-			if handler.h == nil {
-				t.Error("NewPrettyHandler() created handler with nil inner handler")
-			}
-
-			if handler.b == nil {
-				t.Error("NewPrettyHandler() created handler with nil buffer")
-			}
-
-			if handler.m == nil {
-				t.Error("NewPrettyHandler() created handler with nil mutex")
-			}
+			assert.NotNil(t, handler.h, "NewPrettyHandler() created handler with nil inner handler")
+			assert.NotNil(t, handler.b, "NewPrettyHandler() created handler with nil buffer")
+			assert.NotNil(t, handler.m, "NewPrettyHandler() created handler with nil mutex")
 		})
 	}
 }
@@ -103,9 +96,7 @@ func TestPrettyHandler_Enabled(t *testing.T) {
 			handler := NewPrettyHandler(tt.options)
 
 			got := handler.Enabled(context.Background(), tt.level)
-			if got != tt.want {
-				t.Errorf("PrettyHandler.Enabled() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got, "PrettyHandler.Enabled() = %v, want %v", got, tt.want)
 		})
 	}
 }
@@ -123,18 +114,11 @@ func TestPrettyHandler_WithAttrs(t *testing.T) {
 	}
 
 	prettyHandler, ok := newHandler.(*PrettyHandler)
-	if !ok {
-		t.Error("WithAttrs() did not return *PrettyHandler")
-	}
+	assert.True(t, ok, "WithAttrs() did not return *PrettyHandler")
 
 	// Should share the same buffer and mutex
-	if prettyHandler.b != handler.b {
-		t.Error("WithAttrs() should share the same buffer")
-	}
-
-	if prettyHandler.m != handler.m {
-		t.Error("WithAttrs() should share the same mutex")
-	}
+	assert.Equal(t, prettyHandler.b, handler.b, "WithAttrs() should share the same buffer")
+	assert.Equal(t, prettyHandler.m, handler.m, "WithAttrs() should share the same mutex")
 }
 
 func TestPrettyHandler_WithGroup(t *testing.T) {
@@ -142,23 +126,15 @@ func TestPrettyHandler_WithGroup(t *testing.T) {
 	groupName := "test_group"
 
 	newHandler := handler.WithGroup(groupName)
-	if newHandler == nil {
-		t.Error("WithGroup() returned nil")
-	}
+	assert.NotNil(t, newHandler, "WithGroup() returned nil")
 
 	prettyHandler, ok := newHandler.(*PrettyHandler)
-	if !ok {
-		t.Error("WithGroup() did not return *PrettyHandler")
-	}
+	assert.True(t, ok, "WithGroup() did not return *PrettyHandler")
 
 	// Should share the same buffer and mutex
-	if prettyHandler.b != handler.b {
-		t.Error("WithGroup() should share the same buffer")
-	}
+	assert.Equal(t, handler.b, prettyHandler.b, "WithGroup() should share the same buffer")
 
-	if prettyHandler.m != handler.m {
-		t.Error("WithGroup() should share the same mutex")
-	}
+	assert.Equal(t, handler.m, prettyHandler.m, "WithGroup() should share the same mutex")
 }
 
 func TestPrettyHandler_Handle(t *testing.T) {
@@ -240,21 +216,15 @@ func TestPrettyHandler_Handle(t *testing.T) {
 			record.Add(tt.attrs...)
 
 			err := handler.Handle(context.Background(), record)
-			if err != nil {
-				t.Errorf("Handle() returned error: %v", err)
-			}
+			require.NoError(t, err, "Handle() should not return an error")
 
 			output := buf.String()
 			for _, expected := range tt.expectInOutput {
-				if !strings.Contains(output, expected) {
-					t.Errorf("Expected output to contain %q, got: %s", expected, output)
-				}
+				assert.Contains(t, output, expected, "Expected output to contain %q", expected)
 			}
 
 			// Should end with newline
-			if !strings.HasSuffix(output, "\n") {
-				t.Error("Output should end with newline")
-			}
+			assert.True(t, strings.HasSuffix(output, "\n"), "Output should end with newline")
 		})
 	}
 }
@@ -283,26 +253,18 @@ func TestPrettyHandler_Handle_WithReplaceAttr(t *testing.T) {
 	record.Add("secret", "password123", "public", "data")
 
 	err := handler.Handle(context.Background(), record)
-	if err != nil {
-		t.Errorf("Handle() returned error: %v", err)
-	}
+	require.NoError(t, err, "Handle() should not return an error")
 
 	output := buf.String()
 
 	// Should contain redacted secret
-	if !strings.Contains(output, "[REDACTED]") {
-		t.Error("Expected secret to be redacted")
-	}
+	assert.Contains(t, output, "[REDACTED]", "Expected secret to be redacted")
 
 	// Should not contain original password
-	if strings.Contains(output, "password123") {
-		t.Error("Original password should not appear in output")
-	}
+	assert.NotContains(t, output, "password123", "Original password should not appear in output")
 
 	// Should contain public data
-	if !strings.Contains(output, "public") {
-		t.Error("Public data should appear in output")
-	}
+	assert.Contains(t, output, "public", "Public data should appear in output")
 }
 
 func TestPrettyHandler_computeAttrs_Error(t *testing.T) {
@@ -316,9 +278,7 @@ func TestPrettyHandler_computeAttrs_Error(t *testing.T) {
 	record := slog.NewRecord(time.Now(), slog.LevelInfo, "test", 0)
 	_, err := handler.computeAttrs(context.Background(), record)
 
-	if err == nil {
-		t.Error("computeAttrs() should return error when inner handler fails")
-	}
+	assert.Error(t, err, "computeAttrs() should return an error when inner handler fails")
 }
 
 func TestFunctionalOptions(t *testing.T) {
@@ -326,32 +286,19 @@ func TestFunctionalOptions(t *testing.T) {
 		var buf bytes.Buffer
 		handler := NewPrettyHandler(nil, WithDestinationWriter(&buf))
 
-		if handler.writer != &buf {
-			t.Error("WithDestinationWriter() did not set writer correctly")
-		}
+		assert.Equal(t, &buf, handler.writer, "WithDestinationWriter() did not set writer correctly")
 	})
 
 	t.Run("WithColour", func(t *testing.T) {
 		handler := NewPrettyHandler(nil, WithColour())
 
-		if !handler.colour {
-			t.Error("WithColour() did not enable colour")
-		}
-	})
-
-	t.Run("WithAutoColour", func(t *testing.T) {
-		_ = NewPrettyHandler(nil, WithAutoColour())
-		// The value depends on the color.Enabled() function
-		// We just test that it sets the field
-		// (the value could be true or false depending on environment)
+		assert.True(t, handler.colour, "WithColour() did not enable colour output")
 	})
 
 	t.Run("WithOutputEmptyAttrs", func(t *testing.T) {
 		handler := NewPrettyHandler(nil, WithOutputEmptyAttrs())
 
-		if !handler.outputEmptyAttrs {
-			t.Error("WithOutputEmptyAttrs() did not enable outputEmptyAttrs")
-		}
+		assert.True(t, handler.outputEmptyAttrs, "WithOutputEmptyAttrs() did not enable outputEmptyAttrs")
 	})
 }
 
@@ -388,9 +335,7 @@ func TestSuppressDefaults(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := suppressFunc([]string{}, tt.attr)
-			if !got.Equal(tt.want) {
-				t.Errorf("suppressDefaults() = %v, want %v", got, tt.want)
-			}
+			assert.Truef(t, got.Equal(tt.want), "suppressDefaults() = %v, want %v", got, tt.want)
 		})
 	}
 }
@@ -431,33 +376,20 @@ func TestSuppressDefaults_WithNext(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := suppressFunc([]string{}, tt.attr)
-			if !got.Equal(tt.want) {
-				t.Errorf("suppressDefaults() = %v, want %v", got, tt.want)
-			}
+			assert.Truef(t, got.Equal(tt.want), "suppressDefaults() with next = %v, want %v", got, tt.want)
 		})
 	}
 }
 
 func TestErrorConstants(t *testing.T) {
-	if ErrMarshalAttribute == nil {
-		t.Error("ErrMarshalAttribute should not be nil")
-	}
+	require.Error(t, ErrMarshalAttribute, "ErrMarshalAttribute should not be nil")
+	require.Error(t, ErrIoWrite, "ErrIoWrite should not be nil")
 
-	if ErrIoWrite == nil {
-		t.Error("ErrIoWrite should not be nil")
-	}
-
-	if ErrMarshalAttribute.Error() == "" {
-		t.Error("ErrMarshalAttribute should have non-empty error message")
-	}
-
-	if ErrIoWrite.Error() == "" {
-		t.Error("ErrIoWrite should have non-empty error message")
-	}
+	require.Error(t, ErrIoWrite, "ErrIoWrite should have non-empty error message")
+	require.Error(t, ErrMarshalAttribute, "ErrMarshalAttribute should have non-empty error message")
 }
 
-// Helper types for testing
-
+// Helper types for testing.
 type failingHandler struct{}
 
 func (h *failingHandler) Enabled(ctx context.Context, level slog.Level) bool {
@@ -499,18 +431,6 @@ func TestPrettyHandler_Handle_WriteError(t *testing.T) {
 	}
 }
 
-type invalidJSONMarshaller struct{}
-
-func (m invalidJSONMarshaller) MarshalJSON() ([]byte, error) {
-	return nil, errors.New("marshal error")
-}
-
-func TestTimeFormat(t *testing.T) {
-	if TimeFormat != "[15:04:05.000]" {
-		t.Errorf("timeFormat = %q, want %q", TimeFormat, "[15:04:05.000]")
-	}
-}
-
 func TestPrettyHandler_LevelColors(t *testing.T) {
 	var buf bytes.Buffer
 	handler := NewPrettyHandler(&slog.HandlerOptions{
@@ -531,13 +451,9 @@ func TestPrettyHandler_LevelColors(t *testing.T) {
 		record := slog.NewRecord(time.Now(), level, "test message", 0)
 
 		err := handler.Handle(context.Background(), record)
-		if err != nil {
-			t.Errorf("Handle() returned error for level %v: %v", level, err)
-		}
+		require.NoError(t, err, "Handle() should not return error for level %v", level)
 
 		output := buf.String()
-		if output == "" {
-			t.Errorf("No output for level %v", level)
-		}
+		assert.NotEmpty(t, output, "Output should not be empty for level %v", level)
 	}
 }

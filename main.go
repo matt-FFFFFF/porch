@@ -1,7 +1,7 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// Package main is the entry point for the pporch command-line application.
+// Package main is the entry point for the porch command-line application.
 package main
 
 import (

@@ -17,8 +17,10 @@ import (
 
 var _ commands.Commander = (*Commander)(nil)
 
+// Commander implements the commands.Commander interface for the foreachdirectory command.
 type Commander struct{}
 
+// Create creates a new runnable command based on the provided YAML payload.
 func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
 	def := new(definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {

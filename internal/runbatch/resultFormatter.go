@@ -89,6 +89,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 	// Add error message if there is one
 	if r.Error != nil {
 		var errColor color.Code
+
 		switch r.Status {
 		case ResultStatusSkipped:
 			errColor = color.FgYellow // Yellow for skipped

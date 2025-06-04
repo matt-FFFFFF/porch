@@ -162,6 +162,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				logger.Info("received signal", "signal", s.String())
 				fmt.Fprintf(wErr, "received signal: %s\n", s.String()) //nolint:errcheck
+
 				if err := ps.Signal(s); err != nil {
 					logger.Info("failed to send signal", "signal", s.String(), "error", err)
 				}
@@ -221,6 +222,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	// A non-zero exit code does not generate an error, so this needs to be an OR.
 	case res.Error != nil || !slices.Contains(c.SuccessExitCodes, res.ExitCode):
 		logger.Debug("process error", "error", res.Error, "exitCode", res.ExitCode)
+		if res.ExitCode == 0 {
+			res.ExitCode = -1 // If exit code is 0 but there is an error, set exit code to -1
+		}
 		res.Status = ResultStatusError
 	}
 

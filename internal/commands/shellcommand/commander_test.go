@@ -15,6 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	goOSWindows = "windows"
+	goOSLinux   = "linux"
+	goOSDarwin  = "darwin"
+)
+
 func TestCommander_Create_Success(t *testing.T) {
 	ctx := context.Background()
 	commander := &Commander{}
@@ -236,7 +242,7 @@ command_line: "  echo test  "
 		assert.Contains(t, osCommand.Args, "  echo test  ")
 	})
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == goOSWindows {
 		t.Run("windows command", func(t *testing.T) {
 			yamlPayload := []byte(`
 type: shell
@@ -256,7 +262,7 @@ command_line: "dir"
 
 // TestDefaultShell_WindowsEdgeCases adds specific tests for Windows edge cases that may not be covered.
 func TestDefaultShell_WindowsEdgeCases(t *testing.T) {
-	if runtime.GOOS != GOOSWindows {
+	if runtime.GOOS != goOSWindows {
 		t.Skip("Windows-specific tests")
 	}
 

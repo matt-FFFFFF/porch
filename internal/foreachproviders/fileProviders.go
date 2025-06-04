@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// IncludeHidden is a type that indicates whether to include hidden files and directories.
 type IncludeHidden bool
 
 var (

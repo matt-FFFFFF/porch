@@ -47,7 +47,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "\"Hello World\""`,
 			expectedOutput:   `"Hello World"`,
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with escaped quotes (windows)",
@@ -61,7 +61,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "Path: /usr/local/bin"`,
 			expectedOutput:   "Path: /usr/local/bin",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with backslashes (windows)",
@@ -75,7 +75,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "hello world" | grep "world"`,
 			expectedOutput:   "hello world",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with pipe (windows)",
@@ -89,7 +89,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "test content" > test_output.txt && cat test_output.txt`,
 			expectedOutput:   "test content",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 			cleanupFunc: func(t *testing.T, _ string) {
 				os.Remove("test_output.txt")
 			},
@@ -115,14 +115,14 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `false || echo "fallback"`,
 			expectedOutput:   "fallback",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with environment variable",
 			command:          `echo "User: $USER"`,
 			expectedOutput:   "User:",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with environment variable (windows)",
@@ -136,7 +136,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "Date: $(date +%Y)"`,
 			expectedOutput:   "Date:",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with multiple commands",
@@ -167,7 +167,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `pwd`,
 			expectedOutput:   "/",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with working directory test (windows)",
@@ -181,7 +181,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "line1" > append_test.txt && echo "line2" >> append_test.txt && cat append_test.txt`,
 			expectedOutput:   "line1",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 			cleanupFunc: func(t *testing.T, _ string) {
 				os.Remove("append_test.txt")
 			},
@@ -197,28 +197,28 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 			command:          `echo "hello" | cat`,
 			expectedOutput:   "hello",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with multiple pipes (unix)",
 			command:          `echo "apple\nbanana\ncherry" | sort | head -1`,
 			expectedOutput:   "apple",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with variable assignment (unix)",
 			command:          `TEST_VAR="hello" && echo $TEST_VAR`,
 			expectedOutput:   "hello",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "command with glob pattern (unix)",
 			command:          `echo *.go | wc -w`,
 			expectedOutput:   "",
 			expectedExitCode: 0,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 	}
 
@@ -283,7 +283,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 }
 
 func TestCommandWithEnvironmentVariables_Integration(t *testing.T) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == goOSWindows {
 		t.Skip("Skipping environment variable test on Windows")
 	}
 
@@ -343,7 +343,7 @@ func TestCommandWithEnvironmentVariables_Integration(t *testing.T) {
 			assert.Equal(t, 0, result.ExitCode,
 				"command failed. StdOut: %s, StdErr: %s",
 				string(result.StdOut), string(result.StdErr))
-			assert.NoError(t, result.Error)
+			require.NoError(t, result.Error)
 
 			output := string(result.StdOut)
 			assert.Contains(t, output, tc.expectedOutput,
@@ -365,7 +365,7 @@ func TestCommandWithWorkingDirectory_Integration(t *testing.T) {
 	require.NoError(t, err)
 
 	var command, expectedOutput string
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == goOSWindows {
 		command = `type ` + testFile
 		expectedOutput = testContent
 	} else {
@@ -389,7 +389,7 @@ func TestCommandWithWorkingDirectory_Integration(t *testing.T) {
 	assert.Equal(t, 0, result.ExitCode,
 		"command failed. StdOut: %s, StdErr: %s",
 		string(result.StdOut), string(result.StdErr))
-	assert.NoError(t, result.Error)
+	require.NoError(t, result.Error)
 
 	output := string(result.StdOut)
 	assert.Contains(t, output, expectedOutput,
@@ -403,7 +403,7 @@ func TestCommandTimeout_Integration(t *testing.T) {
 	base := runbatch.NewBaseCommand("timeout-test", "", runbatch.RunOnSuccess, nil, nil)
 
 	var command string
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == goOSWindows {
 		command = `timeout /t 5`
 	} else {
 		command = `sleep 5`
@@ -452,13 +452,13 @@ func TestCommandFailure_Integration(t *testing.T) {
 			name:             "command not found (unix)",
 			command:          `nonexistent_command_12345`,
 			expectedExitCode: 127, // Standard "command not found" exit code
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 		{
 			name:             "false command (unix)",
 			command:          `false`,
 			expectedExitCode: 1,
-			skipOS:           []string{"windows"},
+			skipOS:           []string{goOSWindows},
 		},
 	}
 

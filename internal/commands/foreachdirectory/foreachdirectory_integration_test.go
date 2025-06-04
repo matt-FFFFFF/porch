@@ -107,7 +107,7 @@ commands:
 			assert.Lenf(t, results, len(tc.expected), "Expected %d directories to be processed", len(tc.expected))
 
 			for _, result := range results {
-				assert.Len(t, result.Children, 1, "Expected each directory to have 1 child command")
+				require.Len(t, result.Children, 1, "Expected each directory to have 1 child command")
 				res := result.Children[0]
 				res.StdOut = res.StdOut[:len(res.StdOut)-1] // remove trailing newline
 

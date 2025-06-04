@@ -28,6 +28,7 @@ var (
 )
 
 const (
+	// TimeFormat is the format used for timestamps in log messages.
 	TimeFormat = "[15:04:05.000]"
 )
 

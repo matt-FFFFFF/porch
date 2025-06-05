@@ -10,17 +10,23 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/commands/copycwdtotemp"
+	"github.com/matt-FFFFFF/porch/internal/commands/foreachdirectory"
+	"github.com/matt-FFFFFF/porch/internal/commands/parallelcommand"
 	"github.com/matt-FFFFFF/porch/internal/commands/shellcommand"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCommander_Create_Success(t *testing.T) {
-	// manually register the commander to ensure it exists
-	commandregistry.Register(commandType, &Commander{})
-	commandregistry.Register("shell", &shellcommand.Commander{})
+var testRegistry = commandregistry.New(
+	Register,
+	parallelcommand.Register,
+	copycwdtotemp.Register,
+	foreachdirectory.Register,
+	shellcommand.Register,
+)
 
+func TestCommander_Create_Success(t *testing.T) {
 	t.Run("simple serial command with shell commands", func(t *testing.T) {
 		ctx := context.Background()
 		commander := &Commander{}
@@ -41,7 +47,7 @@ commands:
     command_line: "echo world"
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -74,7 +80,7 @@ name: "Empty Serial Command"
 commands: []
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -104,7 +110,7 @@ commands:
     command_line: "echo outer"
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -128,7 +134,7 @@ commands:
     command_line: "echo test"
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -152,7 +158,7 @@ commands: [
   invalid yaml structure
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		require.ErrorIs(t, err, commands.ErrYamlUnmarshal)
@@ -172,7 +178,7 @@ commands:
     command_line: "echo test"
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 
@@ -194,7 +200,7 @@ commands:
     some_field: "value"
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create runnable for command 0")
@@ -216,7 +222,7 @@ commands:
 `)
 
 		// First verify this normally works
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 	})
@@ -232,7 +238,7 @@ func TestCommander_Interface(t *testing.T) {
 		ctx := context.Background()
 
 		// Verify the method exists and has correct signature
-		runnable, err := commander.Create(ctx, []byte(`
+		runnable, err := commander.Create(ctx, testRegistry, []byte(`
 type: serial
 name: "Test"
 commands: []
@@ -267,9 +273,6 @@ func TestDefinition_Structure(t *testing.T) {
 
 // TestCommander_CreateWithComplexYAML tests the commander with more complex YAML structures.
 func TestCommander_CreateWithComplexYAML(t *testing.T) {
-	commandregistry.Register(commandType, &Commander{})
-	commandregistry.Register("shell", &shellcommand.Commander{})
-	commandregistry.Register("copycwdtotemp", &copycwdtotemp.Commander{})
 	t.Run("commands with different types", func(t *testing.T) {
 		ctx := context.Background()
 		commander := &Commander{}
@@ -287,7 +290,7 @@ commands:
     cwd: "."
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -317,7 +320,7 @@ commands:
       CHILD_VAR: "child_value"
 `)
 
-		runnable, err := commander.Create(ctx, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 

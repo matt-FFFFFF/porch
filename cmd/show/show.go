@@ -25,7 +25,7 @@ var (
 	ErrDecodeResults = errors.New("failed to decode results")
 	// ErrWriteResults is returned when the results cannot be written to stdout.
 	ErrWriteResults          = errors.New("failed to write results to stdout")
-	outputStdErrFlag         = "output-stderr"
+	noOutputStdErrFlag       = "no-output-stderr"
 	outputStdOutFlag         = "output-stdout"
 	outputSuccessDetailsFlag = "output-success-details"
 )
@@ -48,12 +48,12 @@ var ShowCmd = &cli.Command{
 			DefaultText: "false",
 			Value:       false,
 		},
-		&cli.BoolWithInverseFlag{
-			Name:        outputStdErrFlag,
-			Aliases:     []string{"stderr"},
-			Usage:       "Include stderr output in the results",
-			Value:       true,
-			DefaultText: "true",
+		&cli.BoolFlag{
+			Name:        noOutputStdErrFlag,
+			Aliases:     []string{"no-stderr"},
+			Usage:       "Exclude stderr output in the results",
+			Value:       false,
+			DefaultText: "false",
 			TakesFile:   false,
 		},
 		&cli.BoolFlag{
@@ -65,24 +65,26 @@ var ShowCmd = &cli.Command{
 			Value:       false,
 		},
 	},
-	Action: func(_ context.Context, cmd *cli.Command) error {
-		file, err := os.Open(cmd.StringArg(fileArg))
-		if err != nil {
-			return cli.Exit(fmt.Sprintf("%s: %v", ErrReadFile.Error(), err), 1)
-		}
-		defer file.Close() // nolint:errcheck
-		var results runbatch.Results
-		if err := gob.NewDecoder(file).Decode(&results); err != nil {
-			return cli.Exit(fmt.Sprintf("%s: %v", ErrDecodeResults.Error(), err), 1)
-		}
-		opts := runbatch.DefaultOutputOptions()
-		opts.IncludeStdErr = cmd.Bool(outputStdErrFlag)
-		opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
-		opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
+	Action: actionFunc,
+}
 
-		if err := results.WriteTextWithOptions(os.Stdout, opts); err != nil { // Write the results to stdout
-			return cli.Exit(fmt.Sprintf("%s: %v", ErrWriteResults.Error(), err), 1)
-		}
-		return nil
-	},
+func actionFunc(_ context.Context, cmd *cli.Command) error {
+	file, err := os.Open(cmd.StringArg(fileArg))
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("%s: %v", ErrReadFile.Error(), err), 1)
+	}
+	defer file.Close() // nolint:errcheck
+	var results runbatch.Results
+	if err := gob.NewDecoder(file).Decode(&results); err != nil {
+		return cli.Exit(fmt.Sprintf("%s: %v", ErrDecodeResults.Error(), err), 1)
+	}
+	opts := runbatch.DefaultOutputOptions()
+	opts.IncludeStdErr = !cmd.Bool(noOutputStdErrFlag)
+	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
+	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
+
+	if err := results.WriteTextWithOptions(os.Stdout, opts); err != nil { // Write the results to stdout
+		return cli.Exit(fmt.Sprintf("%s: %v", ErrWriteResults.Error(), err), 1)
+	}
+	return nil
 }

@@ -11,13 +11,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/matt-FFFFFF/porch/internal/commandregistry"
+	"github.com/matt-FFFFFF/porch/internal/commands"
 )
 
 // Writer provides methods to write JSON Schema to an io.Writer.
 type Writer interface {
 	// WriteJSONSchema writes JSON Schema to the writer
-	WriteJSONSchema(w io.Writer) error
+	WriteJSONSchema(w io.Writer, f commands.CommanderFactory) error
 	// WriteYAMLExample writes YAML example schema to the writer
 	WriteYAMLExample(w io.Writer) error
 	// WriteMarkdownDoc writes Markdown documentation to the writer
@@ -136,7 +136,7 @@ func (g *Generator) GenerateFromDefinition(commandType string, def interface{}, 
 }
 
 // GenerateJSONSchemaString generates a complete JSON schema for the entire configuration.
-func (g *Generator) GenerateJSONSchemaString() (string, error) {
+func (g *Generator) GenerateJSONSchemaString(f commands.CommanderFactory) (string, error) {
 	// Create root schema for the entire configuration
 	rootSchema := map[string]interface{}{
 		"$schema":     "https://json-schema.org/draft/2020-12/schema",
@@ -156,7 +156,7 @@ func (g *Generator) GenerateJSONSchemaString() (string, error) {
 				"type":        "array",
 				"description": "List of commands to execute",
 				"items": map[string]interface{}{
-					"anyOf": g.generateCommandSchemas(),
+					"anyOf": g.generateCommandSchemas(f),
 				},
 			},
 		},
@@ -172,12 +172,12 @@ func (g *Generator) GenerateJSONSchemaString() (string, error) {
 }
 
 // generateCommandSchemas generates schemas for all available command types by using the registry.
-func (g *Generator) generateCommandSchemas() []map[string]interface{} {
+func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []map[string]interface{} {
 	var schemas []map[string]interface{}
 
 	// Access the default registry from commandregistry package
 	// This will contain all registered command types and their commanders
-	for commandType, commander := range commandregistry.DefaultRegistry {
+	for commandType, commander := range f.Iter() {
 		// Check if the commander implements SchemaProvider
 		if provider, ok := commander.(Provider); ok {
 			// Generate schema for this command type using its definition
@@ -416,8 +416,8 @@ func (b *BaseSchemaGenerator) GetSchemaFields(def interface{}) ([]Field, error) 
 }
 
 // WriteJSONSchema writes the complete JSON schema to the writer.
-func (b *BaseSchemaGenerator) WriteJSONSchema(w io.Writer) error {
-	schema, err := b.generator.GenerateJSONSchemaString()
+func (b *BaseSchemaGenerator) WriteJSONSchema(w io.Writer, f commands.CommanderFactory) error {
+	schema, err := b.generator.GenerateJSONSchemaString(f)
 	if err != nil {
 		return err
 	}

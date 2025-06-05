@@ -143,15 +143,20 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 // formatOutput formats multi-line output with proper indentation.
 func formatOutput(output []byte, indent string) string {
+	sb := strings.Builder{}
 	lines := strings.Split(string(output), "\n")
+	sb.Grow(len(output) + len(lines)*len(indent)) // Preallocate enough space
 	// Add indentation to each line and join them back together
-	for i, line := range lines {
+	for _, line := range lines {
 		if line == "" {
-			continue // Skip empty lines
+			sb.WriteString("\n") // Preserve empty lines
+			continue             // Skip empty lines
 		}
 
-		lines[i] = indent + line
+		sb.WriteString(indent)
+		sb.WriteString(line)
+		sb.WriteString("\n")
 	}
 
-	return strings.Join(lines, "\n")
+	return sb.String()
 }

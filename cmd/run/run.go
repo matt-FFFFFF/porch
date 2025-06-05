@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/matt-FFFFFF/porch/cmd/cmdstate"
 	"github.com/matt-FFFFFF/porch/internal/config"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/urfave/cli/v3"
@@ -16,7 +17,7 @@ import (
 const (
 	fileArg                  = "file"
 	outArg                   = "out"
-	outputStdErrFlag         = "output-stderr"
+	noOutputStdErrFlag       = "no-output-stderr"
 	outputStdOutFlag         = "output-stdout"
 	outputSuccessDetailsFlag = "output-success-details"
 	writeFlag                = "write"
@@ -31,22 +32,21 @@ var (
 
 // RunCmd is the command that runs a batch of commands defined in a YAML file.
 var RunCmd = &cli.Command{
-	Name:        "run",
-	Description: "Run a command or batch of commands defined in a YAML file.",
+	Name: "run",
+	Description: `Run a command or batch of commands defined in a YAML file.
+This command executes the commands defined in the specified YAML file and outputs the results.
+The YAML file should be structured according to the Porch configuration format, which allows for defining commands, their parameters, and execution flow.
+
+To save the results to a file, specify the output file name as an argument.
+`,
 	Arguments: []cli.Argument{
 		&cli.StringArg{
 			Name:      fileArg,
-			UsageText: "YAMLFILE",
-			Config: cli.StringConfig{
-				TrimSpace: true,
-			},
+			UsageText: "commands.porch.yaml",
 		},
 		&cli.StringArg{
 			Name:      outArg,
-			UsageText: " [OUTFILE]",
-			Config: cli.StringConfig{
-				TrimSpace: true,
-			},
+			UsageText: " [output]",
 		},
 	},
 	Flags: []cli.Flag{
@@ -59,11 +59,11 @@ var RunCmd = &cli.Command{
 			Value:       false,
 		},
 		&cli.BoolFlag{
-			Name:        outputStdErrFlag,
-			Aliases:     []string{"stderr"},
-			Usage:       "Include stderr output in the results",
-			Value:       true,
-			DefaultText: "true",
+			Name:        noOutputStdErrFlag,
+			Aliases:     []string{"no-stderr"},
+			Usage:       "Exclude stderr output in the results",
+			Value:       false,
+			DefaultText: "false",
 			TakesFile:   false,
 		},
 		&cli.BoolFlag{
@@ -90,7 +90,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("failed to read file %s: %s", yamlFileName, err.Error()), 1)
 	}
 
-	rb, err := config.BuildFromYAML(ctx, bytes)
+	rb, err := config.BuildFromYAML(ctx, cmdstate.Factory, bytes)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("failed to build config from file %s: %s", yamlFileName, err.Error()), 1)
 	}
@@ -114,7 +114,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	opts := runbatch.DefaultOutputOptions()
-	opts.IncludeStdErr = cmd.Bool(outputStdErrFlag)
+	opts.IncludeStdErr = !cmd.Bool(noOutputStdErrFlag)
 	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
 	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
 

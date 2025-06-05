@@ -7,11 +7,24 @@ import (
 	"context"
 	"testing"
 
-	_ "github.com/matt-FFFFFF/porch/internal/allcommands" // Import all commands to register them
+	"github.com/matt-FFFFFF/porch/internal/commandregistry"
+	"github.com/matt-FFFFFF/porch/internal/commands/copycwdtotemp"
+	"github.com/matt-FFFFFF/porch/internal/commands/foreachdirectory"
+	"github.com/matt-FFFFFF/porch/internal/commands/parallelcommand"
+	"github.com/matt-FFFFFF/porch/internal/commands/serialcommand"
+	"github.com/matt-FFFFFF/porch/internal/commands/shellcommand"
 	"github.com/matt-FFFFFF/porch/internal/config"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+var testRegistry = commandregistry.New(
+	serialcommand.Register,
+	parallelcommand.Register,
+	copycwdtotemp.Register,
+	foreachdirectory.Register,
+	shellcommand.Register,
 )
 
 func TestBuildFromYAML_ShellCommand(t *testing.T) {
@@ -26,7 +39,7 @@ commands:
 `
 
 	ctx := context.Background()
-	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	runnable, err := config.BuildFromYAML(ctx, testRegistry, []byte(yamlData))
 
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
@@ -43,13 +56,14 @@ commands:
 `
 
 	ctx := context.Background()
-	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	runnable, err := config.BuildFromYAML(ctx, testRegistry, []byte(yamlData))
 
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
 }
 
 func TestBuildFromYAML_UnknownCommandType(t *testing.T) {
+
 	yamlData := `
 name: "Test Unknown Command"
 description: "Test unknown command type"
@@ -59,7 +73,7 @@ commands:
 `
 
 	ctx := context.Background()
-	_, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	_, err := config.BuildFromYAML(ctx, testRegistry, []byte(yamlData))
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown command type")
@@ -94,7 +108,7 @@ commands:
 `
 
 	ctx := context.Background()
-	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	runnable, err := config.BuildFromYAML(ctx, testRegistry, []byte(yamlData))
 
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
@@ -117,7 +131,7 @@ commands:
 `
 
 	ctx := context.Background()
-	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	runnable, err := config.BuildFromYAML(ctx, testRegistry, []byte(yamlData))
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
 
@@ -156,7 +170,7 @@ commands:
 `
 
 	ctx := context.Background()
-	runnable, err := config.BuildFromYAML(ctx, []byte(yamlData))
+	runnable, err := config.BuildFromYAML(ctx, testRegistry, []byte(yamlData))
 	require.NoError(t, err)
 	assert.NotNil(t, runnable)
 

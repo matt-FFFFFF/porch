@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
+	"github.com/matt-FFFFFF/porch/internal/commands/copycwdtotemp"
+	"github.com/matt-FFFFFF/porch/internal/commands/parallelcommand"
+	"github.com/matt-FFFFFF/porch/internal/commands/serialcommand"
 	"github.com/matt-FFFFFF/porch/internal/commands/shellcommand"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +19,6 @@ import (
 
 func TestForEachDirectoryParallel(t *testing.T) {
 	// register the command type
-	commandregistry.Register(commandType, &shellcommand.Commander{})
 
 	yamlPayloadFmt := `type: "foreachdirectory"
 name: "For Each Directory"
@@ -80,11 +82,18 @@ commands:
 	}
 
 	commander := &Commander{}
+	f := commandregistry.New(
+		serialcommand.Register,
+		parallelcommand.Register,
+		shellcommand.Register,
+		copycwdtotemp.Register,
+		Register,
+	)
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			yamlPayload := fmt.Sprintf(yamlPayloadFmt, tc.mode, tc.includeHidden)
-			runnable, err := commander.Create(t.Context(), []byte(yamlPayload))
+			runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload))
 			require.NoError(t, err)
 			require.NotNil(t, runnable)
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)

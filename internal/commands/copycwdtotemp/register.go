@@ -7,7 +7,7 @@ import "github.com/matt-FFFFFF/porch/internal/commandregistry"
 
 const commandType = "copycwdtotemp"
 
-// init registers the copycwdtotemp command type.
-func init() {
-	commandregistry.Register(commandType, NewCommander())
+// Register registers the command in the given registry.
+func Register(r commandregistry.Registry) {
+	r.Register(commandType, &Commander{})
 }

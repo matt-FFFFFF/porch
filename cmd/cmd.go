@@ -5,6 +5,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/matt-FFFFFF/porch/cmd/config"
 	"github.com/matt-FFFFFF/porch/cmd/run"
 	"github.com/matt-FFFFFF/porch/cmd/show"
@@ -18,7 +20,9 @@ var RootCmd = &cli.Command{
 		run.RunCmd,
 		show.ShowCmd,
 	},
-	Name: "porch",
+	Writer:    os.Stdout,
+	ErrWriter: os.Stderr,
+	Name:      "porch",
 	Description: `Porch is a sophisticated Go-based process orchestration framework
 designed for running and managing complex command workflows. It provides a flexible,
 YAML-driven approach to define, compose, and execute command chains with advanced

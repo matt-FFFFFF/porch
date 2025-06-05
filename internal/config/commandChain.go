@@ -9,11 +9,8 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/porch/internal/commandregistry"
+	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
-
-	// blank import used to run init functions of all commands to register them.
-	_ "github.com/matt-FFFFFF/porch/internal/allcommands"
 )
 
 var (
@@ -31,7 +28,7 @@ type Definition struct {
 }
 
 // BuildFromYAML creates a runnable from YAML configuration.
-func BuildFromYAML(ctx context.Context, yamlData []byte) (runbatch.Runnable, error) {
+func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlData []byte) (runbatch.Runnable, error) {
 	var def Definition
 	if err := yaml.Unmarshal(yamlData, &def); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidYaml, err)
@@ -57,7 +54,7 @@ func BuildFromYAML(ctx context.Context, yamlData []byte) (runbatch.Runnable, err
 			return nil, fmt.Errorf("failed to marshal command: %w", err)
 		}
 
-		runnable, err := commandregistry.CreateRunnableFromYAML(ctx, cmdYAML)
+		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable: %w", err)

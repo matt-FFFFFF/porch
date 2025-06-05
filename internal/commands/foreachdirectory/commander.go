@@ -10,7 +10,6 @@ import (
 	"io"
 
 	"github.com/goccy/go-yaml"
-	"github.com/matt-FFFFFF/porch/internal/commandregistry"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/foreachproviders"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
@@ -35,7 +34,7 @@ func NewCommander() *Commander {
 }
 
 // Create creates a new runnable command based on the provided YAML payload.
-func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
+func (c *Commander) Create(ctx context.Context, factory commands.CommanderFactory, payload []byte) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
@@ -75,7 +74,7 @@ func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnab
 			return nil, fmt.Errorf("failed to marshal command %d: %w", i, err)
 		}
 
-		runnable, err := commandregistry.CreateRunnableFromYAML(ctx, cmdYAML)
+		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
@@ -145,6 +144,6 @@ func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
 }
 
 // WriteJSONSchema writes the JSON schema to the provided writer.
-func (c *Commander) WriteJSONSchema(w io.Writer) error {
-	return c.schemaGenerator.WriteJSONSchema(w)
+func (c *Commander) WriteJSONSchema(w io.Writer, f commands.CommanderFactory) error {
+	return c.schemaGenerator.WriteJSONSchema(w, f)
 }

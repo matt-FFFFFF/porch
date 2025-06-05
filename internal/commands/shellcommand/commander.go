@@ -32,7 +32,7 @@ func NewCommander() *Commander {
 }
 
 // Create creates a new runnable command and implements the commands.Commander interface.
-func (c *Commander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
+func (c *Commander) Create(ctx context.Context, _ commands.CommanderFactory, payload []byte) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
@@ -78,7 +78,7 @@ func (c *Commander) GetExampleDefinition() interface{} {
 		},
 		CommandLine:      "echo 'Hello, World!'",
 		SuccessExitCodes: []int{0},
-		SkipExitCodes:    []int{},
+		SkipExitCodes:    []int{2},
 	}
 }
 
@@ -93,6 +93,6 @@ func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
 }
 
 // WriteJSONSchema writes the JSON schema to the provided writer.
-func (c *Commander) WriteJSONSchema(w io.Writer) error {
-	return c.schemaGenerator.WriteJSONSchema(w)
+func (c *Commander) WriteJSONSchema(w io.Writer, f commands.CommanderFactory) error {
+	return c.schemaGenerator.WriteJSONSchema(w, f)
 }

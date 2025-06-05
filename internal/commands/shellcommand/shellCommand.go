@@ -11,7 +11,6 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
@@ -26,8 +25,6 @@ const (
 	binSh                = "/bin/sh"    // Default shell for Unix-like systems.
 	winSystemRootEnv     = "SystemRoot" // Environment variable for Windows system root directory.
 )
-
-var _ commands.Commander = (*Commander)(nil)
 
 var (
 	// ErrCommandNotFound is returned when the command is not found in the system PATH or if the command is empty.

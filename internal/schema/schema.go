@@ -86,6 +86,111 @@ func (s *Schema) ToMap() map[string]interface{} {
 	return result
 }
 
+// ToOrderedStruct creates a dynamically ordered struct for JSON marshaling with proper field ordering.
+func (s *Schema) ToOrderedStruct() interface{} {
+	// Create ordered properties using reflection to maintain field order
+	orderedProperties := s.createOrderedPropertiesStruct()
+
+	// Create struct fields in the desired order
+	var structFields []reflect.StructField
+
+	// 1. Add "type" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Type",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"type"`,
+	})
+
+	// 2. Add "description" field if present
+	if s.Description != "" {
+		structFields = append(structFields, reflect.StructField{
+			Name: "Description",
+			Type: reflect.TypeOf(""),
+			Tag:  `json:"description,omitempty"`,
+		})
+	}
+
+	// 3. Add "properties" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Properties",
+		Type: reflect.TypeOf(orderedProperties).Elem(), // Get the underlying type
+		Tag:  `json:"properties"`,
+	})
+
+	// 4. Add "required" field if present
+	if len(s.Required) > 0 {
+		structFields = append(structFields, reflect.StructField{
+			Name: "Required",
+			Type: reflect.TypeOf([]string{}),
+			Tag:  `json:"required,omitempty"`,
+		})
+	}
+
+	// 5. Add "additionalProperties" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "AdditionalProperties",
+		Type: reflect.TypeOf(false),
+		Tag:  `json:"additionalProperties,omitempty"`,
+	})
+
+	// Create the struct type
+	structType := reflect.StructOf(structFields)
+	structValue := reflect.New(structType).Elem()
+
+	// Set the values
+	structValue.FieldByName("Type").SetString(s.Type)
+
+	if s.Description != "" {
+		structValue.FieldByName("Description").SetString(s.Description)
+	}
+
+	structValue.FieldByName("Properties").Set(reflect.ValueOf(orderedProperties).Elem())
+
+	if len(s.Required) > 0 {
+		structValue.FieldByName("Required").Set(reflect.ValueOf(s.Required))
+	}
+
+	structValue.FieldByName("AdditionalProperties").SetBool(s.AdditionalProperties)
+
+	return structValue.Interface()
+}
+
+// createOrderedPropertiesStruct creates an ordered struct for properties to maintain field ordering in JSON.
+func (s *Schema) createOrderedPropertiesStruct() interface{} {
+	var structFields []reflect.StructField
+	generator := &Generator{}
+
+	// Add fields in the sorted order
+	for _, field := range s.Fields {
+		// Convert field name to a valid Go identifier (capitalize first letter)
+		fieldName := strings.ToUpper(string(field.Name[0])) + field.Name[1:]
+
+		structFields = append(structFields, reflect.StructField{
+			Name: fieldName,
+			Type: reflect.TypeOf(map[string]interface{}{}),
+			Tag:  reflect.StructTag(fmt.Sprintf(`json:"%s"`, field.Name)),
+		})
+	}
+
+	if len(structFields) == 0 {
+		// Return empty struct if no fields
+		return struct{}{}
+	}
+
+	// Create the struct type
+	structType := reflect.StructOf(structFields)
+	structValue := reflect.New(structType).Elem()
+
+	// Set the values for each field
+	for _, field := range s.Fields {
+		fieldName := strings.ToUpper(string(field.Name[0])) + field.Name[1:]
+		property := generator.schemaFieldToProperty(field)
+		structValue.FieldByName(fieldName).Set(reflect.ValueOf(property))
+	}
+
+	return structValue.Addr().Interface()
+}
+
 // Generator provides methods to generate schemas from struct definitions.
 type Generator struct{}
 
@@ -174,8 +279,8 @@ func (g *Generator) GenerateJSONSchemaString(f commands.CommanderFactory) (strin
 }
 
 // generateCommandSchemas generates schemas for all available command types by using the registry.
-func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []map[string]interface{} {
-	var schemas []map[string]interface{}
+func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []interface{} {
+	var schemas []interface{}
 
 	// Access the default registry from commandregistry package
 	// This will contain all registered command types and their commanders
@@ -206,8 +311,8 @@ func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []map[st
 				}
 				schemas = append(schemas, schema)
 			} else {
-				// Convert the Schema struct to a map for YAML/Markdown output
-				schemas = append(schemas, schemaStruct.ToMap())
+				// Convert the Schema struct to an ordered struct for proper JSON field ordering
+				schemas = append(schemas, schemaStruct.ToOrderedStruct())
 			}
 		}
 	}

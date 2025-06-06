@@ -51,11 +51,39 @@ type Field struct {
 
 // Schema represents a complete JSON schema for a command type.
 type Schema struct {
-	Type        string           `json:"type"`
-	Properties  map[string]Field `json:"properties"`
-	Required    []string         `json:"required,omitempty"`
-	Fields      []Field          `json:"-"` // For internal use
-	Description string           `json:"description,omitempty"`
+	Type                 string           `json:"type"`
+	Description          string           `json:"description,omitempty"`
+	Properties           map[string]Field `json:"properties"`
+	Required             []string         `json:"required,omitempty"`
+	AdditionalProperties bool             `json:"additionalProperties,omitempty"`
+	Fields               []Field          `json:"-"` // For internal use
+}
+
+// ToMap converts a Schema struct to a map[string]interface{} for JSON serialization.
+func (s *Schema) ToMap() map[string]interface{} {
+	result := map[string]interface{}{
+		"type":                 s.Type,
+		"additionalProperties": s.AdditionalProperties,
+	}
+
+	if s.Description != "" {
+		result["description"] = s.Description
+	}
+
+	if len(s.Properties) > 0 {
+		properties := make(map[string]interface{})
+		for name, field := range s.Properties {
+			generator := &Generator{}
+			properties[name] = generator.schemaFieldToProperty(field)
+		}
+		result["properties"] = properties
+	}
+
+	if len(s.Required) > 0 {
+		result["required"] = s.Required
+	}
+
+	return result
 }
 
 // Generator provides methods to generate schemas from struct definitions.
@@ -67,7 +95,7 @@ func NewGenerator() *Generator {
 }
 
 // Generate generates a schema from a command type and definition struct.
-func (g *Generator) Generate(commandType string, def interface{}) (*Schema, error) {
+func (g *Generator) Generate(commandType string, def interface{}, description ...string) (*Schema, error) {
 	fields, err := g.extractFields(reflect.TypeOf(def))
 	if err != nil {
 		return nil, err
@@ -81,6 +109,11 @@ func (g *Generator) Generate(commandType string, def interface{}) (*Schema, erro
 	var required []string
 
 	for _, field := range sortedFields {
+		// Special handling for type field to add enum constraint
+		if field.Name == "type" {
+			field.Enum = []string{commandType}
+		}
+
 		properties[field.Name] = field
 
 		if field.Required {
@@ -88,49 +121,17 @@ func (g *Generator) Generate(commandType string, def interface{}) (*Schema, erro
 		}
 	}
 
-	return &Schema{
-		Type:       "object",
-		Properties: properties,
-		Required:   required,
-		Fields:     sortedFields,
-	}, nil
-}
-
-// GenerateFromDefinition generates a JSON schema object from a command definition struct.
-func (g *Generator) GenerateFromDefinition(commandType string, def interface{}, description string) (map[string]interface{}, error) {
-	fields, err := g.extractFields(reflect.TypeOf(def))
-	if err != nil {
-		return nil, err
+	schema := &Schema{
+		Type:                 "object",
+		Properties:           properties,
+		Required:             required,
+		Fields:               sortedFields,
+		AdditionalProperties: false,
 	}
 
-	// Sort fields according to the required order
-	sortedFields := g.sortFields(fields)
-
-	properties := make(map[string]interface{})
-
-	var required []string
-
-	for _, field := range sortedFields {
-		prop := g.schemaFieldToProperty(field)
-
-		// Special handling for type field to add enum constraint
-		if field.Name == "type" {
-			prop["enum"] = []string{commandType}
-		}
-
-		properties[field.Name] = prop
-
-		if field.Required {
-			required = append(required, field.Name)
-		}
-	}
-
-	schema := map[string]interface{}{
-		"type":                 "object",
-		"description":          description,
-		"properties":           properties,
-		"required":             required,
-		"additionalProperties": false,
+	// Set description if provided
+	if len(description) > 0 && description[0] != "" {
+		schema.Description = description[0]
 	}
 
 	return schema, nil
@@ -182,14 +183,14 @@ func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []map[st
 		// Check if the commander implements SchemaProvider
 		if provider, ok := commander.(Provider); ok {
 			// Generate schema for this command type using its definition
-			schema, err := g.GenerateFromDefinition(
+			schemaStruct, err := g.Generate(
 				commandType,
 				provider.GetExampleDefinition(),
 				provider.GetCommandDescription(),
 			)
 			if err != nil {
 				// If we can't generate the schema, create a basic one
-				schema = map[string]interface{}{
+				schema := map[string]interface{}{
 					"type": "object",
 					"properties": map[string]interface{}{
 						"type": map[string]interface{}{
@@ -203,9 +204,11 @@ func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []map[st
 					},
 					"required": []string{"type", "name"},
 				}
+				schemas = append(schemas, schema)
+			} else {
+				// Convert the Schema struct to a map for YAML/Markdown output
+				schemas = append(schemas, schemaStruct.ToMap())
 			}
-
-			schemas = append(schemas, schema)
 		}
 	}
 
@@ -440,22 +443,6 @@ func (b *BaseSchemaGenerator) WriteYAMLSchemaFromDefinition(w io.Writer, def int
 	return err
 }
 
-// WriteYAMLSchema writes a basic YAML example to the writer (deprecated - use WriteYAMLSchemaFromDefinition).
-func (b *BaseSchemaGenerator) WriteYAMLSchema(w io.Writer) error {
-	// This would generate a YAML example based on the schema
-	// For now, just write a basic example
-	example := `name: "Example Configuration"
-description: "An example porch configuration"
-commands:
-  - type: "shell"
-    name: "hello"
-    command: "echo 'Hello, World!'"
-`
-	_, err := w.Write([]byte(example))
-
-	return err
-}
-
 // WriteMarkdownSchemaFromDefinition writes Markdown documentation to the writer using the provided definition and description.
 func (b *BaseSchemaGenerator) WriteMarkdownSchemaFromDefinition(w io.Writer, commandType string, def interface{}, description string) error {
 	// Generate YAML example from definition
@@ -496,27 +483,5 @@ func (b *BaseSchemaGenerator) WriteMarkdownSchemaFromDefinition(w io.Writer, com
 	}
 
 	_, err = w.Write([]byte(doc))
-	return err
-}
-
-// WriteMarkdownSchema writes basic Markdown documentation to the writer (deprecated - use WriteMarkdownSchemaFromDefinition).
-func (b *BaseSchemaGenerator) WriteMarkdownSchema(w io.Writer) error {
-	// This would generate markdown documentation based on the schema
-	// For now, just write basic documentation
-	doc := `# Porch Configuration Schema
-
-This document describes the schema for porch configuration files.
-
-## Root Structure
-
-- **name** (string): Name of the configuration
-- **description** (string, optional): Description of what this configuration does
-- **commands** (array): List of commands to execute
-
-## Command Types
-
-`
-	_, err := w.Write([]byte(doc))
-
 	return err
 }

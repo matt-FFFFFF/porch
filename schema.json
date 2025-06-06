@@ -8,57 +8,6 @@
         "anyOf": [
           {
             "additionalProperties": false,
-            "description": "Executes a shell command with configurable success and skip exit codes",
-            "properties": {
-              "command_line": {
-                "description": "The command to execute, can be a path or a command name",
-                "type": "string"
-              },
-              "env": {
-                "description": "Environment variables to set for the command",
-                "type": "object"
-              },
-              "name": {
-                "description": "Descriptive name for the command",
-                "type": "string"
-              },
-              "runs_on_condition": {
-                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
-                "type": "string"
-              },
-              "runs_on_exit_codes": {
-                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
-                "type": "array"
-              },
-              "skip_exit_codes": {
-                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
-                "type": "array"
-              },
-              "success_exit_codes": {
-                "description": "Exit codes that indicate success, defaults to 0",
-                "type": "array"
-              },
-              "type": {
-                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
-                "enum": [
-                  "shell"
-                ],
-                "type": "string"
-              },
-              "working_directory": {
-                "description": "Directory in which the command should be executed",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "name",
-              "command_line"
-            ],
-            "type": "object"
-          },
-          {
-            "additionalProperties": false,
             "description": "Executes a list of commands sequentially (one after another)",
             "properties": {
               "commands": {
@@ -145,7 +94,7 @@
           },
           {
             "additionalProperties": false,
-            "description": "Executes commands in each directory found by traversing the filesystem",
+            "description": "Executes commands in each directory found by traversing the filesystem.",
             "properties": {
               "commands": {
                 "description": "List of commands to execute in each directory",
@@ -208,7 +157,7 @@
           },
           {
             "additionalProperties": false,
-            "description": "Copies the current working directory to a temporary directory",
+            "description": "Copies the current working directory to a temporary directory. Future working directories will be set to the temporary directory.",
             "properties": {
               "env": {
                 "description": "Environment variables to set for the command",
@@ -241,6 +190,57 @@
             "required": [
               "type",
               "name"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Executes a shell command with configurable success and skip exit codes",
+            "properties": {
+              "command_line": {
+                "description": "The command to execute, can be a path or a command name",
+                "type": "string"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "skip_exit_codes": {
+                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
+                "type": "array"
+              },
+              "success_exit_codes": {
+                "description": "Exit codes that indicate success, defaults to 0",
+                "type": "array"
+              },
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "shell"
+                ],
+                "type": "string"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "command_line"
             ],
             "type": "object"
           }

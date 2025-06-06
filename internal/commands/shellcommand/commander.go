@@ -84,12 +84,12 @@ func (c *Commander) GetExampleDefinition() interface{} {
 
 // WriteYAMLExample writes the YAML schema documentation to the provided writer.
 func (c *Commander) WriteYAMLExample(w io.Writer) error {
-	return c.schemaGenerator.WriteYAMLSchema(w)
+	return c.schemaGenerator.WriteYAMLSchemaFromDefinition(w, c.GetExampleDefinition())
 }
 
 // WriteMarkdownDoc writes the Markdown schema documentation to the provided writer.
 func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
-	return c.schemaGenerator.WriteMarkdownSchema(w)
+	return c.schemaGenerator.WriteMarkdownSchemaFromDefinition(w, c.GetCommandType(), c.GetExampleDefinition(), c.GetCommandDescription())
 }
 
 // WriteJSONSchema writes the JSON schema to the provided writer.

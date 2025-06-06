@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Schema for porch process orchestration framework configuration files",
+  "properties": {
+    "commands": {
+      "description": "List of commands to execute",
+      "items": {
+        "anyOf": [
+          {
+            "additionalProperties": false,
+            "description": "Executes a shell command with configurable success and skip exit codes",
+            "properties": {
+              "command_line": {
+                "description": "The command to execute, can be a path or a command name",
+                "type": "string"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "skip_exit_codes": {
+                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
+                "type": "array"
+              },
+              "success_exit_codes": {
+                "description": "Exit codes that indicate success, defaults to 0",
+                "type": "array"
+              },
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "shell"
+                ],
+                "type": "string"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "command_line"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Executes a list of commands sequentially (one after another)",
+            "properties": {
+              "commands": {
+                "description": "List of commands to execute sequentially",
+                "type": "array"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "serial"
+                ],
+                "type": "string"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "commands"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Executes a list of commands in parallel (simultaneously)",
+            "properties": {
+              "commands": {
+                "description": "List of commands to execute in parallel",
+                "type": "array"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "parallel"
+                ],
+                "type": "string"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "commands"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Executes commands in each directory found by traversing the filesystem",
+            "properties": {
+              "commands": {
+                "description": "List of commands to execute in each directory",
+                "type": "array"
+              },
+              "depth": {
+                "description": "Directory traversal depth (0 for unlimited)",
+                "type": "integer"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "include_hidden": {
+                "description": "Whether to include hidden directories in traversal",
+                "type": "boolean"
+              },
+              "mode": {
+                "description": "Execution mode: 'parallel' or 'serial'",
+                "type": "string"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "foreachdirectory"
+                ],
+                "type": "string"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              },
+              "working_directory_strategy": {
+                "description": "Strategy for setting working directory: 'none', 'item_relative', or 'item_absolute'",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "depth",
+              "include_hidden",
+              "mode",
+              "working_directory_strategy",
+              "commands"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Copies the current working directory to a temporary directory",
+            "properties": {
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "copycwdtotemp"
+                ],
+                "type": "string"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "description": {
+      "description": "Description of what this configuration does",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of the configuration",
+      "type": "string"
+    }
+  },
+  "required": [
+    "commands"
+  ],
+  "title": "Porch Configuration Schema",
+  "type": "object"
+}

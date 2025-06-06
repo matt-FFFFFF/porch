@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 )
 
@@ -427,7 +428,19 @@ func (b *BaseSchemaGenerator) WriteJSONSchema(w io.Writer, f commands.CommanderF
 	return err
 }
 
-// WriteYAMLSchema writes a YAML example to the writer.
+// WriteYAMLSchema writes a YAML example to the writer using the provided definition.
+func (b *BaseSchemaGenerator) WriteYAMLSchemaFromDefinition(w io.Writer, def interface{}) error {
+	// Import yaml package for marshaling
+	yamlBytes, err := yaml.Marshal(def)
+	if err != nil {
+		return fmt.Errorf("failed to marshal example definition to YAML: %w", err)
+	}
+
+	_, err = w.Write(yamlBytes)
+	return err
+}
+
+// WriteYAMLSchema writes a basic YAML example to the writer (deprecated - use WriteYAMLSchemaFromDefinition).
 func (b *BaseSchemaGenerator) WriteYAMLSchema(w io.Writer) error {
 	// This would generate a YAML example based on the schema
 	// For now, just write a basic example
@@ -443,7 +456,50 @@ commands:
 	return err
 }
 
-// WriteMarkdownSchema writes Markdown documentation to the writer.
+// WriteMarkdownSchemaFromDefinition writes Markdown documentation to the writer using the provided definition and description.
+func (b *BaseSchemaGenerator) WriteMarkdownSchemaFromDefinition(w io.Writer, commandType string, def interface{}, description string) error {
+	// Generate YAML example from definition
+	yamlBytes, err := yaml.Marshal(def)
+	if err != nil {
+		return fmt.Errorf("failed to marshal example definition to YAML: %w", err)
+	}
+
+	// Create markdown documentation
+	title := strings.ToUpper(string(commandType[0])) + commandType[1:]
+	doc := fmt.Sprintf(`# %s Command
+
+%s
+
+## Example Usage
+
+`+"```yaml"+`
+%s`+"```"+`
+
+## Fields
+
+`, title, description, string(yamlBytes))
+
+	// Add field documentation if available
+	if provider, ok := def.(interface{ GetSchemaFields() []Field }); ok {
+		fields := provider.GetSchemaFields()
+		for _, field := range fields {
+			required := ""
+			if field.Required {
+				required = " (required)"
+			}
+			doc += fmt.Sprintf("- **%s** (%s)%s", field.Name, field.Type, required)
+			if field.Description != "" {
+				doc += fmt.Sprintf(": %s", field.Description)
+			}
+			doc += "\n"
+		}
+	}
+
+	_, err = w.Write([]byte(doc))
+	return err
+}
+
+// WriteMarkdownSchema writes basic Markdown documentation to the writer (deprecated - use WriteMarkdownSchemaFromDefinition).
 func (b *BaseSchemaGenerator) WriteMarkdownSchema(w io.Writer) error {
 	// This would generate markdown documentation based on the schema
 	// For now, just write basic documentation

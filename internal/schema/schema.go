@@ -537,9 +537,9 @@ func (b *BaseSchemaGenerator) WriteJSONSchema(w io.Writer, f commands.CommanderF
 }
 
 // WriteYAMLSchema writes a YAML example to the writer using the provided definition.
-func (b *BaseSchemaGenerator) WriteYAMLSchemaFromDefinition(w io.Writer, def interface{}) error {
+func (b *BaseSchemaGenerator) WriteYAMLExample(w io.Writer, ex interface{}) error {
 	// Import yaml package for marshaling
-	yamlBytes, err := yaml.Marshal(def)
+	yamlBytes, err := yaml.Marshal(ex)
 	if err != nil {
 		return fmt.Errorf("failed to marshal example definition to YAML: %w", err)
 	}
@@ -548,10 +548,10 @@ func (b *BaseSchemaGenerator) WriteYAMLSchemaFromDefinition(w io.Writer, def int
 	return err
 }
 
-// WriteMarkdownSchemaFromDefinition writes Markdown documentation to the writer using the provided definition and description.
-func (b *BaseSchemaGenerator) WriteMarkdownSchemaFromDefinition(w io.Writer, commandType string, def interface{}, description string) error {
+// WriteMarkdownExample writes Markdown documentation to the writer using the provided definition and description.
+func (b *BaseSchemaGenerator) WriteMarkdownExample(w io.Writer, commandType string, ex interface{}, description string) error {
 	// Generate YAML example from definition
-	yamlBytes, err := yaml.Marshal(def)
+	yamlBytes, err := yaml.Marshal(ex)
 	if err != nil {
 		return fmt.Errorf("failed to marshal example definition to YAML: %w", err)
 	}
@@ -572,7 +572,7 @@ func (b *BaseSchemaGenerator) WriteMarkdownSchemaFromDefinition(w io.Writer, com
 `, title, description, string(yamlBytes))
 
 	// Add field documentation if available
-	if provider, ok := def.(interface{ GetSchemaFields() []Field }); ok {
+	if provider, ok := ex.(interface{ GetSchemaFields() []Field }); ok {
 		fields := provider.GetSchemaFields()
 		for _, field := range fields {
 			required := ""

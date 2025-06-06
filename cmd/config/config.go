@@ -26,6 +26,13 @@ var ConfigCmd = &cli.Command{
 			Name: "command",
 		},
 	},
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "markdown",
+			Usage:   "Output the configuration example in Markdown format",
+			Aliases: []string{"md"},
+		},
+	},
 }
 
 func actionFunc(ctx context.Context, cmd *cli.Command) error {
@@ -40,6 +47,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		for k := range factory.Iter() {
 			fmt.Printf("- %s\n", k)
 		}
+		fmt.Printf("\nUse `porch config <command>` to get examples for a specific command.\n")
+		return nil
 	}
 
 	cmdr, ok := factory.Get(cmdName)
@@ -57,6 +66,9 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	fmt.Printf("%s\n\nSchema:\n\n", sp.GetCommandDescription())
 
+	if cmd.Bool("markdown") {
+		sw.WriteMarkdownDoc(os.Stdout)
+	}
 	sw.WriteYAMLExample(os.Stdout)
 
 	return nil

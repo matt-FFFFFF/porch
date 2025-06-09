@@ -22,11 +22,14 @@ var (
 	ErrCommandCreation = errors.New("failed to create command")
 	// ErrCommandUnmarshal is returned when a command cannot be unmarshaled.
 	ErrCommandUnmarshal = errors.New("failed to unmarshal command definition")
+	// ErrUnknownCommandGroup is returned when a command group is not found.
+	ErrUnknownCommandGroup = errors.New("unknown command group")
 )
 
 // Registry holds the mapping between command types and their commanders.
 type Registry struct {
-	m map[string]commands.Commander
+	commands      map[string]commands.Commander
+	commandGroups map[string][]any
 }
 
 // RegistrationFunc is a function that registers commands in a registry.
@@ -35,7 +38,8 @@ type RegistrationFunc func(Registry)
 // New creates a new registry with the given registration functions.
 func New(registrations ...RegistrationFunc) *Registry {
 	registry := Registry{
-		m: make(map[string]commands.Commander),
+		commands:      make(map[string]commands.Commander),
+		commandGroups: make(map[string][]any),
 	}
 	for _, register := range registrations {
 		register(registry)
@@ -46,13 +50,13 @@ func New(registrations ...RegistrationFunc) *Registry {
 
 // Register adds a command type and its commander to the registry.
 func (r *Registry) Register(commandType string, commander commands.Commander) error {
-	r.m[commandType] = commander
+	r.commands[commandType] = commander
 	return nil
 }
 
 // Get retrieves a commander for the given command type.
 func (r *Registry) Get(commandType string) (commands.Commander, bool) {
-	commander, exists := r.m[commandType]
+	commander, exists := r.commands[commandType]
 	return commander, exists
 }
 
@@ -63,7 +67,7 @@ func (r *Registry) CreateRunnableFromYAML(ctx context.Context, yamlData []byte) 
 		return nil, errors.Join(ErrCommandUnmarshal, err)
 	}
 
-	commander, exists := r.m[cmdType.Type]
+	commander, exists := r.commands[cmdType.Type]
 	if !exists {
 		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandType, cmdType.Type)
 	}
@@ -78,7 +82,21 @@ func (r *Registry) CreateRunnableFromYAML(ctx context.Context, yamlData []byte) 
 
 // Iter returns an iterator over all registered command types and their commanders.
 func (r *Registry) Iter() iter.Seq2[string, commands.Commander] {
-	return maps.All(r.m)
+	return maps.All(r.commands)
+}
+
+// ResolveCommandGroup resolves a command group by name to a list of command definitions.
+func (r *Registry) ResolveCommandGroup(groupName string) ([]any, error) {
+	commands, exists := r.commandGroups[groupName]
+	if !exists {
+		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandGroup, groupName)
+	}
+	return commands, nil
+}
+
+// AddCommandGroup adds a command group to this registry.
+func (r *Registry) AddCommandGroup(name string, data []any) {
+	r.commandGroups[name] = data
 }
 
 // commandType represents a command with its type and raw YAML data.

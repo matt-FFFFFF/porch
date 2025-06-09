@@ -28,6 +28,7 @@ type Definition struct {
 	CommandGroups []CommandGroup `yaml:"command_groups" json:"command_groups" docdesc:"List of command groups"`
 }
 
+// CommandGroup represents a named collection of commands that can be referenced by container commands.
 type CommandGroup struct {
 	Name        string `yaml:"name" json:"name" docdesc:"Name of the command group"`
 	Description string `yaml:"description" json:"description" docdesc:"Description of the command group"`
@@ -43,6 +44,11 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 
 	if len(def.Commands) == 0 {
 		return nil, ErrNoCommands
+	}
+
+	// Add command groups to the factory
+	for _, group := range def.CommandGroups {
+		factory.AddCommandGroup(group.Name, group.Commands)
 	}
 
 	runnables := make([]runbatch.Runnable, 0, len(def.Commands))

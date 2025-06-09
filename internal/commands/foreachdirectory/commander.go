@@ -40,6 +40,10 @@ func (c *Commander) Create(ctx context.Context, factory commands.CommanderFactor
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
 	}
 
+	if err := def.Validate(); err != nil {
+		return nil, errors.Join(commands.NewErrCommandCreate("foreachdirectory"), err)
+	}
+
 	var runnables []runbatch.Runnable
 
 	base, err := def.ToBaseCommand()
@@ -68,7 +72,19 @@ func (c *Commander) Create(ctx context.Context, factory commands.CommanderFactor
 		CwdStrategy:   strat,
 	}
 
-	for i, cmd := range def.Commands {
+	// Determine which commands to use
+	var commandsToProcess []any
+	if def.CommandGroup != "" {
+		commands, err := factory.ResolveCommandGroup(def.CommandGroup)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve command group %q: %w", def.CommandGroup, err)
+		}
+		commandsToProcess = commands
+	} else {
+		commandsToProcess = def.Commands
+	}
+
+	for i, cmd := range commandsToProcess {
 		cmdYAML, err := yaml.Marshal(cmd)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal command %d: %w", i, err)

@@ -33,4 +33,8 @@ type CommanderFactory interface {
 	Register(cmdtype string, commander Commander) error
 	// Iter returns an iterator over all registered command types.
 	Iter() iter.Seq2[string, Commander]
+	// ResolveCommandGroup resolves a command group by name to a list of command definitions.
+	ResolveCommandGroup(groupName string) ([]any, error)
+	// AddCommandGroup adds a command group to the factory.
+	AddCommandGroup(name string, commands []any)
 }

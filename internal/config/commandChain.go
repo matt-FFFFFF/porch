@@ -18,6 +18,8 @@ var (
 	ErrInvalidYaml = errors.New("invalid YAML")
 	// ErrNoCommands is returned when no commands are specified in the configuration.
 	ErrNoCommands = errors.New("no commands specified")
+	// ErrConfigurationTimeout is returned when configuration building times out.
+	ErrConfigurationTimeout = errors.New("configuration building timed out")
 )
 
 // Definition represents the root configuration structure.
@@ -51,6 +53,11 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 		factory.AddCommandGroup(group.Name, group.Commands)
 	}
 
+	// Validate command groups for circular dependencies
+	if err := validateCommandGroups(ctx, factory, def.CommandGroups); err != nil {
+		return nil, err
+	}
+
 	runnables := make([]runbatch.Runnable, 0, len(def.Commands))
 
 	// Wrap in a serial batch with the definition's metadata
@@ -60,17 +67,24 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 		},
 	}
 
-	for _, cmd := range def.Commands {
+	for i, cmd := range def.Commands {
+		// Check for context cancellation during command processing
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("%w: cancelled while processing command %d", ErrConfigurationTimeout, i)
+		default:
+		}
+
 		// Convert the command to YAML and then process it
 		cmdYAML, err := yaml.Marshal(cmd)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal command: %w", err)
+			return nil, fmt.Errorf("failed to marshal command %d: %w", i, err)
 		}
 
 		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to create runnable: %w", err)
+			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
 
 		runnable.SetParent(topLevelCommand)
@@ -81,4 +95,23 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 	topLevelCommand.Commands = runnables
 
 	return topLevelCommand, nil
+}
+
+// validateCommandGroups validates all command groups for circular dependencies.
+func validateCommandGroups(ctx context.Context, factory commands.CommanderFactory, groups []CommandGroup) error {
+	// Validate each command group for circular dependencies
+	for _, group := range groups {
+		// Check for context cancellation early
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("%w: %v", ErrConfigurationTimeout, ctx.Err())
+		default:
+		}
+
+		_, err := factory.ResolveCommandGroup(group.Name)
+		if err != nil {
+			return fmt.Errorf("invalid command group '%s': %w", group.Name, err)
+		}
+	}
+	return nil
 }

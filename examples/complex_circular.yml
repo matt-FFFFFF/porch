@@ -1,0 +1,35 @@
+# More complex circular dependency example
+name: complex circular dependency test
+description: Test more complex circular dependency scenarios
+command_groups:
+  - name: setup
+    commands:
+      - type: shell
+        name: prepare environment
+        command_line: echo "preparing environment"
+      - type: parallel
+        name: run setup tasks
+        command_group: setup_tasks
+
+  - name: setup_tasks
+    commands:
+      - type: shell
+        name: task 1
+        command_line: echo "task 1"
+      - type: serial
+        name: run validation
+        command_group: validation
+
+  - name: validation
+    commands:
+      - type: shell
+        name: validate setup
+        command_line: echo "validating"
+      - type: serial
+        name: re-run setup if needed
+        command_group: setup # This creates the circular dependency
+
+commands:
+  - type: serial
+    name: main workflow
+    command_group: setup

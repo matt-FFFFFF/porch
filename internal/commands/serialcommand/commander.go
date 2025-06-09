@@ -74,6 +74,13 @@ func (c *Commander) Create(
 	}
 
 	for i, cmd := range commandsToProcess {
+		// Check for context cancellation during command processing
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("serial command creation cancelled while processing command %d: %w", i, ctx.Err())
+		default:
+		}
+
 		cmdYAML, err := yaml.Marshal(cmd)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal command %d: %w", i, err)

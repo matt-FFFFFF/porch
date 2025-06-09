@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/config"
@@ -93,7 +94,11 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
 
-	rb, err := config.BuildFromYAML(ctx, factory, bytes)
+	// Create a timeout context for configuration building (30 seconds)
+	configCtx, configCancel := context.WithTimeout(ctx, 30*time.Second)
+	defer configCancel()
+
+	rb, err := config.BuildFromYAML(configCtx, factory, bytes)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("failed to build config from file %s: %s", yamlFileName, err.Error()), 1)
 	}

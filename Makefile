@@ -23,4 +23,4 @@ testrace:
 .PHONY: lint
 lint:
 	@echo "Running linter..."
-	@golangci-lint run --fix
+	@golangci-lint run

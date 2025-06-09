@@ -36,8 +36,7 @@ func ListFiles(pattern string) func(ctx context.Context, workingDirectory string
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		default:
-			// Continue execution
+		default: // Continue execution
 		}
 
 		// Find files matching the pattern
@@ -61,8 +60,7 @@ func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(context.C
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			default:
-				// Continue execution
+			default: // Continue execution
 			}
 
 			if err != nil {
@@ -119,8 +117,7 @@ func SplitString(s string, delimiter string) func(ctx context.Context, _ string)
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		default:
-			// Continue execution
+		default: // Continue execution
 		}
 
 		return strings.Split(s, delimiter), nil

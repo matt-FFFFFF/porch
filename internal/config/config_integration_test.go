@@ -148,7 +148,6 @@ commands:
 	assert.Equal(t, "Inner Command 3 (should not run)", res[0].Children[2].Label)
 	assert.Equal(t, runbatch.ResultStatusSkipped, res[0].Children[2].Status)
 	require.ErrorIs(t, res[0].Children[2].Error, runbatch.ErrSkipOnError)
-	//res.WriteText(os.Stdout)
 }
 
 func TestSerialBatchSkipOnExitCodeAndErrorHandling(t *testing.T) {
@@ -194,5 +193,4 @@ commands:
 	assert.Equal(t, "Inner Command 3 (should not run)", res[0].Children[2].Label)
 	assert.Equal(t, runbatch.ResultStatusSkipped, res[0].Children[2].Status)
 	require.ErrorIs(t, res[0].Children[2].Error, runbatch.ErrSkipIntentional)
-	//res.WriteText(os.Stdout)
 }

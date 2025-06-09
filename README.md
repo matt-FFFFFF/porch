@@ -10,6 +10,7 @@
 - **Parallel Execution**: Execute independent commands concurrently for optimal performance
 - **Nested Batches**: Compose complex workflows with serial and parallel command combinations
 - **Shell Commands**: Execute any shell command with full environment control
+- **Directory Iteration**: Execute commands across multiple directories with flexible traversal options
 
 ### 📋 **Flexible Configuration**
 
@@ -17,6 +18,7 @@
 - **Working Directory Management**: Control execution context with per-command working directories
 - **Environment Variables**: Set and inherit environment variables at any level
 - **Conditional Execution**: Run commands based on success, failure, or specific exit codes
+- **Command Groups**: Define reusable command sets that can be referenced by container commands
 
 ### 🛡️ **Robust Error Handling**
 
@@ -24,6 +26,7 @@
 - **Context-Aware Execution**: Full context propagation for cancellation and timeouts
 - **Comprehensive Results**: Detailed execution results with exit codes, stdout, and stderr
 - **Error Aggregation**: Collect and report errors across complex command hierarchies
+- **Skip Controls**: Configure commands to skip remaining tasks based on exit codes
 
 ### 🎨 **Beautiful Output**
 
@@ -37,6 +40,7 @@
 - **Plugin-Based Commands**: Modular command registry for easy extension
 - **Custom Commanders**: Implement your own command types via the Commander interface
 - **Provider System**: Extensible item providers for dynamic command generation
+- **Temporary Directory Support**: Isolated execution environments for testing and builds
 
 ## 📦 Installation
 
@@ -51,7 +55,7 @@ go install github.com/matt-FFFFFF/porch@latest
 ```bash
 git clone https://github.com/matt-FFFFFF/porch.git
 cd porch
-go build -o porch cmd/main.go
+make build
 ```
 
 ### Development setup
@@ -120,117 +124,302 @@ porch run workflow.yaml
 porch show results.gob
 ```
 
-## 📚 Available Commands
+## 📚 CLI Commands
 
-porch provides a CLI with the following commands:
+porch provides a comprehensive CLI with the following commands:
 
-### `porch run <workflow.yaml>`
+### `porch run <workflow.yaml> [output.gob]`
 
 Execute a workflow defined in a YAML file.
 
+**Usage:**
+
+```bash
+porch run workflow.yaml              # Execute workflow
+porch run workflow.yaml results.gob  # Execute and save results
+```
+
 **Options:**
 
-- Reads YAML workflow definition
-- Executes commands according to their type (serial, parallel, shell, etc.)
-- Handles signal interruption gracefully
-- Saves execution results for later analysis
+- `--output-success-details`, `--success`: Include successful results in the output
+- `--no-output-stderr`, `--no-stderr`: Exclude stderr output in the results
+- `--output-stdout`, `--stdout`: Include stdout output in the results
+
+**Description:**
+
+Reads a YAML workflow definition, executes commands according to their type (serial, parallel, shell, etc.), handles signal interruption gracefully, and optionally saves execution results for later analysis.
 
 ### `porch show <results.gob>`
 
 Display the results of a previous workflow execution.
 
-**Features:**
+**Usage:**
 
-- Pretty-printed tree visualization
-- Colorized output with error highlighting
-- Detailed execution metrics
-- JSON export capability
+```bash
+porch show results.gob
+```
 
-## 🛠️ Command Types
+**Options:**
 
-porch supports several built-in command types for different execution patterns:
+- `--output-success-details`, `--success`: Include successful results in the output
+- `--no-output-stderr`, `--no-stderr`: Exclude stderr output in the results
+- `--output-stdout`, `--stdout`: Include stdout output in the results
 
-### 1. Shell Commands
+**Description:**
 
-Execute any shell command with full environment control:
+Displays saved execution results with pretty-printed tree visualization, colorized output with error highlighting, detailed execution metrics, and supports JSON export capability.
+
+### `porch config [command]`
+
+Get information about configuration format and available commands.
+
+**Usage:**
+
+```bash
+porch config                    # List all available commands
+porch config shell             # Show shell command schema and example
+porch config serial --markdown # Show serial command docs in Markdown format
+```
+
+**Options:**
+
+- `--markdown`, `--md`: Output the configuration example in Markdown format
+
+**Available Commands:**
+
+- `porch config schema`: Output the complete JSON schema for configuration files
+
+**Description:**
+
+Provides comprehensive documentation for each command type, including YAML schema definitions, examples, and detailed descriptions of all available configuration options.
+
+## � Configuration Schema
+
+### Root Configuration
+
+Every porch workflow starts with a root configuration that defines the overall structure:
+
+```yaml
+name: "Workflow Name"                    # Required: Descriptive name for the workflow
+description: "Workflow description"      # Optional: Description of what this workflow does
+commands: []                            # Required: List of commands to execute
+command_groups: []                      # Optional: Named groups of commands for reuse
+```
+
+### Command Groups
+
+Command groups allow you to define reusable sets of commands that can be referenced by container commands:
+
+```yaml
+command_groups:
+  - name: "test-group"
+    description: "Common testing commands"
+    commands:
+      - type: "shell"
+        name: "Unit Tests"
+        command_line: "go test ./..."
+      - type: "shell"
+        name: "Integration Tests"
+        command_line: "go test -tags=integration ./..."
+```
+
+## 🛠️ Available Commands
+
+porch supports five built-in command types for different execution patterns:
+
+### 1. Shell Commands (`shell`)
+
+Execute any shell command with full environment control and configurable exit code handling.
+
+**Required Attributes:**
+
+- `type: "shell"`
+- `name`: Descriptive name for the command
+- `command_line`: The shell command to execute
+
+**Optional Attributes:**
+
+- `working_directory`: Directory to execute the command in
+- `env`: Environment variables as key-value pairs
+- `runs_on_condition`: When to run (`success`, `error`, `always`, `exit-codes`)
+- `runs_on_exit_codes`: Specific exit codes that trigger execution (used with `runs_on_condition: exit-codes`)
+- `success_exit_codes`: Exit codes that indicate success (defaults to `[0]`)
+- `skip_exit_codes`: Exit codes that skip remaining commands in the current batch
+
+**Example:**
 
 ```yaml
 - type: "shell"
-  name: "Build Project"
-  command_line: "go build -o app ."
+  name: "Build Go Application"
+  command_line: "go build -ldflags='-s -w' -o dist/app ."
   working_directory: "/path/to/project"
   env:
     CGO_ENABLED: "0"
     GOOS: "linux"
+    GOARCH: "amd64"
+  success_exit_codes: [0]
+  skip_exit_codes: [2]
+  runs_on_condition: "success"
 ```
 
-### 2. Serial Batches
+### 2. Serial Commands (`serial`)
 
-Execute commands sequentially where order matters:
+Execute commands sequentially where order matters. Each command waits for the previous one to complete before starting.
+
+**Required Attributes:**
+
+- `type: "serial"`
+- `name`: Descriptive name for the command batch
+
+**Optional Attributes:**
+
+- `working_directory`: Directory to execute commands in
+- `env`: Environment variables inherited by all child commands
+- `runs_on_condition`: When to run (`success`, `error`, `always`, `exit-codes`)
+- `runs_on_exit_codes`: Specific exit codes that trigger execution
+- `commands`: List of commands to execute sequentially (either this or `command_group`)
+- `command_group`: Reference to a named command group (either this or `commands`)
+
+**Example:**
 
 ```yaml
 - type: "serial"
   name: "Setup and Build"
+  working_directory: "/project"
+  env:
+    BUILD_MODE: "production"
   commands:
     - type: "shell"
       name: "Install Dependencies"
-      command_line: "go mod download"
+      command_line: "npm install"
     - type: "shell"
       name: "Build"
-      command_line: "go build ."
+      command_line: "npm run build"
+    - type: "shell"
+      name: "Test"
+      command_line: "npm test"
 ```
 
-### 3. Parallel Batches
+### 3. Parallel Commands (`parallel`)
 
-Execute independent commands concurrently for optimal performance:
+Execute independent commands concurrently for optimal performance. All commands start simultaneously.
+
+**Required Attributes:**
+
+- `type: "parallel"`
+- `name`: Descriptive name for the command batch
+
+**Optional Attributes:**
+
+- `working_directory`: Directory to execute commands in
+- `env`: Environment variables inherited by all child commands
+- `runs_on_condition`: When to run (`success`, `error`, `always`, `exit-codes`)
+- `runs_on_exit_codes`: Specific exit codes that trigger execution
+- `commands`: List of commands to execute in parallel (either this or `command_group`)
+- `command_group`: Reference to a named command group (either this or `commands`)
+
+**Example:**
 
 ```yaml
 - type: "parallel"
-  name: "Quality Checks"
+  name: "Quality Assurance"
   commands:
     - type: "shell"
-      name: "Run Tests"
-      command_line: "go test ./..."
+      name: "Unit Tests"
+      command_line: "go test -race ./..."
     - type: "shell"
-      name: "Run Linter"
-      command_line: "golangci-lint run"
+      name: "Linting"
+      command_line: "golangci-lint run --timeout=5m"
     - type: "shell"
       name: "Security Scan"
-      command_line: "gosec ./..."
+      command_line: "gosec -quiet ./..."
+    - type: "shell"
+      name: "Vulnerability Check"
+      command_line: "govulncheck ./..."
 ```
 
-### 4. Copy Current Working Directory to Temp
+### 4. ForEach Directory Commands (`foreachdirectory`)
 
-A specialized command for working in temporary directories:
+Execute commands in each directory found by traversing the filesystem. Useful for monorepos or multi-module projects.
+
+**Required Attributes:**
+
+- `type: "foreachdirectory"`
+- `name`: Descriptive name for the command
+- `mode`: Execution mode (`parallel` or `serial`)
+- `depth`: Directory traversal depth (0 for unlimited, 1 for immediate children only)
+- `include_hidden`: Whether to include hidden directories (`true` or `false`)
+- `working_directory_strategy`: How to set working directory (`none`, `item_relative`, `item_absolute`)
+
+**Optional Attributes:**
+
+- `working_directory`: Base directory to start traversal from
+- `env`: Environment variables inherited by all child commands
+- `runs_on_condition`: When to run (`success`, `error`, `always`, `exit-codes`)
+- `runs_on_exit_codes`: Specific exit codes that trigger execution
+- `commands`: List of commands to execute in each directory (either this or `command_group`)
+- `command_group`: Reference to a named command group (either this or `commands`)
+
+**Working Directory Strategies:**
+
+- `none`: Don't change working directory for child commands
+- `item_relative`: Set working directory relative to the current directory
+- `item_absolute`: Set working directory to the absolute path of each found directory
+
+**Example:**
+
+```yaml
+- type: "foreachdirectory"
+  name: "Test All Modules"
+  working_directory: "./modules"
+  mode: "parallel"
+  depth: 1
+  include_hidden: false
+  working_directory_strategy: "item_relative"
+  commands:
+    - type: "shell"
+      name: "Run Module Tests"
+      command_line: "go test ./..."
+    - type: "shell"
+      name: "Check Module"
+      command_line: "go mod verify"
+```
+
+### 5. Copy Current Working Directory to Temp (`copycwdtotemp`)
+
+A specialized command for working in temporary directories. Copies the current working directory to a temporary location for isolated execution.
+
+**Required Attributes:**
+
+- `type: "copycwdtotemp"`
+- `name`: Descriptive name for the command
+
+**Optional Attributes:**
+
+- `working_directory`: Directory to copy (defaults to current working directory)
+- `env`: Environment variables
+- `runs_on_condition`: When to run (`success`, `error`, `always`, `exit-codes`)
+- `runs_on_exit_codes`: Specific exit codes that trigger execution
+
+**Example:**
 
 ```yaml
 - type: "copycwdtotemp"
-  name: "Work in Isolation"
-  cwd: "."
+  name: "Create Isolated Environment"
+  working_directory: "."
 ```
 
-This command copies the current working directory to a temporary location, allowing subsequent commands to work in isolation without affecting the original directory.
+This command is particularly useful for:
 
-## ⚙️ Configuration Options
+- Testing builds without affecting the source directory
+- Creating clean environments for packaging
+- Isolating potentially destructive operations
 
-### Common Fields
-
-All commands support these common configuration options:
-
-```yaml
-- type: "shell"
-  name: "Command Name"                    # Descriptive name for the command
-  working_directory: "/custom/path"       # Override working directory
-  runs_on_condition: "success"           # When to run: success, error, always, exit-codes
-  runs_on_exit_codes: [0, 1]            # Specific exit codes (when runs_on_condition is exit-codes)
-  env:                                   # Environment variables
-    KEY: "value"
-    PATH: "/custom/bin:$PATH"
-```
+## ⚙️ Common Configuration Options
 
 ### Conditional Execution
 
-Control when commands run based on previous results:
+All commands support conditional execution based on the results of previous commands:
 
 ```yaml
 - type: "shell"
@@ -247,64 +436,59 @@ Control when commands run based on previous results:
   name: "Always Cleanup"
   command_line: "cleanup.sh"
   runs_on_condition: "always"          # Always run regardless of previous results
+
+- type: "shell"
+  name: "Run on Specific Exit Codes"
+  command_line: "handle_warning.sh"
+  runs_on_condition: "exit-codes"
+  runs_on_exit_codes: [1, 2]           # Only run if previous command exited with code 1 or 2
 ```
 
-## 🔧 Extending porch
+### Environment Variables
 
-### Creating Custom Commands
+Environment variables can be set at any level and are inherited by child commands:
 
-Implement the `Commander` interface to create custom command types:
-
-```go
-package mycommand
-
-import (
-    "context"
-    "github.com/matt-FFFFFF/porch/internal/commands"
-    "github.com/matt-FFFFFF/porch/internal/runbatch"
-)
-
-type MyCommander struct{}
-
-func (c *MyCommander) Create(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
-    // Parse payload (YAML command definition)
-    // Create and return a Runnable implementation
-    return myRunnable, nil
-}
-
-// Register the command in init()
-func init() {
-    commands.Register("mycommand", &MyCommander{})
-}
+```yaml
+env:
+  GLOBAL_VAR: "global_value"
+commands:
+  - type: "serial"
+    name: "Build Process"
+    env:
+      BUILD_TYPE: "release"
+    commands:
+      - type: "shell"
+        name: "Compile"
+        command_line: "make build"
+        env:
+          OPTIMIZATION: "O3"              # This command sees GLOBAL_VAR, BUILD_TYPE, and OPTIMIZATION
 ```
 
-### Implementing Runnable
+### Working Directory Management
 
-Create custom execution logic by implementing the `Runnable` interface:
+Control execution context with flexible working directory options:
 
-```go
-type MyRunnable struct {
-    // Command configuration
-}
+```yaml
+- type: "shell"
+  name: "Build in Subdirectory"
+  command_line: "make build"
+  working_directory: "./subproject"      # Relative to current directory
 
-func (r *MyRunnable) Run(ctx context.Context) runbatch.Results {
-    // Implement execution logic
-    // Handle context cancellation
-    // Return structured results
-}
-
-func (r *MyRunnable) SetCwd(cwd string) {
-    // Set working directory
-}
-
-func (r *MyRunnable) InheritEnv(env map[string]string) {
-    // Inherit environment variables
-}
+- type: "serial"
+  name: "Build Multiple Projects"
+  working_directory: "/absolute/path"    # Absolute path
+  commands:
+    - type: "shell"
+      name: "Build Project A"
+      command_line: "make -C project-a"
+    - type: "shell"
+      name: "Build Project B"
+      command_line: "make -C project-b"
 ```
 
 ## 🏗️ Advanced Examples
 
-### Complex CI/CD Pipeline
+### Complete CI/CD Pipeline
 
 ```yaml
 name: "Complete CI/CD Pipeline"
@@ -372,7 +556,40 @@ commands:
     runs_on_condition: "success"
 ```
 
-### Working with Temporary Directories
+### Monorepo Testing with ForEach Directory
+
+```yaml
+name: "Monorepo Testing"
+description: "Test all modules in a monorepo structure"
+commands:
+  - type: "foreachdirectory"
+    name: "Test All Modules"
+    working_directory: "./modules"
+    mode: "parallel"
+    depth: 1
+    include_hidden: false
+    working_directory_strategy: "item_relative"
+    commands:
+      - type: "shell"
+        name: "Check for Tests"
+        command_line: |
+          if [ ! -d ./tests ]; then
+            echo "No tests found in $(pwd)"
+            exit 99
+          fi
+        skip_exit_codes: [99]
+      - type: "shell"
+        name: "Install Dependencies"
+        command_line: "npm install"
+      - type: "shell"
+        name: "Run Tests"
+        command_line: "npm test"
+      - type: "shell"
+        name: "Build Module"
+        command_line: "npm run build"
+```
+
+### Isolated Testing Environment
 
 ```yaml
 name: "Isolated Testing"
@@ -394,11 +611,84 @@ commands:
         command_line: "go test -json ./... > test-results.json"
 ```
 
+### Command Groups Example
+
+```yaml
+name: "Command Groups Demo"
+description: "Example showing reusable command groups"
+
+command_groups:
+  - name: "quality-checks"
+    description: "Standard quality assurance commands"
+    commands:
+      - type: "shell"
+        name: "Run Tests"
+        command_line: "go test ./..."
+      - type: "shell"
+        name: "Run Linter"
+        command_line: "golangci-lint run"
+      - type: "shell"
+        name: "Security Scan"
+        command_line: "gosec ./..."
+
+  - name: "build-commands"
+    description: "Standard build commands"
+    commands:
+      - type: "shell"
+        name: "Build"
+        command_line: "go build -o app ."
+      - type: "shell"
+        name: "Package"
+        command_line: "tar -czf app.tar.gz app"
+
+commands:
+  - type: "parallel"
+    name: "Quality Checks"
+    command_group: "quality-checks"
+
+  - type: "serial"
+    name: "Build Process"
+    runs_on_condition: "success"
+    command_group: "build-commands"
+```
+
+### Conditional Execution Patterns
+
+```yaml
+name: "Conditional Execution Demo"
+description: "Examples of conditional command execution"
+commands:
+  - type: "shell"
+    name: "Primary Task"
+    command_line: "make build"
+
+  - type: "shell"
+    name: "Success Handler"
+    command_line: "echo 'Build succeeded, deploying...'"
+    runs_on_condition: "success"
+
+  - type: "shell"
+    name: "Error Handler"
+    command_line: "echo 'Build failed, cleaning up...'"
+    runs_on_condition: "error"
+
+  - type: "shell"
+    name: "Warning Handler"
+    command_line: "echo 'Build completed with warnings'"
+    runs_on_condition: "exit-codes"
+    runs_on_exit_codes: [1, 2]
+
+  - type: "shell"
+    name: "Always Cleanup"
+    command_line: "rm -rf temp/"
+    runs_on_condition: "always"
+```
+
 ## 🎨 Output and Results
 
 ### Result Structure
 
-Every command execution produces detailed results:
+Every command execution produces detailed results with the following structure:
 
 ```go
 type Result struct {
@@ -413,7 +703,7 @@ type Result struct {
 
 ### Pretty-Printed Output
 
-porch automatically generates beautiful tree-structured output:
+porch automatically generates beautiful tree-structured output showing the execution hierarchy:
 
 ```text
 ✓ Build and Test Workflow
@@ -422,6 +712,7 @@ porch automatically generates beautiful tree-structured output:
     ✓ Run Tests (1.8s)
     ✓ Run Linter (1.2s)
     ✗ Security Scan (0.5s) - exit code 1
+      stderr: gosec: 1 issue found
   ✓ Build Process (1.5s)
     ✓ Build for Linux (0.8s)
     ✓ Build for macOS (0.7s)
@@ -432,6 +723,7 @@ porch automatically generates beautiful tree-structured output:
 Results can be exported as JSON for programmatic analysis:
 
 ```bash
+porch run workflow.yaml results.gob
 porch show results.gob --format=json
 ```
 
@@ -439,17 +731,72 @@ porch show results.gob --format=json
 
 porch provides sophisticated signal handling for graceful shutdown:
 
-- **First Signal (SIGINT/SIGTERM)**: Initiates graceful shutdown
-  - Running commands receive the signal for cleanup
-  - No new commands are started
-  - Context remains active for cleanup operations
+**First Signal (SIGINT/SIGTERM)**: Initiates graceful shutdown
 
-- **Second Signal**: Forces immediate termination
-  - Context is cancelled
-  - All running processes are killed
-  - Execution stops immediately
+- Running commands receive the signal for cleanup
+- No new commands are started
+- Context remains active for cleanup operations
+
+**Second Signal**: Forces immediate termination
+
+- Context is cancelled
+- All running processes are killed
+- Execution stops immediately
 
 This allows for proper cleanup and prevents data corruption during interruption.
+
+## 🔧 Extending porch
+
+### Creating Custom Commands
+
+Implement the `Commander` interface to create custom command types:
+
+```go
+package mycommand
+
+import (
+    "context"
+    "github.com/matt-FFFFFF/porch/internal/commands"
+    "github.com/matt-FFFFFF/porch/internal/runbatch"
+)
+
+type MyCommander struct{}
+
+func (c *MyCommander) Create(ctx context.Context, factory commands.CommanderFactory, payload []byte) (runbatch.Runnable, error) {
+    // Parse payload (YAML command definition)
+    // Create and return a Runnable implementation
+    return myRunnable, nil
+}
+
+// Register the command in init()
+func init() {
+    commands.Register("mycommand", &MyCommander{})
+}
+```
+
+### Implementing Runnable
+
+Create custom execution logic by implementing the `Runnable` interface:
+
+```go
+type MyRunnable struct {
+    // Command configuration
+}
+
+func (r *MyRunnable) Run(ctx context.Context) runbatch.Results {
+    // Implement execution logic
+    // Handle context cancellation
+    // Return structured results
+}
+
+func (r *MyRunnable) SetCwd(cwd string) {
+    // Set working directory
+}
+
+func (r *MyRunnable) InheritEnv(env map[string]string) {
+    // Inherit environment variables
+}
+```
 
 ## 🧪 Testing
 
@@ -464,6 +811,9 @@ make testcover
 
 # Run linter
 make lint
+
+# Run tests with race detection
+go test -race ./...
 ```
 
 The project includes comprehensive tests covering:

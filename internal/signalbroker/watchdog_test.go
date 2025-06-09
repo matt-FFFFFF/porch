@@ -35,9 +35,9 @@ func TestWatch_FirstSignalNoCancel(t *testing.T) {
 	select {
 	case <-ctx.Done():
 		t.Fatal("context should not be cancelled after first signal")
-	default:
-		// ok
+	default: // ok
 	}
+
 	close(sigCh)
 	wg.Wait()
 }
@@ -94,9 +94,9 @@ func TestWatch_DifferentSignalsNoCancel(t *testing.T) {
 	select {
 	case <-ctx.Done():
 		t.Fatal("context should not be cancelled for different signals")
-	default:
-		// ok
+	default: // ok
 	}
+
 	close(sigCh)
 	wg.Wait()
 }

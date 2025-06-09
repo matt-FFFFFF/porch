@@ -1,9 +1,29 @@
 name: Terraform unit test
 description: Terraform unit tests for root module and submodules
+command_groups:
+  - name: terraform_unit_tests
+    description: Run Terraform unit tests for root module and submodules
+    commands:
+      - type: shell
+        name: Check for unit tests
+        command_line: |
+          if [ ! -d ./tests/unit ]; then
+            echo "No unit tests found in $(pwd)"
+            exit 99
+          fi
+        skip_exit_codes: [99]
+      - type: shell
+        name: "Terraform Init"
+        command_line: "terraform init -test-directory ./tests/unit"
+      - type: shell
+        name: "Terraform Test"
+        command_line: "terraform test -test-directory ./tests/unit"
+
 commands:
   - type: copycwdtotemp
     name: Copy current working directory to temp
     cwd: "."
+
   - type: shell
     name: Clean Terraform
     command_line: |
@@ -11,6 +31,7 @@ commands:
       find . -type d -name .terraform | xargs -n1 rm -rf && \
       find . -type f -name .terraform.lock.hcl | xargs -n1 rm -f && \
       find . -type f -name *.tfstate* | xargs -n1 rm -f
+
   - type: parallel
     name: Unit tests
     env:
@@ -20,38 +41,12 @@ commands:
         name: submodules
         working_directory: "./modules"
         mode: parallel
-        commands:
-          - type: shell
-            name: Check for unit tests
-            command_line: |
-              if [ ! -d ./tests/unit ]; then
-                echo "No unit tests found in $(pwd)"
-                exit 99
-              fi
-            skip_exit_codes: [99]
-          - type: shell
-            name: "Terraform Init"
-            command_line: "terraform init -test-directory ./tests/unit"
-          - type: shell
-            name: "Terraform Test"
-            command_line: "terraform test -test-directory ./tests/unit"
+        command_group: terraform_unit_tests
+
       - type: serial
         name: root module
-        commands:
-          - type: shell
-            name: Check for unit tests
-            command_line: |
-              if [ ! -d ./tests/unit ]; then
-                echo "No unit tests found in $(pwd)"
-                exit 99
-              fi
-            skip_exit_codes: [99]
-          - type: shell
-            name: "Terraform Init"
-            command_line: "terraform init -test-directory ./tests/unit"
-          - type: shell
-            name: "Terraform Test"
-            command_line: "terraform test -test-directory ./tests/unit"
+        command_group: terraform_unit_tests
+
   - type: shell
     name: Clean up
     command_line: |

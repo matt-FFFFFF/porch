@@ -19,7 +19,6 @@ import (
 
 func TestForEachDirectoryParallel(t *testing.T) {
 	// register the command type
-
 	yamlPayloadFmt := `type: "foreachdirectory"
 name: "For Each Directory"
 working_directory: "testdata/foreachdir"

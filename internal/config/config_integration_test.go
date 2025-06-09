@@ -63,7 +63,6 @@ commands:
 }
 
 func TestBuildFromYAML_UnknownCommandType(t *testing.T) {
-
 	yamlData := `
 name: "Test Unknown Command"
 description: "Test unknown command type"

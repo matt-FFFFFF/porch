@@ -146,7 +146,7 @@ func (r *Result) GobDecode(data []byte) error {
 
 	// Convert error message back to error
 	if gr.HasError {
-		r.Error = errors.New(gr.ErrorMsg)
+		r.Error = errors.New(gr.ErrorMsg) //nolint:err113
 	}
 
 	return nil

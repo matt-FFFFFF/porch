@@ -75,10 +75,12 @@ func (s *Schema) ToMap() map[string]interface{} {
 
 	if len(s.Properties) > 0 {
 		properties := make(map[string]interface{})
+
 		for name, field := range s.Properties {
 			generator := &Generator{}
 			properties[name] = generator.schemaFieldToProperty(field)
 		}
+
 		result["properties"] = properties
 	}
 
@@ -174,6 +176,7 @@ func (s *Schema) ToOrderedStruct() interface{} {
 // createOrderedPropertiesStruct creates an ordered struct for properties to maintain field ordering in JSON.
 func (s *Schema) createOrderedPropertiesStruct() interface{} {
 	var structFields []reflect.StructField
+
 	generator := &Generator{}
 
 	// Add fields in the sorted order
@@ -284,6 +287,7 @@ func (g *Generator) createOrderedRootPropertiesStruct(f commands.CommanderFactor
 			if err != nil || schemaField == nil {
 				continue // Skip fields that can't be processed
 			}
+
 			rootFields[schemaField.Name] = *schemaField
 		}
 	}
@@ -615,7 +619,7 @@ func (g *Generator) fieldToSchemaField(field reflect.StructField) (*Field, error
 	description := field.Tag.Get("docdesc")
 
 	// Determine if field is required
-	required := !(yamlTag != "" && strings.Contains(yamlTag, "omitempty"))
+	required := yamlTag == "" || !strings.Contains(yamlTag, "omitempty")
 
 	// Determine field type
 	fieldType := g.getSchemaType(field.Type)
@@ -769,6 +773,7 @@ func (b *BaseSchemaGenerator) WriteYAMLExample(w io.Writer, ex interface{}) erro
 	}
 
 	_, err = w.Write(yamlBytes)
+
 	return err
 }
 
@@ -803,14 +808,17 @@ func (b *BaseSchemaGenerator) WriteMarkdownExample(w io.Writer, commandType stri
 			if field.Required {
 				required = " (required)"
 			}
+
 			doc += fmt.Sprintf("- **%s** (%s)%s", field.Name, field.Type, required)
 			if field.Description != "" {
 				doc += fmt.Sprintf(": %s", field.Description)
 			}
+
 			doc += "\n"
 		}
 	}
 
 	_, err = w.Write([]byte(doc))
+
 	return err
 }

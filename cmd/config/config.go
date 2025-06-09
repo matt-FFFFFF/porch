@@ -44,10 +44,13 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	cmdName := cmd.StringArg("command")
 	if cmdName == "" {
 		fmt.Printf("Available commands:\n\n")
+
 		for k := range factory.Iter() {
 			fmt.Printf("- %s\n", k)
 		}
+
 		fmt.Printf("\nUse `porch config <command>` to get examples for a specific command.\n")
+
 		return nil
 	}
 
@@ -55,10 +58,12 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	if !ok {
 		return cli.Exit(fmt.Sprintf("unknown command: %s", cmdName), 1)
 	}
+
 	sp, ok := cmdr.(schema.Provider)
 	if !ok {
 		return cli.Exit(fmt.Sprintf("command %s does not provide schema", cmdName), 1)
 	}
+
 	sw, ok := cmdr.(schema.Writer)
 	if !ok {
 		return cli.Exit(fmt.Sprintf("command %s does not provide schema writer", cmdName), 1)
@@ -69,6 +74,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	if cmd.Bool("markdown") {
 		sw.WriteMarkdownDoc(os.Stdout)
 	}
+
 	sw.WriteYAMLExample(os.Stdout)
 
 	return nil

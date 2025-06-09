@@ -22,9 +22,16 @@ var (
 
 // Definition represents the root configuration structure.
 type Definition struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Commands    []any  `yaml:"commands"`
+	Name          string         `yaml:"name" json:"name" docdesc:"Name of the configuration"`
+	Description   string         `yaml:"description" json:"description" docdesc:"Description of what this configuration does"`
+	Commands      []any          `yaml:"commands" json:"commands" docdesc:"List of commands to execute"`
+	CommandGroups []CommandGroup `yaml:"command_groups" json:"command_groups" docdesc:"List of command groups"`
+}
+
+type CommandGroup struct {
+	Name        string `yaml:"name" json:"name" docdesc:"Name of the command group"`
+	Description string `yaml:"description" json:"description" docdesc:"Description of the command group"`
+	Commands    []any  `yaml:"commands" json:"commands" docdesc:"List of commands in this group"`
 }
 
 // BuildFromYAML creates a runnable from YAML configuration.

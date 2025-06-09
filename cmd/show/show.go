@@ -73,11 +73,14 @@ func actionFunc(_ context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("%s: %v", ErrReadFile.Error(), err), 1)
 	}
+
 	defer file.Close() // nolint:errcheck
+
 	var results runbatch.Results
 	if err := gob.NewDecoder(file).Decode(&results); err != nil {
 		return cli.Exit(fmt.Sprintf("%s: %v", ErrDecodeResults.Error(), err), 1)
 	}
+
 	opts := runbatch.DefaultOutputOptions()
 	opts.IncludeStdErr = !cmd.Bool(noOutputStdErrFlag)
 	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
@@ -86,5 +89,6 @@ func actionFunc(_ context.Context, cmd *cli.Command) error {
 	if err := results.WriteTextWithOptions(os.Stdout, opts); err != nil { // Write the results to stdout
 		return cli.Exit(fmt.Sprintf("%s: %v", ErrWriteResults.Error(), err), 1)
 	}
+
 	return nil
 }

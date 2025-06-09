@@ -40,6 +40,7 @@ func New(registrations ...RegistrationFunc) *Registry {
 	for _, register := range registrations {
 		register(registry)
 	}
+
 	return &registry
 }
 

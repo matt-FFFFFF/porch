@@ -113,5 +113,6 @@ func validateCommandGroups(ctx context.Context, factory commands.CommanderFactor
 			return fmt.Errorf("invalid command group '%s': %w", group.Name, err)
 		}
 	}
+
 	return nil
 }

@@ -22,6 +22,7 @@ const (
 	outputStdOutFlag         = "output-stdout"
 	outputSuccessDetailsFlag = "output-success-details"
 	writeFlag                = "write"
+	configTimeoutSeconds     = 30
 )
 
 var (
@@ -94,8 +95,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
 
-	// Create a timeout context for configuration building (30 seconds)
-	configCtx, configCancel := context.WithTimeout(ctx, 30*time.Second)
+	// Create a timeout context for configuration building
+	configCtx, configCancel := context.WithTimeout(ctx, configTimeoutSeconds*time.Second)
 	defer configCancel()
 
 	rb, err := config.BuildFromYAML(configCtx, factory, bytes)

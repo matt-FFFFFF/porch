@@ -235,6 +235,7 @@ command_groups:`
 		for i := 0; i < 150; i++ {
 			groupName := fmt.Sprintf("group_%d", i)
 			nextGroupName := fmt.Sprintf("group_%d", i+1)
+
 			if i == 149 {
 				// Last group doesn't reference another
 				yamlData += fmt.Sprintf(`

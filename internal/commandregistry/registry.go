@@ -135,6 +135,7 @@ func (r *Registry) resolveCommandGroupWithDepth(
 
 	// Mark this group as being visited
 	visiting[groupName] = true
+
 	currentPath := append(path, groupName)
 
 	// Check all commands in this group for nested command group references

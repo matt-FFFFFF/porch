@@ -9,5 +9,8 @@ const commandType = "shell"
 
 // Register registers the command in the given registry.
 func Register(r commandregistry.Registry) {
-	r.Register(commandType, &Commander{})
+	err := r.Register(commandType, &Commander{})
+	if err != nil {
+		panic(err)
+	}
 }

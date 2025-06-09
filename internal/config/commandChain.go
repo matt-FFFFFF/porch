@@ -22,10 +22,10 @@ var (
 
 // Definition represents the root configuration structure.
 type Definition struct {
-	Name          string         `yaml:"name" json:"name" docdesc:"Name of the configuration"`
-	Description   string         `yaml:"description" json:"description" docdesc:"Description of what this configuration does"`
-	Commands      []any          `yaml:"commands" json:"commands" docdesc:"List of commands to execute"`
-	CommandGroups []CommandGroup `yaml:"command_groups" json:"command_groups" docdesc:"List of command groups"`
+	Name          string         `yaml:"name" json:"name" docdesc:"Name of the configuration"`                                 //nolint:lll
+	Description   string         `yaml:"description" json:"description" docdesc:"Description of what this configuration does"` //nolint:lll
+	Commands      []any          `yaml:"commands" json:"commands" docdesc:"List of commands to execute"`                       //nolint:lll
+	CommandGroups []CommandGroup `yaml:"command_groups" json:"command_groups" docdesc:"List of command groups"`                //nolint:lll
 }
 
 // CommandGroup represents a named collection of commands that can be referenced by container commands.

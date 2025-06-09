@@ -74,7 +74,7 @@ func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(context.C
 			}
 
 			// Check if the directory is hidden
-			isHidden := filepath.Base(path)[0] == '.'
+			isHidden := path != workingDirectory && filepath.Base(path)[0] == '.'
 
 			// Skip hidden directories if includeHidden is false
 			if !bool(includeHidden) && isHidden {

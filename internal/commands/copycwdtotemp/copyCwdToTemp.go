@@ -52,12 +52,17 @@ var RandomName = func(prefix string, n int) string {
 // It also sets the new working directory to the temporary directory for any subsequent
 // serial batch commands.
 func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
+	// Capture the global variables by value to avoid data races with tests
+	fs := FS
+	tempDirPath := TempDirPath
+	randomName := RandomName
+
 	ret := &runbatch.FunctionCommand{
 		BaseCommand: base,
 		Func: func(ctx context.Context, cwd string, _ ...string) runbatch.FunctionCommandReturn {
-			tmpDir := filepath.Join(TempDirPath(), RandomName("porch_", tempDirSuffixLength))
+			tmpDir := filepath.Join(tempDirPath(), randomName("porch_", tempDirSuffixLength))
 			// Create a temporary directory in the OS temp directory
-			err := FS.MkdirAll(tmpDir, sevenFiveFive)
+			err := fs.MkdirAll(tmpDir, sevenFiveFive)
 			if err != nil {
 				return runbatch.FunctionCommandReturn{
 					Err: err,
@@ -65,7 +70,7 @@ func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
 			}
 
 			// Use afero.Walk to copy files from the current directory to the temp directory
-			err = afero.Walk(FS, cwd, func(path string, info os.FileInfo, err error) error {
+			err = afero.Walk(fs, cwd, func(path string, info os.FileInfo, err error) error {
 				select {
 				case <-ctx.Done():
 					return ctx.Err()
@@ -90,16 +95,16 @@ func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
 
 					// If it's a directory, create it
 					if info.IsDir() {
-						return FS.MkdirAll(dstPath, sevenFiveFive)
+						return fs.MkdirAll(dstPath, sevenFiveFive)
 					}
 
 					// If it's a file, copy it
-					srcFile, err := afero.ReadFile(FS, path)
+					srcFile, err := afero.ReadFile(fs, path)
 					if err != nil {
 						return errors.Join(ErrFileCopy, err)
 					}
 
-					return afero.WriteFile(FS, dstPath, srcFile, sixFourFour)
+					return afero.WriteFile(fs, dstPath, srcFile, sixFourFour)
 				}
 			})
 

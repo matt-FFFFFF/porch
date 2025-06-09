@@ -14,6 +14,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// ConfigCmd is the command for getting configuration information and examples.
 var ConfigCmd = &cli.Command{
 	Name:   "config",
 	Usage:  "Get info on configuration format and commands",
@@ -72,10 +73,10 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	fmt.Printf("%s\n\nSchema:\n\n", sp.GetCommandDescription())
 
 	if cmd.Bool("markdown") {
-		sw.WriteMarkdownDoc(os.Stdout)
+		sw.WriteMarkdownDoc(os.Stdout) //nolint:errcheck
 	}
 
-	sw.WriteYAMLExample(os.Stdout)
+	sw.WriteYAMLExample(os.Stdout) //nolint:errcheck
 
 	return nil
 }
@@ -86,14 +87,14 @@ var schemaCmd = &cli.Command{
 	Action: schemaCmdActionFunc,
 }
 
-func schemaCmdActionFunc(ctx context.Context, cmd *cli.Command) error {
+func schemaCmdActionFunc(ctx context.Context, _ *cli.Command) error {
 	factory, ok := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
 	if !ok {
 		return cli.Exit("failed to get command factory from context", 1)
 	}
 
 	sw := schema.NewBaseSchemaGenerator()
-	sw.WriteJSONSchema(os.Stdout, factory)
+	sw.WriteJSONSchema(os.Stdout, factory) //nolint:errcheck
 
 	return nil
 }

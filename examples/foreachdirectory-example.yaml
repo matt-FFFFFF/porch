@@ -3,7 +3,7 @@ description: "Example showing nested serial and parallel commands"
 commands:
   - type: "foreachdirectory"
     name: "For Each Directory"
-    working_directory: "./internal/"
+    working_directory: "."
     mode: "parallel"
     working_directory_strategy: "item_relative"
     depth: 1

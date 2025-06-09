@@ -27,7 +27,7 @@ type Definition struct {
 	// IncludeHidden specifies whether to include hidden directories
 	IncludeHidden bool `yaml:"include_hidden" docdesc:"Whether to include hidden directories in traversal"`
 	// WorkingDirectoryStrategy can be "none", "item_relative", or "item_absolute"
-	WorkingDirectoryStrategy string `yaml:"working_directory_strategy" docdesc:"Strategy for setting working directory: 'none', 'item_relative', or 'item_absolute'"`
+	WorkingDirectoryStrategy string `yaml:"working_directory_strategy" docdesc:"Strategy for setting working directory: 'none', 'item_relative', or 'item_absolute'"` //nolint:lll
 	// Commands is a list of commands to run in each directory
 	Commands []any `yaml:"commands,omitempty" docdesc:"List of commands to execute in each directory"`
 	// CommandGroup is a reference to a named command group

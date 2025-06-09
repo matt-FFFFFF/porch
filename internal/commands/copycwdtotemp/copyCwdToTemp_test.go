@@ -103,13 +103,13 @@ func TestCopyCwdToTemp(t *testing.T) {
 	f := New(base)
 	results := f.Run(ctx)
 
-	// The temp dir should now be
-	capturedTempDir = filepath.Join("/tmp", "porch_testrun")
-
-	// Check the results
+	// Wait for command to complete before restoring globals
 	require.Len(t, results, 1)
 	assert.Equal(t, 0, results[0].ExitCode)
 	require.NoError(t, results[0].Error)
+
+	// The temp dir should now be
+	capturedTempDir = filepath.Join("/tmp", "porch_testrun")
 
 	// Verify that we have a temp dir
 	assert.NotEmpty(t, capturedTempDir)
@@ -136,114 +136,147 @@ func TestCopyCwdToTemp(t *testing.T) {
 }
 
 func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
-	// Save original values to restore after test
-	originalCwdFS := FS
-	originalTempDirPath := TempDirPath
-	originalRandomName := RandomName
+	tests := []struct {
+		name     string
+		setupFS  func() afero.Fs
+		testFunc func(t *testing.T, fs afero.Fs)
+	}{
+		{
+			name: "MkdirTemp error",
+			setupFS: func() afero.Fs {
+				baseFs := afero.NewMemMapFs()
+				errPath := filepath.Join(tmpDir, "porch_testrun")
+				return &errorFS{fs: baseFs, errorPath: errPath}
+			},
+			testFunc: func(t *testing.T, fs afero.Fs) {
+				// Save original values to restore after test
+				originalCwdFS := FS
+				originalTempDirPath := TempDirPath
+				originalRandomName := RandomName
 
-	defer func() {
-		// Restore original values
-		FS = originalCwdFS
-		TempDirPath = originalTempDirPath
-		RandomName = originalRandomName
-	}()
+				defer func() {
+					// Restore original values
+					FS = originalCwdFS
+					TempDirPath = originalTempDirPath
+					RandomName = originalRandomName
+				}()
 
-	// Mock RandomName to return a known value
-	RandomName = func(prefix string, n int) string {
-		return prefix + "testrun"
+				// Setup test environment
+				FS = fs
+				TempDirPath = func() string { return tmpDir }
+				RandomName = func(prefix string, n int) string { return prefix + "testrun" }
+
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				base := &runbatch.BaseCommand{
+					Label: "copyCwdToTemp",
+					Cwd:   srcDir,
+				}
+				f := New(base)
+				results := f.Run(ctx)
+
+				// Wait for the command to complete before restoring globals
+				require.Len(t, results, 1)
+				assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
+				require.ErrorIs(t, results[0].Error, os.ErrPermission)
+			},
+		},
+		{
+			name: "WalkDir error",
+			setupFS: func() afero.Fs {
+				baseFs := afero.NewMemMapFs()
+				// Create the directory and file structure
+				err := baseFs.MkdirAll(srcDir, 0755)
+				if err != nil {
+					panic(err)
+				}
+				testFilePath := filepath.Join(srcDir, "file1.txt")
+				_ = afero.WriteFile(baseFs, testFilePath, []byte("content"), 0644)
+				return &errorFS{fs: baseFs, errorPath: testFilePath}
+			},
+			testFunc: func(t *testing.T, fs afero.Fs) {
+				// Save original values to restore after test
+				originalCwdFS := FS
+				originalTempDirPath := TempDirPath
+				originalRandomName := RandomName
+
+				defer func() {
+					// Restore original values
+					FS = originalCwdFS
+					TempDirPath = originalTempDirPath
+					RandomName = originalRandomName
+				}()
+
+				// Setup test environment
+				FS = fs
+				TempDirPath = func() string { return tmpDir }
+				RandomName = func(prefix string, n int) string { return prefix + "testrun" }
+
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				base := &runbatch.BaseCommand{
+					Label: "copyCwdToTemp",
+					Cwd:   srcDir,
+				}
+				f := New(base)
+				results := f.Run(ctx)
+
+				// Wait for the command to complete before restoring globals
+				require.Len(t, results, 1)
+				assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
+				require.Error(t, results[0].Error)
+			},
+		},
+		{
+			name: "context canceled",
+			setupFS: func() afero.Fs {
+				return afero.NewMemMapFs()
+			},
+			testFunc: func(t *testing.T, fs afero.Fs) {
+				// Save original values to restore after test
+				originalCwdFS := FS
+				originalTempDirPath := TempDirPath
+				originalRandomName := RandomName
+
+				defer func() {
+					// Restore original values
+					FS = originalCwdFS
+					TempDirPath = originalTempDirPath
+					RandomName = originalRandomName
+				}()
+
+				// Setup test environment
+				FS = fs
+				TempDirPath = func() string { return tmpDir }
+				RandomName = func(prefix string, n int) string { return prefix + "testrun" }
+
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				cancel() // Cancel immediately
+
+				base := &runbatch.BaseCommand{
+					Label: "copyCwdToTemp",
+					Cwd:   srcDir,
+				}
+				f := New(base)
+				results := f.Run(ctx)
+
+				// Wait for the command to complete before restoring globals
+				require.Len(t, results, 1)
+				assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
+				assert.Equal(t, ctx.Err(), results[0].Error)
+
+			},
+		},
 	}
 
-	FS = afero.NewMemMapFs()
-
-	// Test case: MkdirTemp error
-	t.Run("MkdirTemp error", func(t *testing.T) {
-		// Set the current working directory for the test
-		cwd := srcDir
-
-		// Mock TempDirPath to return a simple path
-		TempDirPath = func() string {
-			return tmpDir
-		}
-
-		baseFs := afero.NewMemMapFs()
-		errPath := filepath.Join(TempDirPath(), "porch_testrun")
-		FS = &errorFS{fs: baseFs, errorPath: errPath} // Create an errorFS that will return an error for directory
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		base := &runbatch.BaseCommand{
-			Label: "copyCwdToTemp",
-			Cwd:   cwd,
-		}
-		f := New(base)
-		results := f.Run(ctx)
-
-		require.Len(t, results, 1)
-		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
-		require.ErrorIs(t, results[0].Error, os.ErrPermission)
-	})
-
-	// Test case: WalkDir error
-	t.Run("WalkDir error", func(t *testing.T) {
-		// Create a base filesystem with a file
-		baseFs := afero.NewMemMapFs()
-
-		// Set the current working directory for the test
-		cwd := srcDir
-
-		// Create the directory and file structure
-		err := baseFs.MkdirAll(cwd, 0755)
-		require.NoError(t, err)
-
-		testFilePath := filepath.Join(cwd, "file1.txt")
-		_ = afero.WriteFile(baseFs, testFilePath, []byte("content"), 0644)
-
-		// Mock TempDirPath to return a simple path
-		TempDirPath = func() string {
-			return tmpDir
-		}
-
-		FS = &errorFS{fs: baseFs, errorPath: testFilePath} // Create an errorFS that will return an error for file1.txt
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		base := &runbatch.BaseCommand{
-			Label: "copyCwdToTemp",
-			Cwd:   cwd,
-		}
-		f := New(base)
-		results := f.Run(ctx)
-
-		require.Len(t, results, 1)
-		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
-		require.Error(t, results[0].Error)
-	})
-
-	t.Run("context canceled", func(t *testing.T) {
-		// Set the current working directory for the test
-		cwd := srcDir
-
-		// Mock TempDirPath to return a simple path
-		TempDirPath = func() string {
-			return tmpDir
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cancel()
-
-		base := &runbatch.BaseCommand{
-			Label: "copyCwdToTemp",
-			Cwd:   cwd,
-		}
-		f := New(base)
-		results := f.Run(ctx)
-
-		require.Len(t, results, 1)
-		assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
-		assert.Equal(t, ctx.Err(), results[0].Error)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fs := tt.setupFS()
+			tt.testFunc(t, fs)
+		})
+	}
 }
 
 // the behavior.
@@ -346,7 +379,11 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 		Commands: []runbatch.Runnable{copyCwdCmd, trackerCmd},
 	}
 
-	batch.Run(context.Background())
+	// Run the batch and wait for completion
+	results := batch.Run(context.Background())
+
+	// Ensure batch completed before proceeding
+	require.NotNil(t, results)
 
 	// Verify the tracker picked up the new working directory
 	assert.Equal(t, expectedNewCwd, trackerCmd.Cwd,

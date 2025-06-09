@@ -49,6 +49,7 @@ func New(registrations ...RegistrationFunc) *Registry {
 }
 
 // Register adds a command type and its commander to the registry.
+// It should never fail but the error return is kept for compatibility with the CommanderFactory interface.
 func (r *Registry) Register(commandType string, commander commands.Commander) error {
 	r.commands[commandType] = commander
 	return nil
@@ -91,6 +92,7 @@ func (r *Registry) ResolveCommandGroup(groupName string) ([]any, error) {
 	if !exists {
 		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandGroup, groupName)
 	}
+
 	return commands, nil
 }
 

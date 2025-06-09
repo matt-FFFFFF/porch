@@ -70,7 +70,8 @@ func (c *Commander) GetCommandType() string {
 
 // GetCommandDescription returns a description of what this command does.
 func (c *Commander) GetCommandDescription() string {
-	return "Copies the current working directory to a temporary directory. Future working directories will be set to the temporary directory."
+	return "Copies the current working directory to a temporary directory. " +
+		"Future working directories will be set to the temporary directory."
 }
 
 // GetExampleDefinition returns an example definition for YAML generation.
@@ -85,15 +86,20 @@ func (c *Commander) GetExampleDefinition() interface{} {
 
 // WriteYAMLExample writes the YAML schema documentation to the provided writer.
 func (c *Commander) WriteYAMLExample(w io.Writer) error {
-	return c.schemaGenerator.WriteYAMLExample(w, c.GetExampleDefinition())
+	return c.schemaGenerator.WriteYAMLExample(w, c.GetExampleDefinition()) //nolint:wrapcheck
 }
 
 // WriteMarkdownDoc writes the Markdown schema documentation to the provided writer.
 func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
-	return c.schemaGenerator.WriteMarkdownExample(w, c.GetCommandType(), c.GetExampleDefinition(), c.GetCommandDescription())
+	return c.schemaGenerator.WriteMarkdownExample( //nolint:wrapcheck
+		w,
+		c.GetCommandType(),
+		c.GetExampleDefinition(),
+		c.GetCommandDescription(),
+	)
 }
 
 // WriteJSONSchema writes the JSON schema to the provided writer.
 func (c *Commander) WriteJSONSchema(w io.Writer, f commands.CommanderFactory) error {
-	return c.schemaGenerator.WriteJSONSchema(w, f)
+	return c.schemaGenerator.WriteJSONSchema(w, f) //nolint:wrapcheck
 }

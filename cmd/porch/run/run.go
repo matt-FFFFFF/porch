@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/matt-FFFFFF/porch/cmd/cmdstate"
+	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/config"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/urfave/cli/v3"
@@ -35,7 +35,8 @@ var RunCmd = &cli.Command{
 	Name: "run",
 	Description: `Run a command or batch of commands defined in a YAML file.
 This command executes the commands defined in the specified YAML file and outputs the results.
-The YAML file should be structured according to the Porch configuration format, which allows for defining commands, their parameters, and execution flow.
+The YAML file should be structured according to the Porch configuration format,
+which allows for defining commands, their parameters, and execution flow.
 
 To save the results to a file, specify the output file name as an argument.
 `,
@@ -90,7 +91,9 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("failed to read file %s: %s", yamlFileName, err.Error()), 1)
 	}
 
-	rb, err := config.BuildFromYAML(ctx, cmdstate.Factory, bytes)
+	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
+
+	rb, err := config.BuildFromYAML(ctx, factory, bytes)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("failed to build config from file %s: %s", yamlFileName, err.Error()), 1)
 	}

@@ -34,7 +34,11 @@ func NewCommander() *Commander {
 }
 
 // Create creates a new runnable command and implements the commands.Commander interface.
-func (c *Commander) Create(ctx context.Context, factory commands.CommanderFactory, payload []byte) (runbatch.Runnable, error) {
+func (c *Commander) Create(
+	ctx context.Context,
+	factory commands.CommanderFactory,
+	payload []byte,
+) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
@@ -57,11 +61,13 @@ func (c *Commander) Create(ctx context.Context, factory commands.CommanderFactor
 
 	// Determine which commands to use
 	var commandsToProcess []any
+
 	if def.CommandGroup != "" {
 		commands, err := factory.ResolveCommandGroup(def.CommandGroup)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve command group %q: %w", def.CommandGroup, err)
 		}
+
 		commandsToProcess = commands
 	} else {
 		commandsToProcess = def.Commands
@@ -135,15 +141,20 @@ func (c *Commander) GetExampleDefinition() interface{} {
 
 // WriteYAMLExample writes the YAML schema documentation to the provided writer.
 func (c *Commander) WriteYAMLExample(w io.Writer) error {
-	return c.schemaGenerator.WriteYAMLExample(w, c.GetExampleDefinition())
+	return c.schemaGenerator.WriteYAMLExample(w, c.GetExampleDefinition()) //nolint:wrapcheck
 }
 
 // WriteMarkdownDoc writes the Markdown schema documentation to the provided writer.
 func (c *Commander) WriteMarkdownDoc(w io.Writer) error {
-	return c.schemaGenerator.WriteMarkdownExample(w, c.GetCommandType(), c.GetExampleDefinition(), c.GetCommandDescription())
+	return c.schemaGenerator.WriteMarkdownExample( //nolint:wrapcheck
+		w,
+		c.GetCommandType(),
+		c.GetExampleDefinition(),
+		c.GetCommandDescription(),
+	)
 }
 
 // WriteJSONSchema writes the JSON schema to the provided writer.
 func (c *Commander) WriteJSONSchema(w io.Writer, f commands.CommanderFactory) error {
-	return c.schemaGenerator.WriteJSONSchema(w, f)
+	return c.schemaGenerator.WriteJSONSchema(w, f) //nolint:wrapcheck
 }

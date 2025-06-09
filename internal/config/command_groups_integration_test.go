@@ -129,7 +129,7 @@ commands:
 	// Execute the runnable to verify it works
 	// Note: foreachdirectory creates one result per directory processed
 	results := runnable.Run(ctx)
-	require.Greater(t, len(results), 0, "should have at least one result")
+	require.NotEmpty(t, results, "should have at least one result")
 	// Check that all results succeeded
 	for i, result := range results {
 		assert.Equal(t, runbatch.ResultStatusSuccess, result.Status, "result %d should have succeeded", i)

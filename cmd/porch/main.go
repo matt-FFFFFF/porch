@@ -1,14 +1,17 @@
 // Copyright (c) matt-FFFFFF 2025. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// Package main is the entry point for the porch command-line application.
+// Package main contains the porch command-line interface (CLI).
 package main
 
 import (
 	"context"
 	"os"
 
-	"github.com/matt-FFFFFF/porch/cmd"
+	"github.com/matt-FFFFFF/porch"
+	"github.com/matt-FFFFFF/porch/cmd/porch/config"
+	"github.com/matt-FFFFFF/porch/cmd/porch/run"
+	"github.com/matt-FFFFFF/porch/cmd/porch/show"
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/commands/copycwdtotemp"
@@ -21,10 +24,27 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var (
-	version = "dev"
-	commit  = "unknown"
-)
+// rootCmd is the root command for the CLI.
+var rootCmd = &cli.Command{
+	Commands: []*cli.Command{
+		config.ConfigCmd,
+		run.RunCmd,
+		show.ShowCmd,
+	},
+	Writer:    os.Stdout,
+	ErrWriter: os.Stderr,
+	Name:      "porch",
+	Description: `Porch is a sophisticated Go-based process orchestration framework
+designed for running and managing complex command workflows. It provides a flexible,
+YAML-driven approach to define, compose, and execute command chains with advanced
+flow control, parallel processing, and comprehensive error handling.`,
+	Usage:     "porch run myfile.yaml",
+	Copyright: "Copyright (c) matt-FFFFFF 2025. All rights reserved.",
+	Authors: []any{
+		"Matt White (matt-FFFFFF)",
+	},
+	EnableShellCompletion: true,
+}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -35,12 +55,7 @@ func main() {
 
 	go signalbroker.Watch(ctx, sigCh, cancel)
 
-	cmd.RootCmd.Version = version
-	cmd.RootCmd.ExtraInfo = func() map[string]string {
-		return map[string]string{
-			"commit": commit,
-		}
-	}
+	rootCmd.Version = porch.Version
 
 	factory := commandregistry.New(
 		serialcommand.Register,
@@ -50,12 +65,9 @@ func main() {
 		shellcommand.Register,
 	)
 
-	cmd.RootCmd.Before = cli.BeforeFunc(func(c context.Context, cmd *cli.Command) (context.Context, error) {
-		ctx = context.WithValue(ctx, commands.FactoryContextKey{}, factory)
-		return ctx, nil
-	})
+	ctx = context.WithValue(ctx, commands.FactoryContextKey{}, factory)
 
-	_ = cmd.RootCmd.Run(ctx, os.Args) // Err is handled by cli framework
+	_ = rootCmd.Run(ctx, os.Args) // Err is handled by cli framework
 
 	ctxlog.Logger(ctx).Info("command completed successfully")
 }

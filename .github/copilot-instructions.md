@@ -41,3 +41,8 @@ and `"github.com/stretchr/testify/require"` packages.
 - Unit tests should reside in a file named as per the file containing the code being tested, with the suffix `_test.go`.
 - Integration tests should reside in a file named as per the file or package containing the code being tested, with the suffix `_integration_test.go`.
 - This package uses concurrency so tests should be run with the `-race` flag to ensure they are thread-safe. This should be done after verifying unit tests pass in isolation.
+
+### Building and Running
+
+- The binary is built from the `./cmd` package.
+- Use `make build` to build the project.

@@ -13,6 +13,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/config"
 )
 
 // Writer provides methods to write JSON Schema to an io.Writer.
@@ -52,11 +53,13 @@ type Field struct {
 // Schema represents a complete JSON schema for a command type.
 type Schema struct {
 	Type                 string           `json:"type"`
+	Title                string           `json:"title,omitempty"`
 	Description          string           `json:"description,omitempty"`
 	Properties           map[string]Field `json:"properties"`
 	Required             []string         `json:"required,omitempty"`
 	AdditionalProperties bool             `json:"additionalProperties,omitempty"`
 	Fields               []Field          `json:"-"` // For internal use
+	CommandType          string           `json:"-"` // For internal use
 }
 
 // ToMap converts a Schema struct to a map[string]interface{} for JSON serialization.
@@ -101,7 +104,16 @@ func (s *Schema) ToOrderedStruct() interface{} {
 		Tag:  `json:"type"`,
 	})
 
-	// 2. Add "description" field if present
+	// 2. Add "title" field if present
+	if s.Title != "" {
+		structFields = append(structFields, reflect.StructField{
+			Name: "Title",
+			Type: reflect.TypeOf(""),
+			Tag:  `json:"title,omitempty"`,
+		})
+	}
+
+	// 3. Add "description" field if present
 	if s.Description != "" {
 		structFields = append(structFields, reflect.StructField{
 			Name: "Description",
@@ -110,14 +122,14 @@ func (s *Schema) ToOrderedStruct() interface{} {
 		})
 	}
 
-	// 3. Add "properties" field
+	// 4. Add "properties" field
 	structFields = append(structFields, reflect.StructField{
 		Name: "Properties",
 		Type: reflect.TypeOf(orderedProperties).Elem(), // Get the underlying type
 		Tag:  `json:"properties"`,
 	})
 
-	// 4. Add "required" field if present
+	// 5. Add "required" field if present
 	if len(s.Required) > 0 {
 		structFields = append(structFields, reflect.StructField{
 			Name: "Required",
@@ -126,7 +138,7 @@ func (s *Schema) ToOrderedStruct() interface{} {
 		})
 	}
 
-	// 5. Add "additionalProperties" field
+	// 6. Add "additionalProperties" field
 	structFields = append(structFields, reflect.StructField{
 		Name: "AdditionalProperties",
 		Type: reflect.TypeOf(false),
@@ -139,6 +151,10 @@ func (s *Schema) ToOrderedStruct() interface{} {
 
 	// Set the values
 	structValue.FieldByName("Type").SetString(s.Type)
+
+	if s.Title != "" {
+		structValue.FieldByName("Title").SetString(s.Title)
+	}
 
 	if s.Description != "" {
 		structValue.FieldByName("Description").SetString(s.Description)
@@ -191,6 +207,146 @@ func (s *Schema) createOrderedPropertiesStruct() interface{} {
 	return structValue.Addr().Interface()
 }
 
+// createOrderedRootSchema creates an ordered struct for the root schema with proper field ordering.
+func (g *Generator) createOrderedRootSchema(f commands.CommanderFactory) interface{} {
+	// Create struct fields in the desired order
+	var structFields []reflect.StructField
+
+	// 1. Add "$schema" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Schema",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"$schema"`,
+	})
+
+	// 2. Add "type" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Type",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"type"`,
+	})
+
+	// 3. Add "title" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Title",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"title"`,
+	})
+
+	// 4. Add "description" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Description",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"description"`,
+	})
+
+	// 5. Add "properties" field (ordered: name, description, commands)
+	propertiesStruct := g.createOrderedRootPropertiesStruct(f)
+	structFields = append(structFields, reflect.StructField{
+		Name: "Properties",
+		Type: reflect.TypeOf(propertiesStruct).Elem(),
+		Tag:  `json:"properties"`,
+	})
+
+	// 6. Add "required" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Required",
+		Type: reflect.TypeOf([]string{}),
+		Tag:  `json:"required"`,
+	})
+
+	// Create the struct type
+	structType := reflect.StructOf(structFields)
+	structValue := reflect.New(structType).Elem()
+
+	// Set the values
+	structValue.FieldByName("Schema").SetString("https://json-schema.org/draft/2020-12/schema")
+	structValue.FieldByName("Type").SetString("object")
+	structValue.FieldByName("Title").SetString("Porch Configuration Schema")
+	structValue.FieldByName("Description").SetString("Schema for porch process orchestration framework configuration files")
+	structValue.FieldByName("Properties").Set(reflect.ValueOf(propertiesStruct).Elem())
+	structValue.FieldByName("Required").Set(reflect.ValueOf([]string{"commands"}))
+
+	return structValue.Interface()
+}
+
+// createOrderedRootPropertiesStruct creates an ordered struct for root properties: name, description, commands.
+func (g *Generator) createOrderedRootPropertiesStruct(f commands.CommanderFactory) interface{} {
+	// Extract field information from config.Definition struct
+	definitionType := reflect.TypeOf(config.Definition{})
+	rootFields := make(map[string]Field)
+
+	// Extract fields from config.Definition using reflection and struct tags
+	for i := 0; i < definitionType.NumField(); i++ {
+		field := definitionType.Field(i)
+		if field.IsExported() {
+			schemaField, err := g.fieldToSchemaField(field)
+			if err != nil || schemaField == nil {
+				continue // Skip fields that can't be processed
+			}
+			rootFields[schemaField.Name] = *schemaField
+		}
+	}
+
+	// Create struct fields in the desired order: name, description, commands
+	var structFields []reflect.StructField
+
+	// 1. Add "name" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Name",
+		Type: reflect.TypeOf(map[string]interface{}{}),
+		Tag:  `json:"name"`,
+	})
+
+	// 2. Add "description" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Description",
+		Type: reflect.TypeOf(map[string]interface{}{}),
+		Tag:  `json:"description"`,
+	})
+
+	// 3. Add "commands" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Commands",
+		Type: reflect.TypeOf(map[string]interface{}{}),
+		Tag:  `json:"commands"`,
+	})
+
+	// Create the struct type
+	structType := reflect.StructOf(structFields)
+	structValue := reflect.New(structType).Elem()
+
+	// Set the values using information from the config.Definition struct
+	if nameField, exists := rootFields["name"]; exists {
+		nameProperty := map[string]interface{}{
+			"type":        nameField.Type,
+			"description": nameField.Description,
+		}
+		structValue.FieldByName("Name").Set(reflect.ValueOf(nameProperty))
+	}
+
+	if descField, exists := rootFields["description"]; exists {
+		descriptionProperty := map[string]interface{}{
+			"type":        descField.Type,
+			"description": descField.Description,
+		}
+		structValue.FieldByName("Description").Set(reflect.ValueOf(descriptionProperty))
+	}
+
+	if commandsField, exists := rootFields["commands"]; exists {
+		commandsProperty := map[string]interface{}{
+			"type":        "array",
+			"description": commandsField.Description,
+			"items": map[string]interface{}{
+				"anyOf": g.generateCommandSchemas(f),
+			},
+		}
+		structValue.FieldByName("Commands").Set(reflect.ValueOf(commandsProperty))
+	}
+
+	return structValue.Addr().Interface()
+}
+
 // Generator provides methods to generate schemas from struct definitions.
 type Generator struct{}
 
@@ -213,10 +369,12 @@ func (g *Generator) Generate(commandType string, def interface{}, description ..
 
 	var required []string
 
-	for _, field := range sortedFields {
-		// Special handling for type field to add enum constraint
+	for i, field := range sortedFields {
+		// Special handling for type field to add enum constraint and default value
 		if field.Name == "type" {
 			field.Enum = []string{commandType}
+			field.Default = commandType
+			sortedFields[i] = field // Update the field in the slice
 		}
 
 		properties[field.Name] = field
@@ -228,10 +386,12 @@ func (g *Generator) Generate(commandType string, def interface{}, description ..
 
 	schema := &Schema{
 		Type:                 "object",
+		Title:                strings.ToUpper(string(commandType[0])) + commandType[1:] + " Command",
 		Properties:           properties,
 		Required:             required,
 		Fields:               sortedFields,
 		AdditionalProperties: false,
+		CommandType:          commandType,
 	}
 
 	// Set description if provided
@@ -244,38 +404,100 @@ func (g *Generator) Generate(commandType string, def interface{}, description ..
 
 // GenerateJSONSchemaString generates a complete JSON schema for the entire configuration.
 func (g *Generator) GenerateJSONSchemaString(f commands.CommanderFactory) (string, error) {
-	// Create root schema for the entire configuration
-	rootSchema := map[string]interface{}{
-		"$schema":     "https://json-schema.org/draft/2020-12/schema",
-		"type":        "object",
-		"title":       "Porch Configuration Schema",
-		"description": "Schema for porch process orchestration framework configuration files",
-		"properties": map[string]interface{}{
-			"name": map[string]interface{}{
-				"type":        "string",
-				"description": "Name of the configuration",
-			},
-			"description": map[string]interface{}{
-				"type":        "string",
-				"description": "Description of what this configuration does",
-			},
-			"commands": map[string]interface{}{
-				"type":        "array",
-				"description": "List of commands to execute",
-				"items": map[string]interface{}{
-					"anyOf": g.generateCommandSchemas(f),
-				},
-			},
-		},
-		"required": []string{"commands"},
+	// Generate schema from the actual config.Definition struct
+	rootSchema, err := g.Generate("object", config.Definition{}, "Schema for porch process orchestration framework configuration files")
+	if err != nil {
+		return "", fmt.Errorf("failed to generate root schema: %w", err)
 	}
 
-	bytes, err := json.MarshalIndent(rootSchema, "", "  ")
+	// Override the title and add schema metadata
+	rootSchema.Title = "Porch Configuration Schema"
+
+	// Update the commands field to use the anyOf pattern for command schemas
+	if commandsField, exists := rootSchema.Properties["commands"]; exists {
+		commandsField.Items = &Field{
+			Type: "object",
+			Properties: map[string]Field{
+				"anyOf": {
+					Type: "array",
+				},
+			},
+		}
+		rootSchema.Properties["commands"] = commandsField
+	}
+
+	// Create the final schema with metadata
+	finalSchema := g.createFinalRootSchema(rootSchema, f)
+
+	bytes, err := json.MarshalIndent(finalSchema, "", "  ")
 	if err != nil {
 		return "", err
 	}
 
 	return string(bytes), nil
+}
+
+// createFinalRootSchema creates the final ordered root schema with proper metadata and command schemas.
+func (g *Generator) createFinalRootSchema(baseSchema *Schema, f commands.CommanderFactory) interface{} {
+	// Create struct fields in the desired order
+	var structFields []reflect.StructField
+
+	// 1. Add "$schema" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Schema",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"$schema"`,
+	})
+
+	// 2. Add "type" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Type",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"type"`,
+	})
+
+	// 3. Add "title" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Title",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"title"`,
+	})
+
+	// 4. Add "description" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Description",
+		Type: reflect.TypeOf(""),
+		Tag:  `json:"description"`,
+	})
+
+	// 5. Add "properties" field using the reordered properties
+	propertiesStruct := g.createOrderedRootPropertiesStruct(f)
+	structFields = append(structFields, reflect.StructField{
+		Name: "Properties",
+		Type: reflect.TypeOf(propertiesStruct).Elem(),
+		Tag:  `json:"properties"`,
+	})
+
+	// 6. Add "required" field
+	structFields = append(structFields, reflect.StructField{
+		Name: "Required",
+		Type: reflect.TypeOf([]string{}),
+		Tag:  `json:"required"`,
+	})
+
+	// Create the struct type
+	structType := reflect.StructOf(structFields)
+	structValue := reflect.New(structType).Elem()
+
+	// Set the values
+	structValue.FieldByName("Schema").SetString("https://json-schema.org/draft/2020-12/schema")
+	structValue.FieldByName("Type").SetString("object")
+	structValue.FieldByName("Title").SetString("Porch Configuration Schema")
+	structValue.FieldByName("Description").SetString("Schema for porch process orchestration framework configuration files")
+	structValue.FieldByName("Properties").Set(reflect.ValueOf(propertiesStruct).Elem())
+	structValue.FieldByName("Required").Set(reflect.ValueOf([]string{"commands"}))
+
+	return structValue.Interface()
 }
 
 // generateCommandSchemas generates schemas for all available command types by using the registry.
@@ -296,11 +518,13 @@ func (g *Generator) generateCommandSchemas(f commands.CommanderFactory) []interf
 			if err != nil {
 				// If we can't generate the schema, create a basic one
 				schema := map[string]interface{}{
-					"type": "object",
+					"type":  "object",
+					"title": strings.ToUpper(string(commandType[0])) + commandType[1:] + " Command",
 					"properties": map[string]interface{}{
 						"type": map[string]interface{}{
-							"type": "string",
-							"enum": []string{commandType},
+							"type":    "string",
+							"enum":    []string{commandType},
+							"default": commandType,
 						},
 						"name": map[string]interface{}{
 							"type":        "string",

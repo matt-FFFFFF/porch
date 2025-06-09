@@ -8,6 +8,45 @@
         "anyOf": [
           {
             "type": "object",
+            "description": "Executes a list of commands sequentially (one after another)",
+            "properties": {
+              "type": {
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "type": "string"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              },
+              "commands": {
+                "description": "List of commands to execute sequentially",
+                "type": "array"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "commands"
+            ]
+          },
+          {
+            "type": "object",
             "description": "Executes a list of commands in parallel (simultaneously)",
             "properties": {
               "type": {
@@ -183,45 +222,6 @@
               "type",
               "name",
               "command_line"
-            ]
-          },
-          {
-            "type": "object",
-            "description": "Executes a list of commands sequentially (one after another)",
-            "properties": {
-              "type": {
-                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
-                "type": "string"
-              },
-              "name": {
-                "description": "Descriptive name for the command",
-                "type": "string"
-              },
-              "env": {
-                "description": "Environment variables to set for the command",
-                "type": "object"
-              },
-              "runs_on_condition": {
-                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
-                "type": "string"
-              },
-              "runs_on_exit_codes": {
-                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
-                "type": "array"
-              },
-              "working_directory": {
-                "description": "Directory in which the command should be executed",
-                "type": "string"
-              },
-              "commands": {
-                "description": "List of commands to execute sequentially",
-                "type": "array"
-              }
-            },
-            "required": [
-              "type",
-              "name",
-              "commands"
             ]
           }
         ]

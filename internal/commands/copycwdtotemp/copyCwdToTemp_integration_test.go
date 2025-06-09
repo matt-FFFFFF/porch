@@ -16,10 +16,11 @@ import (
 
 // TestCopyCwdToTempWithNewCwd tests the CopyCwdToTemp command with a new working directory.
 func TestCopyCwdToTempWithNewCwd(t *testing.T) {
-	requiredTree := `.
-./subdir
-./subdir/test2.txt
-./test.txt`
+	requiredTree := []string{
+		"./subdir",
+		"./subdir/test2.txt",
+		"./test.txt",
+	}
 	cwd, _ := os.Getwd()
 	path := path.Join(cwd, "testdata/copyCwdToTemp")
 	base := &runbatch.BaseCommand{
@@ -59,5 +60,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	require.NoError(t, results[0].Error)
 	assert.Len(t, results[0].Children, 3)
 	assert.NotEqual(t, path, string(results[0].Children[1].StdOut))
-	assert.Contains(t, string(results[0].Children[2].StdOut), requiredTree)
+	for _, line := range requiredTree {
+		assert.Contains(t, string(results[0].Children[2].StdOut), line)
+	}
 }

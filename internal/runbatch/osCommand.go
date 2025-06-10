@@ -139,6 +139,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger.Debug("process started", "pid", ps.Pid)
 	// Simple buffered channel to track kill reasons - no coordination needed
 	killReason := make(chan error, 1)
+	// Channel to signal watchdog to stop - prevents goroutine leak
+	done := make(chan struct{})
 
 	// watchdog for process signals and context cancellation
 	go func() {
@@ -149,6 +151,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 		for {
 			select {
+			case <-done:
+				return
+
 			case <-ticker.C:
 				diff := time.Since(startTime)
 				diff = diff.Round(time.Second) // Round to the nearest second for display
@@ -207,6 +212,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	state, psErr := ps.Wait()
 
 	fmt.Printf("Finished %s: at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
+
+	// Signal watchdog to stop and prevent goroutine leak
+	close(done)
 
 	// Process is now definitively done - safe to close pipes and check kill reason
 	_ = wOut.Close()

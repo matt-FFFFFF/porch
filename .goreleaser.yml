@@ -17,22 +17,19 @@ builds:
     ldflags:
       - "-s -w -X github.com/matt-FFFFFF/porch.Version={{.Version}} -X github.com/matt-FFFFFF/porch.Commit={{.Commit}}"
     goos:
-      - freebsd
-      - windows
       - linux
       - darwin
     goarch:
       - amd64
-      - arm
       - arm64
     binary: "{{ .ProjectName }}_v{{ .Version }}"
     main: ./cmd/{{ .ProjectName }}
 archives:
   - formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    format_overrides:
-      - formats: [zip]
-        goos: windows
+    # format_overrides:
+    #   - formats: [zip]
+    #     goos: windows
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
   algorithm: sha256

@@ -137,8 +137,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	}
 
 	logger.Debug("process started", "pid", ps.Pid)
-	// Simple buffered channel to track kill reasons - no coordination needed
+
+	// Simple buffered channel to track kill reasons
 	killReason := make(chan error, 1)
+
 	// Channel to signal watchdog to stop - prevents goroutine leak
 	done := make(chan struct{})
 

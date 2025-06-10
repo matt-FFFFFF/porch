@@ -121,14 +121,14 @@ porch run workflow.yaml
 ### View saved results
 
 ```bash
-porch show results.gob
+porch show results
 ```
 
 ## 📚 CLI Commands
 
 porch provides a comprehensive CLI with the following commands:
 
-### `porch run <workflow.yaml> [output.gob]`
+### `porch run <workflow.yaml> [output]`
 
 Execute a workflow defined in a YAML file.
 
@@ -136,7 +136,7 @@ Execute a workflow defined in a YAML file.
 
 ```bash
 porch run workflow.yaml              # Execute workflow
-porch run workflow.yaml results.gob  # Execute and save results
+porch run workflow.yaml results  # Execute and save results
 ```
 
 **Options:**
@@ -149,14 +149,14 @@ porch run workflow.yaml results.gob  # Execute and save results
 
 Reads a YAML workflow definition, executes commands according to their type (serial, parallel, shell, etc.), handles signal interruption gracefully, and optionally saves execution results for later analysis.
 
-### `porch show <results.gob>`
+### `porch show <results>`
 
 Display the results of a previous workflow execution.
 
 **Usage:**
 
 ```bash
-porch show results.gob
+porch show results
 ```
 
 **Options:**
@@ -723,8 +723,8 @@ porch automatically generates beautiful tree-structured output showing the execu
 Results can be exported as JSON for programmatic analysis:
 
 ```bash
-porch run workflow.yaml results.gob
-porch show results.gob --format=json
+porch run workflow.yaml results
+porch show results --format=json
 ```
 
 ## 🚦 Signal Handling

@@ -175,7 +175,6 @@ func TestCommander_GetSchemaFields(t *testing.T) {
 
 	// Should return fields even if there might be errors in schema generation
 	assert.NotNil(t, fields)
-	// The actual content depends on the schema generation implementation
 }
 
 func TestCommander_WriteYAMLExample(t *testing.T) {

@@ -525,8 +525,6 @@ func TestPowerShellWithSuccessExitCodes_Integration(t *testing.T) {
 
 	result := results[0]
 	assert.Equal(t, 42, result.ExitCode)
-	// With custom success exit codes, 42 should be considered successful
-	// The exact behavior depends on how runbatch.OSCommand handles SuccessExitCodes
 }
 
 func TestPowerShellLongOutput_Integration(t *testing.T) {

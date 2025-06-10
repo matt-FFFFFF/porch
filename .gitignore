@@ -2,6 +2,8 @@ porch
 porch.exe
 !/cmd/porch
 
+dist/
+
 .vscode
 
 coverage.out

@@ -65,7 +65,8 @@ func (c *Commander) GetCommandType() string {
 
 // GetCommandDescription returns a description of what this command does.
 func (c *Commander) GetCommandDescription() string {
-	return "Executes a pwsh script with configurable success and skip exit codes. Supply only one of `script_file` or `script`."
+	return "Executes a pwsh script with configurable success and skip exit codes. " +
+		"Supply only one of `script_file` or `script`."
 }
 
 // GetExampleDefinition returns an example definition for YAML generation.

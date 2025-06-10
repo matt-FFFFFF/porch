@@ -172,7 +172,6 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
 				killPs(ctx, ps)
 				wasKilled <- ErrTimeoutExceeded
-				close(wasKilled)
 
 				return
 			case <-done:
@@ -279,6 +278,10 @@ func readAllUpToMax(ctx context.Context, r io.Reader, maxBufferSize int64) ([]by
 // killPs kills the process and closes the notification channel.
 func killPs(ctx context.Context, ps *os.Process) {
 	if err := ps.Kill(); err != nil {
+		if errors.Is(err, os.ErrProcessDone) {
+			ctxlog.Logger(ctx).Debug("process already done", "pid", ps.Pid)
+			return
+		}
 		ctxlog.Logger(ctx).Error("process kill error", "pid", ps.Pid, "error", err)
 	}
 

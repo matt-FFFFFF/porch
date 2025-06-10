@@ -152,7 +152,6 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					logger.Info("received duplicate signal, killing process", "signal", s.String())
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
 					killPs(ctx, ps)
-					wasKilled <- ErrSignalReceived
 					close(wasKilled)
 
 					return

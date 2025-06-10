@@ -5,7 +5,6 @@ package runbatch
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"runtime"
 	"testing"
@@ -96,7 +95,6 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
-	ctxlog.LevelVar.Set(slog.LevelDebug)
 
 	defer cancel()
 

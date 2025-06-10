@@ -137,12 +137,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	}
 
 	logger.Debug("process started", "pid", ps.Pid)
-
-	// This is the process watchdog that will kill the process if it exceeds the timeout
-	// or pass on any signals to the process.
-	done := make(chan struct{})
-	// This allows us to track why the processes was killed.
-	wasKilled := make(chan error)
+	// Simple buffered channel to track kill reasons - no coordination needed
+	killReason := make(chan error, 1)
 
 	// watchdog for process signals and context cancellation
 	go func() {
@@ -165,10 +161,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
 					killPs(ctx, ps)
 
-					// Send error for duplicate signal (different from first signal)
+					// Try to send reason (non-blocking)
 					select {
-					case wasKilled <- ErrDuplicateSignalReceived:
-					case <-done: // Channel was closed, process already finished
+					case killReason <- ErrDuplicateSignalReceived:
+					default: // Channel full, that's fine
 					}
 
 					return
@@ -183,10 +179,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					logger.Info("failed to send signal", "signal", s.String(), "error", err)
 				}
 
+				// Try to send reason (non-blocking)
 				select {
-				case wasKilled <- ErrSignalReceived:
-				case <-done:
-					// Channel was closed, process already finished
+				case killReason <- ErrSignalReceived:
+				default: // Channel full, that's fine
 				}
 
 			case <-ctx.Done():
@@ -194,14 +190,12 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
 				killPs(ctx, ps)
 
+				// Try to send reason (non-blocking)
 				select {
-				case wasKilled <- ErrTimeoutExceeded:
-				case <-done: // Channel was closed, process already finished
+				case killReason <- ErrTimeoutExceeded:
+				default: // Channel full, that's fine
 				}
 
-				return
-
-			case <-done:
 				return
 			}
 		}
@@ -214,6 +208,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	fmt.Printf("Finished %s: at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
 
+	// Process is now definitively done - safe to close pipes and check kill reason
 	_ = wOut.Close()
 	_ = wErr.Close()
 	res.ExitCode = state.ExitCode()
@@ -222,23 +217,13 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	logger.Debug("process finished", "exitCode", res.ExitCode)
 
-	// Check if the process was killed due to timeout or signal
+	// Check if the process was killed due to timeout or signal (non-blocking)
 	select {
-	case e := <-wasKilled:
-		res.Error = errors.Join(res.Error, e)
+	case killErr := <-killReason:
+		res.Error = errors.Join(res.Error, killErr)
 		res.ExitCode = -1
 		res.Status = ResultStatusError
-	default: // No error from watchdog, process completed normally
-	}
-
-	close(done)
-
-	// Close wasKilled channel after signaling done to prevent race condition
-	select {
-	case <-wasKilled:
-		// Already received an error from watchdog
-	default:
-		close(wasKilled)
+	default: // No kill reason, process completed naturally
 	}
 
 	switch {

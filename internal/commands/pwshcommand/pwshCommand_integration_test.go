@@ -19,6 +19,11 @@ import (
 	"go.uber.org/goleak"
 )
 
+// TestMain is used to run the goleak verification before and after tests.
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
+
 // checkPwshAvailable checks if pwsh is available on the system.
 func checkPwshAvailable(t *testing.T) {
 	execName := "pwsh"
@@ -33,8 +38,6 @@ func checkPwshAvailable(t *testing.T) {
 }
 
 func TestPowerShellCommandExecution_Integration(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	checkPwshAvailable(t)
 
 	t.Parallel()

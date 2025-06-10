@@ -18,6 +18,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/commands/copycwdtotemp"
 	"github.com/matt-FFFFFF/porch/internal/commands/foreachdirectory"
 	"github.com/matt-FFFFFF/porch/internal/commands/parallelcommand"
+	"github.com/matt-FFFFFF/porch/internal/commands/pwshcommand"
 	"github.com/matt-FFFFFF/porch/internal/commands/serialcommand"
 	"github.com/matt-FFFFFF/porch/internal/commands/shellcommand"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
@@ -64,6 +65,7 @@ func main() {
 		foreachdirectory.Register,
 		copycwdtotemp.Register,
 		shellcommand.Register,
+		pwshcommand.Register,
 	)
 
 	ctx = context.WithValue(ctx, commands.FactoryContextKey{}, factory)

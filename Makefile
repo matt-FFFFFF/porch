@@ -24,3 +24,10 @@ testrace:
 lint:
 	@echo "Running linter..."
 	@golangci-lint run
+
+.PHONY: precommit
+precommit:
+	@echo "Running pre-commit checks..."
+	@go fmt ./...
+	@go vet ./...
+	@golangci-lint run --fix

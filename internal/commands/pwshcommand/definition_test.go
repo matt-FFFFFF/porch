@@ -137,12 +137,13 @@ func TestDefinition_Validate(t *testing.T) {
 			// Test ToBaseCommand if it exists
 			baseCmd, err := tt.definition.ToBaseCommand()
 			if tt.expectError {
-				assert.Error(t, err)
+				require.Error(t, err)
+
 				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
+					require.ErrorContains(t, err, tt.errorMsg)
 				}
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.NotNil(t, baseCmd)
 				assert.Equal(t, tt.definition.Name, baseCmd.Label)
 			}
@@ -201,7 +202,6 @@ func TestDefinition_EmptyValues(t *testing.T) {
 func TestDefinition_YAMLTags(t *testing.T) {
 	// This test ensures that the YAML tags are properly defined
 	// by checking that the struct can be created with expected field names
-
 	definition := &Definition{
 		BaseDefinition: commands.BaseDefinition{
 			Name: "yaml-test",

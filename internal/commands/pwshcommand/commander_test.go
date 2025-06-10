@@ -148,10 +148,12 @@ invalid_yaml: [
 			runnable, err := commander.Create(ctx, nil, []byte(tc.yaml))
 
 			if tc.expectError {
-				assert.Error(t, err)
+				require.Error(t, err)
+
 				if tc.errorType != nil {
-					assert.ErrorIs(t, err, tc.errorType)
+					require.ErrorIs(t, err, tc.errorType)
 				}
+
 				assert.Nil(t, runnable)
 			} else {
 				// If pwsh is not available, the New function might fail
@@ -159,7 +161,8 @@ invalid_yaml: [
 					t.Skip("pwsh not available, skipping test")
 					return
 				}
-				assert.NoError(t, err)
+
+				require.NoError(t, err)
 				assert.NotNil(t, runnable)
 			}
 		})
@@ -177,10 +180,11 @@ func TestCommander_GetSchemaFields(t *testing.T) {
 
 func TestCommander_WriteYAMLExample(t *testing.T) {
 	commander := NewCommander()
+
 	var buf strings.Builder
 
 	err := commander.WriteYAMLExample(&buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	output := buf.String()
 	assert.NotEmpty(t, output)
@@ -190,10 +194,11 @@ func TestCommander_WriteYAMLExample(t *testing.T) {
 
 func TestCommander_WriteMarkdownDoc(t *testing.T) {
 	commander := NewCommander()
+
 	var buf strings.Builder
 
 	err := commander.WriteMarkdownDoc(&buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	output := buf.String()
 	assert.NotEmpty(t, output)
@@ -203,6 +208,7 @@ func TestCommander_WriteMarkdownDoc(t *testing.T) {
 
 func TestCommander_WriteJSONSchema(t *testing.T) {
 	commander := NewCommander()
+
 	var buf strings.Builder
 
 	// Create a mock factory for testing
@@ -214,13 +220,14 @@ func TestCommander_WriteJSONSchema(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// mockCommanderFactory is a simple mock for testing
+// mockCommanderFactory is a simple mock for testing.
 type mockCommanderFactory struct{}
 
 func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool) {
 	if commandType == "pwsh" {
 		return NewCommander(), true
 	}
+
 	return nil, false
 }
 

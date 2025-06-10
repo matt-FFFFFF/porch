@@ -16,9 +16,10 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
-// checkPwshAvailable checks if pwsh is available on the system
+// checkPwshAvailable checks if pwsh is available on the system.
 func checkPwshAvailable(t *testing.T) {
 	execName := "pwsh"
 	if runtime.GOOS == goOSWindows {
@@ -32,7 +33,11 @@ func checkPwshAvailable(t *testing.T) {
 }
 
 func TestPowerShellCommandExecution_Integration(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	checkPwshAvailable(t)
+
+	t.Parallel()
 
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -102,7 +107,7 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 		},
 		{
 			name:             "working with objects",
-			script:           `$obj = [PSCustomObject]@{Name="Test"; Value=42}; Write-Host "Name: $($obj.Name), Value: $($obj.Value)"`,
+			script:           `$obj = [PSCustomObject]@{Name="Test"; Value=42}; Write-Host "Name: $($obj.Name), Value: $($obj.Value)"`, //nolint:lll
 			expectedOutput:   "Name: Test, Value: 42",
 			expectedExitCode: 0,
 		},
@@ -144,7 +149,7 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 		},
 		{
 			name:   "file operations",
-			script: `"Test content" | Out-File -FilePath "test_output.txt" -Encoding UTF8; Get-Content "test_output.txt" | Write-Host`,
+			script: `"Test content" | Out-File -FilePath "test_output.txt" -Encoding UTF8; Get-Content "test_output.txt" | Write-Host`, //nolint:lll
 			cleanupFunc: func(t *testing.T, _ string) {
 				os.Remove("test_output.txt")
 			},
@@ -204,11 +209,7 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
-			// Run the command with timeout
-			ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
-			defer cancel()
-
-			results := cmd.Run(ctxWithTimeout)
+			results := cmd.Run(ctx)
 			require.Len(t, results, 1, "expected exactly one result")
 
 			result := results[0]
@@ -238,6 +239,8 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 
 func TestPowerShellWithScriptFile_Integration(t *testing.T) {
 	checkPwshAvailable(t)
+
+	t.Parallel()
 
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -284,6 +287,8 @@ Write-Host "Calculation result: $result"`
 
 func TestPowerShellWithEnvironmentVariables_Integration(t *testing.T) {
 	checkPwshAvailable(t)
+
+	t.Parallel()
 
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -356,6 +361,8 @@ func TestPowerShellWithEnvironmentVariables_Integration(t *testing.T) {
 func TestPowerShellWithWorkingDirectory_Integration(t *testing.T) {
 	checkPwshAvailable(t)
 
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 
@@ -398,6 +405,8 @@ func TestPowerShellWithWorkingDirectory_Integration(t *testing.T) {
 func TestPowerShellTimeout_Integration(t *testing.T) {
 	checkPwshAvailable(t)
 
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 
@@ -429,6 +438,8 @@ func TestPowerShellTimeout_Integration(t *testing.T) {
 
 func TestPowerShellFailure_Integration(t *testing.T) {
 	checkPwshAvailable(t)
+
+	t.Parallel()
 
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
@@ -492,6 +503,8 @@ func TestPowerShellFailure_Integration(t *testing.T) {
 func TestPowerShellWithSuccessExitCodes_Integration(t *testing.T) {
 	checkPwshAvailable(t)
 
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 
@@ -512,13 +525,14 @@ func TestPowerShellWithSuccessExitCodes_Integration(t *testing.T) {
 
 	result := results[0]
 	assert.Equal(t, 42, result.ExitCode)
-
 	// With custom success exit codes, 42 should be considered successful
 	// The exact behavior depends on how runbatch.OSCommand handles SuccessExitCodes
 }
 
 func TestPowerShellLongOutput_Integration(t *testing.T) {
 	checkPwshAvailable(t)
+
+	t.Parallel()
 
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)

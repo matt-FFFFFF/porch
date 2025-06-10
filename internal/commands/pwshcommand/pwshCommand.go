@@ -1,3 +1,6 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package pwshcommand
 
 import (
@@ -13,13 +16,16 @@ import (
 
 const (
 	// goOSWindows is the constant for Windows operating system.
-	goOSWindows = "windows"
+	goOSWindows         = "windows"
+	pwshExecName        = "pwsh"
+	osCommandArgsLength = 6 // Number of arguments for the PowerShell command
 )
 
 var (
 	// 	ErrCannotFindPwsh is returned when the pwsh executable cannot be found in the system PATH.
 	ErrCannotFindPwsh = errors.New("cannot find pwsh executable in PATH")
-	// ErrBothScriptAndScriptFileSpecified is returned when both Script and ScriptFile are specified in the command definition.
+	// ErrBothScriptAndScriptFileSpecified is returned when both Script and
+	// ScriptFile are specified in the command definition.
 	ErrBothScriptAndScriptFileSpecified = errors.New("cannot specify both script and scriptFile in the same command")
 	// ErrCannotCreateTempFile is returned when a temporary file cannot be created for the script.
 	ErrCannotCreateTempFile = errors.New("cannot create temporary file for script")
@@ -27,15 +33,16 @@ var (
 	ErrCannotWriteTempFile = errors.New("cannot write script to temporary file")
 )
 
-func New(ctx context.Context, def *Definition) (runbatch.Runnable, error) {
+// New creates a new runbatch.OSCommand for PowerShell scripts.
+func New(_ context.Context, def *Definition) (runbatch.Runnable, error) {
 	// Check for conflicting script definitions first
 	if def.Script != "" && def.ScriptFile != "" {
 		return nil, ErrBothScriptAndScriptFileSpecified
 	}
 
-	execName := "pwsh"
+	execName := pwshExecName
 	if runtime.GOOS == goOSWindows {
-		execName = "pwsh.exe"
+		execName = pwshExecName + ".exe" // On Windows, pwsh is typically pwsh.exe
 	}
 
 	execPath, err := exec.LookPath(execName)
@@ -51,7 +58,7 @@ func New(ctx context.Context, def *Definition) (runbatch.Runnable, error) {
 			return nil, errors.Join(ErrCannotCreateTempFile, err)
 		}
 
-		defer tmpFile.Close()
+		defer tmpFile.Close() //nolint:errcheck
 
 		if _, err := tmpFile.Write([]byte(def.Script)); err != nil {
 			return nil, errors.Join(ErrCannotWriteTempFile, err)
@@ -60,16 +67,18 @@ func New(ctx context.Context, def *Definition) (runbatch.Runnable, error) {
 		def.ScriptFile = tmpFile.Name()
 	}
 
-	osCommmandArgs := make([]string, 4)
+	osCommmandArgs := make([]string, osCommandArgsLength)
 
 	osCommmandArgs[0] = "-NonInteractive"
 	osCommmandArgs[1] = "-NoProfile"
-	osCommmandArgs[2] = "-File"
-	osCommmandArgs[3] = def.ScriptFile
+	osCommmandArgs[2] = "-ExecutionPolicy"
+	osCommmandArgs[3] = "Bypass" // Bypass execution policy for the script
+	osCommmandArgs[4] = "-File"
+	osCommmandArgs[5] = def.ScriptFile
 
 	base, err := def.ToBaseCommand()
 	if err != nil {
-		return nil, commands.NewErrCommandCreate(commandType)
+		return nil, commands.NewErrCommandCreate(commandType) //nolint:wrapcheck
 	}
 
 	return &runbatch.OSCommand{

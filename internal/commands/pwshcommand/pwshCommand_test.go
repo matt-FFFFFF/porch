@@ -137,44 +137,50 @@ func TestNew_UnitTests(t *testing.T) {
 			cmd, err := New(ctx, tc.definition)
 
 			if tc.expectedError != nil {
-				assert.Error(t, err)
-				assert.ErrorIs(t, err, tc.expectedError)
+				require.Error(t, err)
+				require.ErrorIs(t, err, tc.expectedError)
 				assert.Nil(t, cmd)
-			} else {
-				if err != nil {
-					// If pwsh is not found, that's expected on some systems
-					if assert.ErrorIs(t, err, ErrCannotFindPwsh) {
-						t.Skip("pwsh not found in PATH, skipping test")
-						return
-					}
-				}
-				assert.NoError(t, err)
-				assert.NotNil(t, cmd)
 
-				// Verify it's an OSCommand
-				osCmd, ok := cmd.(*runbatch.OSCommand)
-				require.True(t, ok, "expected command to be OSCommand")
+				return
+			}
 
-				// Verify command arguments
-				assert.Len(t, osCmd.Args, 4)
-				assert.Equal(t, "-File", osCmd.Args[2]) // Expecting -File argument for PowerShell script execution
+			if err != nil {
+				// If pwsh is not found, that's expected on some systems
+				if errors.Is(err, ErrCannotFindPwsh) {
+					t.Skip("pwsh not found in PATH, skipping test")
+					return
+				}
+			}
 
-				// Verify success and skip exit codes
-				if tc.definition.SuccessExitCodes != nil {
-					assert.Equal(t, tc.definition.SuccessExitCodes, osCmd.SuccessExitCodes)
-				}
-				if tc.definition.SkipExitCodes != nil {
-					assert.Equal(t, tc.definition.SkipExitCodes, osCmd.SkipExitCodes)
-				}
+			require.NoError(t, err)
+			assert.NotNil(t, cmd)
 
-				// Verify base command properties
-				assert.Equal(t, tc.definition.Name, osCmd.BaseCommand.Label)
-				if tc.definition.WorkingDirectory != "" {
-					assert.Equal(t, tc.definition.WorkingDirectory, osCmd.BaseCommand.Cwd)
-				}
-				if tc.definition.Env != nil {
-					assert.Equal(t, tc.definition.Env, osCmd.BaseCommand.Env)
-				}
+			// Verify it's an OSCommand
+			osCmd, ok := cmd.(*runbatch.OSCommand)
+			require.True(t, ok, "expected command to be OSCommand")
+
+			// Verify command arguments
+			assert.Len(t, osCmd.Args, 6)
+			assert.Equal(t, "-File", osCmd.Args[4]) // Expecting -File argument for PowerShell script execution
+
+			// Verify success and skip exit codes
+			if tc.definition.SuccessExitCodes != nil {
+				assert.Equal(t, tc.definition.SuccessExitCodes, osCmd.SuccessExitCodes)
+			}
+
+			if tc.definition.SkipExitCodes != nil {
+				assert.Equal(t, tc.definition.SkipExitCodes, osCmd.SkipExitCodes)
+			}
+
+			// Verify base command properties
+			assert.Equal(t, tc.definition.Name, osCmd.Label)
+
+			if tc.definition.WorkingDirectory != "" {
+				assert.Equal(t, tc.definition.WorkingDirectory, osCmd.Cwd)
+			}
+
+			if tc.definition.Env != nil {
+				assert.Equal(t, tc.definition.Env, osCmd.Env)
 			}
 		})
 	}
@@ -197,6 +203,7 @@ func TestNew_InlineScriptCreatesTemporaryFile(t *testing.T) {
 		t.Skip("pwsh not found in PATH, skipping test")
 		return
 	}
+
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -204,10 +211,10 @@ func TestNew_InlineScriptCreatesTemporaryFile(t *testing.T) {
 	require.True(t, ok)
 
 	// Verify that a script file was created
-	assert.NotEmpty(t, osCmd.Args[3], "script file path should be set")
+	assert.NotEmpty(t, osCmd.Args[5], "script file path should be set")
 
 	// Verify the temporary file exists and contains our script
-	scriptFile := osCmd.Args[3]
+	scriptFile := osCmd.Args[5]
 	assert.FileExists(t, scriptFile)
 
 	content, err := os.ReadFile(scriptFile)
@@ -234,6 +241,7 @@ func TestNew_ExecutablePathSelection(t *testing.T) {
 		t.Skip("pwsh not found in PATH, skipping test")
 		return
 	}
+
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -272,8 +280,10 @@ func TestNew_InvalidBaseDefinition(t *testing.T) {
 		if !errors.Is(err, ErrCannotFindPwsh) {
 			// Otherwise, expect a command creation error
 			var commandErr *commands.ErrCommandCreate
+
 			require.ErrorAs(t, err, &commandErr)
 		}
+
 		assert.Nil(t, cmd)
 	}
 }

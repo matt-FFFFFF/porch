@@ -16,12 +16,18 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 const (
 	tmpDir = "/tmp"
 	srcDir = "src"
 )
+
+// TestMain is used to run the goleak verification before and after tests.
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 // cwdTrackerCommand is a simplified mock command that only tracks its cwd.
 type cwdTrackerCommand struct {

@@ -15,7 +15,13 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
+
+// TestMain is used to run the goleak verification before and after tests.
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 func TestNew_UnitTests(t *testing.T) {
 	ctx := context.Background()

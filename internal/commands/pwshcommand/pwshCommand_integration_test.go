@@ -16,13 +16,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
-
-// TestMain is used to run the goleak verification before and after tests.
-func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m)
-}
 
 // checkPwshAvailable checks if pwsh is available on the system.
 func checkPwshAvailable(t *testing.T) {

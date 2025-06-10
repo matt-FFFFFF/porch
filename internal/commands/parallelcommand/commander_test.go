@@ -16,6 +16,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 var testRegistry = commandregistry.New(
@@ -25,6 +26,11 @@ var testRegistry = commandregistry.New(
 	foreachdirectory.Register,
 	shellcommand.Register,
 )
+
+// TestMain is used to run the goleak verification before and after tests.
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
+}
 
 func TestCommander_Create_Success(t *testing.T) {
 	t.Run("simple parallel command with shell commands", func(t *testing.T) {

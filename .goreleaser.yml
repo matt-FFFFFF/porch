@@ -3,8 +3,8 @@
 version: 2
 before:
   hooks:
-    # this is just an example and not a requirement for provider building/publishing
-    - go mod tidy
+    - make test
+    - make lint
 builds:
   - env:
       # goreleaser does not work with CGO, it could also complicate
@@ -15,7 +15,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}"
+      - "-s -w -X github.com/matt-FFFFFF/porch.Version={{.Version}} -X github.com/matt-FFFFFF/porch.Commit={{.Commit}}"
     goos:
       - freebsd
       - windows

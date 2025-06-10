@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/matt-FFFFFF/porch"
@@ -55,7 +56,7 @@ func main() {
 
 	go signalbroker.Watch(ctx, sigCh, cancel)
 
-	rootCmd.Version = porch.Version
+	rootCmd.Version = fmt.Sprintf("Porch %s (commit: %s)", porch.Version, porch.Commit)
 
 	factory := commandregistry.New(
 		serialcommand.Register,

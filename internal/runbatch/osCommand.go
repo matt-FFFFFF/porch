@@ -47,11 +47,19 @@ var (
 // OSCommand represents a single command to be run in the batch.
 type OSCommand struct {
 	*BaseCommand
-	Args             []string       // Arguments to the command, do not include the executable name itself.
-	Path             string         // The command to run (e.g. executable full path).
-	SuccessExitCodes []int          // Exit codes that indicate success, defaults to 0.
-	SkipExitCodes    []int          // Exit codes that indicate skip remaining tasks, defaults to empty.
-	sigCh            chan os.Signal // Channel to receive signals, allows mocking in test.
+	Args             []string                  // Arguments to the command, do not include the executable name itself.
+	Path             string                    // The command to run (e.g. executable full path).
+	SuccessExitCodes []int                     // Exit codes that indicate success, defaults to 0.
+	SkipExitCodes    []int                     // Exit codes that indicate skip remaining tasks, defaults to empty.
+	cleanup          func(ctx context.Context) // Cleanup function to run after the command finishes.
+	sigCh            chan os.Signal            // Channel to receive signals, allows mocking in test.
+}
+
+func (c *OSCommand) SetCleanup(fn func(ctx context.Context)) {
+	if c == nil {
+		return
+	}
+	c.cleanup = fn
 }
 
 // Run implements the Runnable interface for OSCommand.
@@ -161,6 +169,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					case <-done:
 						// Channel was closed, process already finished
 					}
+
 					return
 				}
 
@@ -189,6 +198,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				case <-done:
 					// Channel was closed, process already finished
 				}
+
 				return
 
 			case <-done:
@@ -274,6 +284,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	if err != nil {
 		res.ExitCode = -1
 		res.Error = errors.Join(res.Error, err)
+	}
+
+	if c.cleanup != nil {
+		logger.Debug("running cleanup function")
+		c.cleanup(ctx)
 	}
 
 	return Results{res}

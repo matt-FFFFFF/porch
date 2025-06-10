@@ -11,6 +11,7 @@ import (
 	"runtime"
 
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
@@ -50,6 +51,19 @@ func New(_ context.Context, def *Definition) (runbatch.Runnable, error) {
 		return nil, errors.Join(ErrCannotFindPwsh, err)
 	}
 
+	base, err := def.ToBaseCommand()
+	if err != nil {
+		return nil, commands.NewErrCommandCreate(commandType) //nolint:wrapcheck
+	}
+
+	cmd := &runbatch.OSCommand{
+		BaseCommand:      base,
+		Path:             execPath,
+		Args:             nil, // Arguments will be set below
+		SuccessExitCodes: def.SuccessExitCodes,
+		SkipExitCodes:    def.SkipExitCodes,
+	}
+
 	// If script is specified, write it to a temporary file and use that as the script file.
 	if def.Script != "" {
 		tmpFile, err := os.CreateTemp("", "script-*.ps1")
@@ -65,6 +79,12 @@ func New(_ context.Context, def *Definition) (runbatch.Runnable, error) {
 		}
 
 		def.ScriptFile = tmpFile.Name()
+
+		// Set the cleanup function to remove the temporary script file after execution
+		cmd.SetCleanup(func(ctx context.Context) {
+			ctxlog.Logger(ctx).Debug("cleaning up temporary script file", "file", def.ScriptFile)
+			os.Remove(def.ScriptFile) //nolint:errcheck
+		})
 	}
 
 	osCommmandArgs := make([]string, osCommandArgsLength)
@@ -72,20 +92,11 @@ func New(_ context.Context, def *Definition) (runbatch.Runnable, error) {
 	osCommmandArgs[0] = "-NonInteractive"
 	osCommmandArgs[1] = "-NoProfile"
 	osCommmandArgs[2] = "-ExecutionPolicy"
-	osCommmandArgs[3] = "Bypass" // Bypass execution policy for the script
+	osCommmandArgs[3] = "Bypass" // Bypass execution policy for the script, Windows only
 	osCommmandArgs[4] = "-File"
 	osCommmandArgs[5] = def.ScriptFile
 
-	base, err := def.ToBaseCommand()
-	if err != nil {
-		return nil, commands.NewErrCommandCreate(commandType) //nolint:wrapcheck
-	}
+	cmd.Args = osCommmandArgs
 
-	return &runbatch.OSCommand{
-		BaseCommand:      base,
-		Path:             execPath,
-		Args:             osCommmandArgs,
-		SuccessExitCodes: def.SuccessExitCodes,
-		SkipExitCodes:    def.SkipExitCodes,
-	}, nil
+	return cmd, nil
 }

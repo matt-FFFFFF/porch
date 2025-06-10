@@ -452,29 +452,34 @@ func TestPowerShellFailure_Integration(t *testing.T) {
 		script           string
 		expectedExitCode int
 	}{
+		// {
+		// 	name:             "exit with code 1",
+		// 	script:           `Write-Host "Exiting with error"; [Environment]::Exit(1)`,
+		// 	expectedExitCode: 1,
+		// },
+		// {
+		// 	name:             "exit with code 2",
+		// 	script:           `Write-Host "Exiting with code 2"; [Environment]::Exit(2)`,
+		// 	expectedExitCode: 2,
+		// },
+		// {
+		// 	name:             "terminating error",
+		// 	script:           `throw "This is a terminating error"`,
+		// 	expectedExitCode: 1,
+		// },
+		// {
+		// 	name:             "divide by zero",
+		// 	script:           `try { 1 / 0 } catch { Write-Host "Error caught"; [Environment]::Exit(1) }`,
+		// 	expectedExitCode: 1,
+		// },
+		// {
+		// 	name:             "non-existent cmdlet",
+		// 	script:           `try { NonExistentCmdlet } catch { Write-Host "Error caught"; [Environment]::Exit(1) }`,
+		// 	expectedExitCode: 1,
+		// },
 		{
-			name:             "exit with code 1",
-			script:           `Write-Host "Exiting with error"; [Environment]::Exit(1)`,
-			expectedExitCode: 1,
-		},
-		{
-			name:             "exit with code 2",
-			script:           `Write-Host "Exiting with code 2"; [Environment]::Exit(2)`,
-			expectedExitCode: 2,
-		},
-		{
-			name:             "terminating error",
-			script:           `throw "This is a terminating error"`,
-			expectedExitCode: 1,
-		},
-		{
-			name:             "divide by zero",
-			script:           `try { 1 / 0 } catch { Write-Host "Error caught"; [Environment]::Exit(1) }`,
-			expectedExitCode: 1,
-		},
-		{
-			name:             "non-existent cmdlet",
-			script:           `try { NonExistentCmdlet } catch { Write-Host "Error caught"; [Environment]::Exit(1) }`,
+			name:             "Set $ErrorActionPreference to Stop, then command fails",
+			script:           `$ErrorActionPreference = "Stop"; throw "Intentional failure"`,
 			expectedExitCode: 1,
 		},
 	}

@@ -262,7 +262,45 @@ Execute any shell command with full environment control and configurable exit co
   runs_on_condition: "success"
 ```
 
-### 2. Serial Commands (`serial`)
+### 2. PowerShell commands (`pwsh`)
+
+Execute any PowerShell script with full environment control and configurable exit code handling.
+
+**Required Attributes:**
+
+- `type: "pwsh"`
+- `name`: Descriptive name for the command
+- `script`: Path to the PowerShell script file to execute. Mutually exclusive with `script_file`.
+- `script_file`: Path to the PowerShell script file to execute. Mutually exclusive with `script`.
+
+**Optional Attributes:**
+
+- `working_directory`: Directory to execute the command in
+- `env`: Environment variables as key-value pairs
+- `runs_on_condition`: When to run (`success`, `error`, `always`, `exit-codes`)
+- `runs_on_exit_codes`: Specific exit codes that trigger execution (used with `runs_on_condition: exit-codes`)
+- `success_exit_codes`: Exit codes that indicate success (defaults to `[0]`)
+- `skip_exit_codes`: Exit codes that skip remaining commands in the current batch
+
+**Example:**
+
+```yaml
+- type: "pwsh"
+  name: "Run PowerShell Script"
+  script: |
+    Write-Host "Starting PowerShell script..."
+    # Your PowerShell commands here
+    Write-Host "PowerShell script completed."
+  working_directory: "/path/to/project"
+  env:
+    VAR1: "value1"
+    VAR2: "value2"
+  success_exit_codes: [0]
+  skip_exit_codes: [2]
+  runs_on_condition: "success"
+```
+
+### 3. Serial Commands (`serial`)
 
 Execute commands sequentially where order matters. Each command waits for the previous one to complete before starting.
 
@@ -300,7 +338,7 @@ Execute commands sequentially where order matters. Each command waits for the pr
       command_line: "npm test"
 ```
 
-### 3. Parallel Commands (`parallel`)
+### 4. Parallel Commands (`parallel`)
 
 Execute independent commands concurrently for optimal performance. All commands start simultaneously.
 
@@ -338,7 +376,7 @@ Execute independent commands concurrently for optimal performance. All commands 
       command_line: "govulncheck ./..."
 ```
 
-### 4. ForEach Directory Commands (`foreachdirectory`)
+### 5. ForEach Directory Commands (`foreachdirectory`)
 
 Execute commands in each directory found by traversing the filesystem. Useful for monorepos or multi-module projects.
 
@@ -385,7 +423,7 @@ Execute commands in each directory found by traversing the filesystem. Useful fo
       command_line: "go mod verify"
 ```
 
-### 5. Copy Current Working Directory to Temp (`copycwdtotemp`)
+### 6. Copy Current Working Directory to Temp (`copycwdtotemp`)
 
 A specialized command for working in temporary directories. Copies the current working directory to a temporary location for isolated execution.
 

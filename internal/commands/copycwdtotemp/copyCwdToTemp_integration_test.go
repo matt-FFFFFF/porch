@@ -60,6 +60,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	require.NoError(t, results[0].Error)
 	assert.Len(t, results[0].Children, 3)
 	assert.NotEqual(t, path, string(results[0].Children[1].StdOut))
+
 	for _, line := range requiredTree {
 		assert.Contains(t, string(results[0].Children[2].StdOut), line)
 	}

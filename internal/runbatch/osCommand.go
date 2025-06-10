@@ -282,6 +282,7 @@ func killPs(ctx context.Context, ps *os.Process) {
 			ctxlog.Logger(ctx).Debug("process already done", "pid", ps.Pid)
 			return
 		}
+
 		ctxlog.Logger(ctx).Error("process kill error", "pid", ps.Pid, "error", err)
 	}
 

@@ -55,10 +55,12 @@ type OSCommand struct {
 	sigCh            chan os.Signal            // Channel to receive signals, allows mocking in test.
 }
 
+// SetCleanup sets the cleanup function to be called after the command finishes.
 func (c *OSCommand) SetCleanup(fn func(ctx context.Context)) {
 	if c == nil {
 		return
 	}
+
 	c.cleanup = fn
 }
 
@@ -166,8 +168,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					// Send error for duplicate signal (different from first signal)
 					select {
 					case wasKilled <- ErrDuplicateSignalReceived:
-					case <-done:
-						// Channel was closed, process already finished
+					case <-done: // Channel was closed, process already finished
 					}
 
 					return
@@ -195,8 +196,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				select {
 				case wasKilled <- ErrTimeoutExceeded:
-				case <-done:
-					// Channel was closed, process already finished
+				case <-done: // Channel was closed, process already finished
 				}
 
 				return
@@ -228,8 +228,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		res.Error = errors.Join(res.Error, e)
 		res.ExitCode = -1
 		res.Status = ResultStatusError
-	default:
-		// No error from watchdog, process completed normally
+	default: // No error from watchdog, process completed normally
 	}
 
 	close(done)

@@ -40,6 +40,8 @@ var (
 	ErrFailedToCreatePipe = errors.New("failed to create pipe")
 	// ErrSignalReceived is returned when a operating system signal is received by the child process.
 	ErrSignalReceived = errors.New("signal received")
+	// ErrDuplicateSignalReceived is returned when a duplicate signal is received, forcing process termination.
+	ErrDuplicateSignalReceived = errors.New("duplicate signal received, process forcefully terminated")
 )
 
 // OSCommand represents a single command to be run in the batch.
@@ -152,8 +154,13 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 					logger.Info("received duplicate signal, killing process", "signal", s.String())
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
 					killPs(ctx, ps)
-					close(wasKilled)
 
+					// Send error for duplicate signal (different from first signal)
+					select {
+					case wasKilled <- ErrDuplicateSignalReceived:
+					case <-done:
+						// Channel was closed, process already finished
+					}
 					return
 				}
 
@@ -165,14 +172,25 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				if err := ps.Signal(s); err != nil {
 					logger.Info("failed to send signal", "signal", s.String(), "error", err)
 				}
-				wasKilled <- ErrSignalReceived
+
+				select {
+				case wasKilled <- ErrSignalReceived:
+				case <-done:
+					// Channel was closed, process already finished
+				}
+
 			case <-ctx.Done():
 				logger.Info("context done, killing process")
 				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
 				killPs(ctx, ps)
-				wasKilled <- ErrTimeoutExceeded
 
+				select {
+				case wasKilled <- ErrTimeoutExceeded:
+				case <-done:
+					// Channel was closed, process already finished
+				}
 				return
+
 			case <-done:
 				return
 			}
@@ -201,10 +219,18 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		res.ExitCode = -1
 		res.Status = ResultStatusError
 	default:
-		close(wasKilled)
+		// No error from watchdog, process completed normally
 	}
 
 	close(done)
+
+	// Close wasKilled channel after signaling done to prevent race condition
+	select {
+	case <-wasKilled:
+		// Already received an error from watchdog
+	default:
+		close(wasKilled)
+	}
 
 	switch {
 	// Exit code is success and error is nil or intentional skip. Return success.

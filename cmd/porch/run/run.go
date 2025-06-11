@@ -51,11 +51,11 @@ To save the results to a file, specify the output file name as an argument.
 `,
 	Arguments: []cli.Argument{},
 	Flags: []cli.Flag{
-		&cli.StringFlag{
+		&cli.StringSliceFlag{
 			Name:    fileFlag,
 			Aliases: []string{"f"},
 			Usage: "Specify the URL of the YAML configuration file to run. " +
-				"Supports Hashicorp's go-getter syntax for fetching files from various sources." +
+				"Supports Hashicorp's go-getter syntax for fetching files from various sources. " +
 				"Specify multiple times to run multiple files.",
 			OnlyOnce: false,
 		},
@@ -130,7 +130,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 		bytes, err := getURL(ctx, u)
 		if err != nil {
-			return cli.Exit(fmt.Sprintf("Failed to get config file from %s: %s", u, err.Error()), 1)
+			return cli.Exit(err.Error(), 1)
 		}
 
 		rb, err := config.BuildFromYAML(configCtx, factory, bytes)
@@ -207,7 +207,7 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 
 	tmpFile, err := os.CreateTemp("", "porch-getter-*.yml")
 	if err != nil {
-		return nil, errors.Join(err, ErrGetConfigFile)
+		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
 	dst := tmpFile.Name()
@@ -217,7 +217,7 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return nil, errors.Join(err, ErrGetConfigFile)
+		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
 	cli := getter.Client{
@@ -233,18 +233,18 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 
 	_, err = cli.Get(ctx, req)
 	if err != nil {
-		return nil, errors.Join(err, ErrGetConfigFile)
+		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
 	f, err := os.Open(tmpFile.Name()) //nolint:errcheck
 	if err != nil {
-		return nil, errors.Join(err, ErrGetConfigFile)
+		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 	defer f.Close() //nolint:errcheck
 
 	bytes, err := os.ReadFile(tmpFile.Name())
 	if err != nil {
-		return nil, errors.Join(err, ErrGetConfigFile)
+		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
 	return bytes, nil

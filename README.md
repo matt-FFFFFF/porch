@@ -60,13 +60,7 @@ make build
 
 ### Development setup
 
-```bash
-git clone https://github.com/matt-FFFFFF/porch.git
-cd porch
-make test      # Run tests
-make testcover # Run tests with coverage
-make lint      # Run linter
-```
+See [DEVELOPER.md](DEVELOPER.md) for detailed instructions on setting up a development environment, running tests, and contributing to the project.
 
 ## 🚀 Quick Start
 
@@ -135,8 +129,17 @@ Execute a workflow defined in a YAML file.
 **Usage:**
 
 ```bash
-porch run workflow.yaml              # Execute workflow
-porch run workflow.yaml results  # Execute and save results
+# Execute workflow
+porch run --file workflow.yaml
+
+# Execute and save results
+porch run --file workflow.yaml --out results
+
+# Execute from a remote repository
+porch run --file git:://github.com/yourusername/yourrepo/workflow.yaml --out results
+
+# Execute multiple workflows (in series)
+porch run --file workflow1.yaml --file workflow2.yaml --out results
 ```
 
 **Options:**
@@ -724,21 +727,6 @@ commands:
 
 ## 🎨 Output and Results
 
-### Result Structure
-
-Every command execution produces detailed results with the following structure:
-
-```go
-type Result struct {
-    ExitCode  int           // Command exit code
-    Error     error         // Any execution error
-    StdOut    []byte        // Standard output
-    StdErr    []byte        // Standard error
-    Label     string        // Command label/name
-    Children  Results       // Nested command results
-}
-```
-
 ### Pretty-Printed Output
 
 porch automatically generates beautiful tree-structured output showing the execution hierarchy:
@@ -754,15 +742,6 @@ porch automatically generates beautiful tree-structured output showing the execu
   ✓ Build Process (1.5s)
     ✓ Build for Linux (0.8s)
     ✓ Build for macOS (0.7s)
-```
-
-### JSON Export
-
-Results can be exported as JSON for programmatic analysis:
-
-```bash
-porch run workflow.yaml results
-porch show results --format=json
 ```
 
 ## 🚦 Signal Handling

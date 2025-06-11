@@ -38,6 +38,23 @@ Porch is designed to be extensible, allowing developers to add new commands and 
 
 1. Update the `cmd/porch/main.go` package to register your new command.
 
+## Result Structure
+
+Every command execution produces detailed results with the following structure:
+
+```go
+type Result struct {
+    ExitCode  int           // Command exit code
+    Error     error         // Any execution error
+    StdOut    []byte        // Standard output
+    StdErr    []byte        // Standard error
+    Label     string        // Command label/name
+    Children  Results       // Nested command results
+}
+```
+
+Every command should return a `Results` object that contains at least one `Result` object, which can be used to format output or handle errors.
+
 ## 🧪 Testing
 
 Run the test suite:

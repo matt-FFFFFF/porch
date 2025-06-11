@@ -34,6 +34,9 @@ func writeTextResults(w io.Writer, results Results, options *OutputOptions) erro
 		options = DefaultOutputOptions()
 	}
 
+	// Write result header colored using color package
+	fmt.Fprint(w, color.Colorize("===== Results =====\n\n", color.FgHiWhite)) // nolint:errcheck
+
 	// Process each top-level result
 	for _, r := range results {
 		if err := writeResultWithIndent(w, r, "", options); err != nil {

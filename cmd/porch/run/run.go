@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/commands"
@@ -21,6 +22,7 @@ const (
 	noOutputStdErrFlag       = "no-output-stderr"
 	outputStdOutFlag         = "output-stdout"
 	outputSuccessDetailsFlag = "output-success-details"
+	parallelismFlag          = "parallelism"
 	writeFlag                = "write"
 	configTimeoutSeconds     = 30
 )
@@ -77,11 +79,22 @@ To save the results to a file, specify the output file name as an argument.
 			DefaultText: "false",
 			Value:       false,
 		},
+		&cli.IntFlag{
+			Name:    parallelismFlag,
+			Aliases: []string{"p"},
+			Usage: "Set the maximum number of concurrent commands to run. " +
+				"Defaults to the number of CPU cores available.",
+			Value: 0,
+		},
 	},
 	Action: actionFunc,
 }
 
 func actionFunc(ctx context.Context, cmd *cli.Command) error {
+	if cmd.Int(parallelismFlag) > 0 {
+		runtime.GOMAXPROCS(cmd.Int(parallelismFlag))
+	}
+
 	yamlFileName := cmd.StringArg(fileArg)
 	bytes, err := os.ReadFile(yamlFileName)
 
@@ -90,7 +103,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	if err != nil {
-		return cli.Exit(fmt.Sprintf("failed to read file %s: %s", yamlFileName, err.Error()), 1)
+		return cli.Exit(fmt.Sprintf("Failed to read file %s: %s", yamlFileName, err.Error()), 1)
 	}
 
 	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
@@ -101,10 +114,12 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	rb, err := config.BuildFromYAML(configCtx, factory, bytes)
 	if err != nil {
-		return cli.Exit(fmt.Sprintf("failed to build config from file %s: %s", yamlFileName, err.Error()), 1)
+		return cli.Exit(fmt.Sprintf("Failed to build config from file %s: %s", yamlFileName, err.Error()), 1)
 	}
 
 	res := rb.Run(ctx)
+
+	fmt.Fprint(cmd.Writer, "\n\n") //nolint:errcheck
 
 	outFileName := cmd.StringArg(outArg)
 	if outFileName != "" {
@@ -118,8 +133,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		if err := res.WriteBinary(f); err != nil {
 			return cli.Exit(fmt.Sprintf("Failed to write results to file %s: %s", outFileName, err.Error()), 1)
 		}
-
-		return nil
+		fmt.Fprintf(cmd.Writer, "Results written to %s\n\n", outFileName)
 	}
 
 	opts := runbatch.DefaultOutputOptions()
@@ -130,6 +144,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	if err := res.WriteTextWithOptions(cmd.Writer, opts); err != nil {
 		return cli.Exit("Failed to write results: "+err.Error(), 1)
 	}
-
+	if res.HasError() {
+		return cli.Exit("Some commands failed. See above for details.", 1)
+	}
 	return nil
 }

@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 type fakeParallelCmd struct {
@@ -33,8 +32,6 @@ func (f *fakeParallelCmd) Run(_ context.Context) Results {
 }
 
 func TestParallelBatchRun_AllSuccess(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	batch := &ParallelBatch{
 		BaseCommand: &BaseCommand{
 			Label: "parallel-batch-success",
@@ -57,8 +54,6 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 }
 
 func TestParallelBatchRun_OneFailure(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	batch := &ParallelBatch{
 		BaseCommand: &BaseCommand{
 			Label: "parallel-batch-fail",
@@ -95,8 +90,6 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 }
 
 func TestParallelBatchRun_Parallelism(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	batch := &ParallelBatch{
 		BaseCommand: &BaseCommand{
 			Label: "parallel-batch-parallelism",

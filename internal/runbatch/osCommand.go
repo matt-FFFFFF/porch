@@ -12,15 +12,18 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/signalbroker"
+	"github.com/matt-FFFFFF/porch/internal/teereader"
 )
 
 const (
-	maxBufferSize  = 8 * 1024 * 1024  // 8MB
-	tickerInterval = 10 * time.Second // Interval for the process watchdog ticker
+	maxBufferSize     = 8 * 1024 * 1024  // 8MB
+	tickerInterval    = 10 * time.Second // Interval for the process watchdog ticker
+	maxLastLineLength = 120
 )
 
 var _ Runnable = (*OSCommand)(nil)
@@ -138,6 +141,20 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	logger.Debug("process started", "pid", ps.Pid)
 
+	// Create teereader for stdout to capture last line while preserving all output
+	stdoutTeeReader := teereader.NewLastLineTeeReader(rOut)
+
+	// Start a goroutine to continuously read stdout through the teereader
+	stdoutDone := make(chan struct{})
+	go func() {
+		defer close(stdoutDone)
+		// Read all data through the teereader to capture it
+		_, err := io.Copy(io.Discard, stdoutTeeReader)
+		if err != nil && err != io.EOF {
+			logger.Debug("error reading stdout through teereader", "error", err)
+		}
+	}()
+
 	// Simple buffered channel to track kill reasons
 	killReason := make(chan error, 1)
 
@@ -159,7 +176,22 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 			case <-ticker.C:
 				diff := time.Since(startTime)
 				diff = diff.Round(time.Second) // Round to the nearest second for display
-				fmt.Printf("Running %s: [%s]...\n", fullLabel, diff)
+
+				// Format the ticker status message
+				lastLine := stdoutTeeReader.GetLastLine(maxLastLineLength)
+				sb := strings.Builder{}
+				sb.WriteString("Running ")
+				sb.WriteString(fullLabel)
+				sb.WriteString(": [")
+				sb.WriteString(diff.String())
+				sb.WriteString("]")
+				if lastLine != "" {
+					sb.WriteString(". Last output...\n")
+					sb.WriteString("> ")
+					sb.WriteString(lastLine)
+				}
+				sb.WriteString("\n")
+				fmt.Print(sb.String())
 
 			case s := <-c.sigCh:
 				// is this the second signal received of this type?
@@ -221,6 +253,10 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	// Process is now definitively done - safe to close pipes and check kill reason
 	_ = wOut.Close()
 	_ = wErr.Close()
+
+	// Wait for stdout reading to complete
+	<-stdoutDone
+
 	res.ExitCode = state.ExitCode()
 	res.Error = psErr
 	res.Status = ResultStatusUnknown
@@ -260,13 +296,13 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	logger.Debug("read stdout")
 
-	stdout, err := readAllUpToMax(ctx, rOut, maxBufferSize)
-	logger.Debug("stdout length", "bytes", len(stdout), "maxBytes", maxBufferSize)
+	stdoutReader := stdoutTeeReader.GetFullBufferReader()
+	logger.Debug("stdout length", "bytes", stdoutReader.Len(), "maxBytes", maxBufferSize)
+	stdout, err := readAllUpToMax(ctx, stdoutReader, maxBufferSize)
 
-	res.StdOut = stdout
 	if err != nil {
-		res.Error = errors.Join(res.Error, err)
 		res.ExitCode = -1
+		res.Error = errors.Join(res.Error, err)
 	}
 
 	logger.Debug("read stderr")
@@ -274,6 +310,12 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	stderr, err := readAllUpToMax(ctx, rErr, maxBufferSize)
 	logger.Debug("stderr length", "bytes", len(stderr), "maxBytes", maxBufferSize)
 
+	if err != nil {
+		res.ExitCode = -1
+		res.Error = errors.Join(res.Error, err)
+	}
+
+	res.StdOut = stdout
 	res.StdErr = stderr
 	if err != nil {
 		res.ExitCode = -1

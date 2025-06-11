@@ -1,9 +1,12 @@
 name: "For Each Directory Example"
 description: "Example showing nested serial and parallel commands"
 commands:
+  - type: "copycwdtotemp"
+    name: "Copy to Temp"
+    cwd: "."
   - type: "foreachdirectory"
     name: "For Each Directory"
-    working_directory: "."
+    working_directory: "./internal"
     mode: "parallel"
     working_directory_strategy: "item_relative"
     depth: 1

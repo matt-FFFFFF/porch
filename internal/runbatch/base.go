@@ -71,14 +71,15 @@ func (c *BaseCommand) SetParent(parent Runnable) {
 
 // SetCwd sets the working directory for the command.
 // If overwrite is false and Cwd is already set, it will not change the existing Cwd.
-// If cwd is an empty string or the existing working directory is set, it will not change the existing Cwd.
+// If cwd is an empty string, it will not change the existing Cwd.
 func (c *BaseCommand) SetCwd(cwd string, overwrite bool) {
-	if !overwrite && (c.Cwd != "" || cwd == "") {
+	if cwd == "" || (!overwrite && c.Cwd != "") {
 		return
 	}
 
 	if !filepath.IsAbs(c.Cwd) {
 		c.Cwd = filepath.Join(cwd, c.Cwd)
+		return
 	}
 
 	c.Cwd = cwd

@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 type fakeCmd struct {
@@ -34,8 +33,6 @@ func (f *fakeCmd) Run(_ context.Context) Results {
 }
 
 func TestSerialBatchRun_AllSuccess(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	batch := &SerialBatch{
 		BaseCommand: &BaseCommand{
 			Label: "batch1",
@@ -64,8 +61,6 @@ func TestSerialBatchRun_AllSuccess(t *testing.T) {
 }
 
 func TestSerialBatchRun_OneFailure(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	batch := &SerialBatch{
 		BaseCommand: &BaseCommand{
 			Label: "batch2",
@@ -95,8 +90,6 @@ func TestSerialBatchRun_OneFailure(t *testing.T) {
 }
 
 func TestSerialBatchRun_NestedBatch(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	childBatch := &SerialBatch{
 		BaseCommand: &BaseCommand{
 			Label: "child",

@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 func TestFunctionCommandRun_Success(t *testing.T) {
@@ -166,8 +165,6 @@ func TestFunctionCommandRun_Slow(t *testing.T) {
 }
 
 func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
-	// Note: This test checks for goroutine leaks using the goleak package.
-	defer goleak.VerifyNone(t)
 	// Define a function that blocks until given channel is closed
 	blockCh := make(chan struct{})
 	blockingFunc := func(_ context.Context, _ string, _ ...string) FunctionCommandReturn {

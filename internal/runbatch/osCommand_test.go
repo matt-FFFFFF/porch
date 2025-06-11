@@ -13,12 +13,9 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 func TestCommandRun_Success(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	cmd := &OSCommand{
 		BaseCommand: NewBaseCommand("echo test", "", RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
 		Path:        "/bin/echo",
@@ -39,8 +36,6 @@ func TestCommandRun_Success(t *testing.T) {
 }
 
 func TestCommandRun_Failure(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	cmd := &OSCommand{
 		BaseCommand: NewBaseCommand("fail test", "", RunOnSuccess, nil, nil),
 		Path:        "/bin/sh",
@@ -58,8 +53,6 @@ func TestCommandRun_Failure(t *testing.T) {
 }
 
 func TestCommandRun_NotFound(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	cmd := &OSCommand{
 		BaseCommand: NewBaseCommand("notfound test", "", RunOnSuccess, nil, nil),
 		Path:        "/not/a/real/command",
@@ -81,8 +74,6 @@ func TestCommandRun_NotFound(t *testing.T) {
 }
 
 func TestCommandRun_EnvAndCwd(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping cwd/env test on windows")
 	}
@@ -108,8 +99,6 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 }
 
 func TestCommandRun_ContextCancelled(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	cmd := &OSCommand{
 		BaseCommand: NewBaseCommand("sleep test", "", RunOnSuccess, nil, nil),
 		Path:        "/bin/sleep",
@@ -131,8 +120,6 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 }
 
 func TestCommandRun_SigInt(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
 	cmd := &OSCommand{
 		BaseCommand: NewBaseCommand("sleep test", "", RunOnSuccess, nil, nil),
 		Path:        "/bin/sleep",

@@ -13,6 +13,7 @@ import (
 
 func Test_getUrl(t *testing.T) {
 	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		url       string
@@ -42,9 +43,9 @@ func Test_getUrl(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
-			bytes, err := getUrl(ctx, tc.url)
+			bytes, err := getURL(ctx, tc.url)
 			if tc.wantErr != nil {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, bytes)
 			} else {
 				require.NoError(t, err)

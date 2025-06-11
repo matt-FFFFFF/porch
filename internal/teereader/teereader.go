@@ -86,6 +86,7 @@ func (lt *LastLineTeeReader) GetLastLine(maxLength int) string {
 	defer lt.mu.RUnlock()
 
 	var result string
+
 	result = lt.lastLine
 	if maxLength > 0 && len(result) > maxLength {
 		result = result[:maxLength-3] + "..."

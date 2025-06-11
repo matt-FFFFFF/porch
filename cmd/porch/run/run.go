@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	getterArg                = "url"
+	fileFlag                 = "file"
 	outFlag                  = "out"
 	noOutputStdErrFlag       = "no-output-stderr"
 	outputStdOutFlag         = "output-stdout"
@@ -49,18 +49,22 @@ See https://github.com/hashicorp/go-getter.
 
 To save the results to a file, specify the output file name as an argument.
 `,
-	Arguments: []cli.Argument{
-		&cli.StringArg{
-			Name:      getterArg,
-			UsageText: "e.g. git::https://github.com/matt-FFFFFF/porch//examples/avm-test-examples.yaml, or ./path/to/local/file.yaml",
-		},
-	},
+	Arguments: []cli.Argument{},
 	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    fileFlag,
+			Aliases: []string{"f"},
+			Usage: "Specify the URL of the YAML configuration file to run. " +
+				"Supports Hashicorp's go-getter syntax for fetching files from various sources." +
+				"Specify multiple times to run multiple files.",
+			OnlyOnce: false,
+		},
 		&cli.StringFlag{
 			Name:      outFlag,
 			Usage:     "Specify the output file name",
 			TakesFile: true,
 			Value:     "",
+			OnlyOnce:  true,
 		},
 		&cli.BoolFlag{
 			Name:        outputSuccessDetailsFlag,
@@ -69,6 +73,7 @@ To save the results to a file, specify the output file name as an argument.
 			TakesFile:   false,
 			DefaultText: "false",
 			Value:       false,
+			OnlyOnce:    true,
 		},
 		&cli.BoolFlag{
 			Name:        noOutputStdErrFlag,
@@ -77,6 +82,7 @@ To save the results to a file, specify the output file name as an argument.
 			Value:       false,
 			DefaultText: "false",
 			TakesFile:   false,
+			OnlyOnce:    true,
 		},
 		&cli.BoolFlag{
 			Name:        outputStdOutFlag,
@@ -85,6 +91,7 @@ To save the results to a file, specify the output file name as an argument.
 			TakesFile:   false,
 			DefaultText: "false",
 			Value:       false,
+			OnlyOnce:    true,
 		},
 		&cli.IntFlag{
 			Name:    parallelismFlag,
@@ -102,10 +109,10 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		runtime.GOMAXPROCS(cmd.Int(parallelismFlag))
 	}
 
-	url := cmd.StringArg(getterArg)
-	bytes, err := getUrl(ctx, url)
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Failed to get config file from %s: %s", url, err.Error()), 1)
+	url := cmd.StringSlice(fileFlag)
+
+	if len(url) == 0 {
+		return cli.Exit("Please specify at least one URL for the configuration file using the --file or -f flag.", 1)
 	}
 
 	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
@@ -114,12 +121,48 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	configCtx, configCancel := context.WithTimeout(ctx, configTimeoutSeconds*time.Second)
 	defer configCancel()
 
-	rb, err := config.BuildFromYAML(configCtx, factory, bytes)
-	if err != nil {
-		return cli.Exit(fmt.Sprintf("Failed to build config from file %s: %s", url, err.Error()), 1)
+	runnables := make([]runbatch.Runnable, len(url))
+
+	for i, u := range url {
+		if u == "" {
+			return cli.Exit(fmt.Sprintf("The URL at index %d is empty. Please provide a valid URL.", i), 1)
+		}
+
+		bytes, err := getURL(ctx, u)
+		if err != nil {
+			return cli.Exit(fmt.Sprintf("Failed to get config file from %s: %s", u, err.Error()), 1)
+		}
+
+		rb, err := config.BuildFromYAML(configCtx, factory, bytes)
+		if err != nil {
+			return cli.Exit(fmt.Sprintf("Failed to build config from file %s: %s", url, err.Error()), 1)
+		}
+
+		if rb == nil {
+			continue
+		}
+
+		runnables[i] = rb
 	}
 
-	res := rb.Run(ctx)
+	var topRunnable runbatch.Runnable
+
+	switch l := len(runnables); l {
+	case 0:
+		return cli.Exit("No runnable commands found in the provided configuration files.", 1)
+	case 1:
+		topRunnable = runnables[0]
+	default:
+		topRunnable = &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Cwd:   ".",
+				Label: "Aggregate",
+			},
+			Commands: runnables,
+		}
+	}
+
+	res := topRunnable.Run(ctx)
 
 	fmt.Fprint(cmd.Writer, "\n\n") //nolint:errcheck
 
@@ -135,7 +178,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		if err := res.WriteBinary(f); err != nil {
 			return cli.Exit(fmt.Sprintf("Failed to write results to file %s: %s", outFileName, err.Error()), 1)
 		}
-		fmt.Fprintf(cmd.Writer, "Results written to %s\n\n", outFileName)
+
+		fmt.Fprintf(cmd.Writer, "Results written to %s\n\n", outFileName) //nolint:errcheck
 	}
 
 	opts := runbatch.DefaultOutputOptions()
@@ -146,15 +190,17 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	if err := res.WriteTextWithOptions(cmd.Writer, opts); err != nil {
 		return cli.Exit("Failed to write results: "+err.Error(), 1)
 	}
+
 	if res.HasError() {
 		return cli.Exit("Some commands failed. See above for details.", 1)
 	}
+
 	return nil
 }
 
-// getUrl retrieves the content from the specified URL using Hashicorp's go-getter.
+// getURL retrieves the content from the specified URL using Hashicorp's go-getter.
 // It removes the temporary file after reading its content.
-func getUrl(ctx context.Context, url string) ([]byte, error) {
+func getURL(ctx context.Context, url string) ([]byte, error) {
 	if url == "" {
 		return nil, ErrGetConfigFile
 	}
@@ -163,7 +209,9 @@ func getUrl(ctx context.Context, url string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Join(err, ErrGetConfigFile)
 	}
+
 	dst := tmpFile.Name()
+
 	defer os.Remove(tmpFile.Name()) //nolint:errcheck
 	tmpFile.Close()                 //nolint:errcheck
 

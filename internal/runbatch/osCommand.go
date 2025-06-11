@@ -185,11 +185,13 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				sb.WriteString(": [")
 				sb.WriteString(diff.String())
 				sb.WriteString("]")
+
 				if lastLine != "" {
 					sb.WriteString(". Last output...\n")
 					sb.WriteString("> ")
 					sb.WriteString(lastLine)
 				}
+
 				sb.WriteString("\n")
 				fmt.Print(sb.String())
 
@@ -317,6 +319,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	res.StdOut = stdout
 	res.StdErr = stderr
+
 	if err != nil {
 		res.ExitCode = -1
 		res.Error = errors.Join(res.Error, err)

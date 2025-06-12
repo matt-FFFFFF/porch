@@ -15,6 +15,7 @@
     // Copyright (c) matt-FFFFFF 2025. All rights reserved.
     // SPDX-License-Identifier: MIT
 - Complex nested if statements should be avoided. Use switch statements or early returns instead.
+- Avoid use of `else` after `if` statements when possible. Use early returns to simplify control flow.
 - All exported functions and types should have comments that explain their purpose.
 - Keep the happy path left aligned, and use indentation for error handling or complex logic.
 
@@ -44,5 +45,5 @@ and `"github.com/stretchr/testify/require"` packages.
 
 ### Building and Running
 
-- The binary is built from the `./cmd` package.
+- The binary is built from the `./cmd/porch` package.
 - Use `make build` to build the project.

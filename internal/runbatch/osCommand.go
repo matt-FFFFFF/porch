@@ -69,9 +69,10 @@ func (c *OSCommand) SetCleanup(fn func(ctx context.Context)) {
 
 // Run implements the Runnable interface for OSCommand.
 func (c *OSCommand) Run(ctx context.Context) Results {
+	fullLabel := FullLabel(c)
 	logger := ctxlog.Logger(ctx)
 	logger = logger.With("runnableType", "OSCommand").
-		With("label", c.Label)
+		With("label", fullLabel)
 
 	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
 
@@ -128,7 +129,6 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	startTime := time.Now()
 	startTimeStr := startTime.Format(ctxlog.TimeFormat)
 
-	fullLabel := FullLabel(c)
 	fmt.Printf("Starting %s: at %s\n", fullLabel, startTimeStr)
 
 	if err != nil {
@@ -268,26 +268,30 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	// Check if the process was killed due to timeout or signal (non-blocking)
 	select {
 	case killErr := <-killReason:
+		logger.Debug("received signal that process was killed", "reason", killErr)
 		res.Error = errors.Join(res.Error, killErr)
 		res.ExitCode = -1
 		res.Status = ResultStatusError
 	default: // No kill reason, process completed naturally
+		logger.Debug("did not receive signal that process was killed")
 	}
 
 	switch {
 	// Exit code is success and error is nil or intentional skip. Return success.
 	case slices.Contains(c.SuccessExitCodes, res.ExitCode) && res.Error == nil:
-		logger.Debug("process exit code indicates success", "exitCode", res.ExitCode)
+		logger.Debug("process exit code indicates success", "exitCode", res.ExitCode, "successCodes", c.SuccessExitCodes)
 		res.Status = ResultStatusSuccess
 	// Exit code is skippable and error is nil. Return success.
 	case slices.Contains(c.SkipExitCodes, res.ExitCode) && res.Error == nil:
-		logger.Debug("process exit code indicates skip remaining tasks", "exitCode", res.ExitCode)
+		logger.Debug("process exit code indicates skip remaining tasks",
+			"exitCode", res.ExitCode, "skipCodes", c.SkipExitCodes)
+
 		res.Error = ErrSkipIntentional
 		res.Status = ResultStatusSuccess
 	// Exit code is not successful or process error is not nil. Return error.
 	// A non-zero exit code does not generate an error, so this needs to be an OR.
 	case res.Error != nil || !slices.Contains(c.SuccessExitCodes, res.ExitCode):
-		logger.Debug("process error", "error", res.Error, "exitCode", res.ExitCode)
+		logger.Debug("process error", "error", res.Error, "exitCode", res.ExitCode, "successCodes", c.SuccessExitCodes)
 
 		if res.ExitCode == 0 {
 			res.ExitCode = -1 // If exit code is 0 but there is an error, set exit code to -1

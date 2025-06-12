@@ -128,7 +128,14 @@ func (c *Commander) GetCommandType() string {
 
 // GetCommandDescription returns a description of what this command does.
 func (c *Commander) GetCommandDescription() string {
-	return "Executes commands in each directory found by traversing the filesystem."
+	return `Executes commands in each directory found by traversing the filesystem.
+Directories are found based on the specified depth and whether hidden directories are included.
+Commands are executed in parallel or serially based on the specified mode,
+and the working directory for each command can be set relative to the item being processed.
+
+Set "working_directory_strategy: \"item_relative\"" to run commands in the directory of each item.
+
+Additionally, an environment variable named "ITEM" is set to the current item being processed.`
 }
 
 // GetExampleDefinition returns an example definition for YAML generation.

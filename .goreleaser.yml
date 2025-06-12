@@ -21,7 +21,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    binary: "{{ .ProjectName }}_v{{ .Version }}"
+    binary: "{{ .ProjectName }}"
     main: ./cmd/{{ .ProjectName }}
 archives:
   - formats: [tar.gz]

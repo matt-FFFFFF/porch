@@ -382,6 +382,7 @@ Execute independent commands concurrently for optimal performance. All commands 
 ### 5. ForEach Directory Commands (`foreachdirectory`)
 
 Execute commands in each directory found by traversing the filesystem. Useful for monorepos or multi-module projects.
+For each command, an environment variable called `ITEM` is set to the path of the current directory being processed.
 
 **Required Attributes:**
 

@@ -237,12 +237,15 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Join(ErrGetConfigFile, err)
 		}
-		var newUrl string
-		newUrl, fileName = splitFileNameFromGetterUrl(url)
-		if newUrl == "" || fileName == "" {
-			return nil, errors.Join(ErrGetConfigFile, fmt.Errorf("invalid URL format: %s", url))
+
+		var newURL string
+
+		newURL, fileName = splitFileNameFromGetterURL(url)
+		if newURL == "" || fileName == "" {
+			return nil, fmt.Errorf("%w: invalid URL format: %s", ErrGetConfigFile, url)
 		}
-		req.Src = newUrl
+
+		req.Src = newURL
 	}
 
 	if fileName == "" {
@@ -266,16 +269,17 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 const (
 	goGetterPathSeparator = "//"
 	goGetterRefSeparator  = "?"
+	minimumGetterParts    = 3 // Minimum parts in a go-getter URL: scheme, host, and path
 )
 
-// splitFileNameFromGetterUrl splits the URL into the directory and file name.
+// splitFileNameFromGetterURL splits the URL into the directory and file name.
 // It returns the new getter URL without the file name and the file name itself.
 // It will append any ref query parameter to the new URL if it exists.
-func splitFileNameFromGetterUrl(url string) (string, string) {
+func splitFileNameFromGetterURL(url string) (string, string) {
 	var ref, fileName string
 
 	parts := strings.Split(url, goGetterPathSeparator)
-	if len(parts) < 3 {
+	if len(parts) < minimumGetterParts {
 		return "", ""
 	}
 
@@ -284,6 +288,7 @@ func splitFileNameFromGetterUrl(url string) (string, string) {
 		if len(refSplit) > 1 {
 			ref = strings.Join(refSplit[1:], "")
 		}
+
 		parts[len(parts)-1] = refSplit[0]
 	}
 
@@ -298,11 +303,11 @@ func splitFileNameFromGetterUrl(url string) (string, string) {
 		parts = parts[:len(parts)-1] // Remove the last part which is the file name
 	}
 
-	newUrl := strings.Join(parts, goGetterPathSeparator)
+	newURL := strings.Join(parts, goGetterPathSeparator)
 
 	if ref != "" {
-		newUrl += goGetterRefSeparator + ref
+		newURL += goGetterRefSeparator + ref
 	}
 
-	return newUrl, fileName
+	return newURL, fileName
 }

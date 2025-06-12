@@ -62,6 +62,7 @@ func Test_getUrl(t *testing.T) {
 
 func Test_splitFileNameFromGetterUrl(t *testing.T) {
 	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		url      string
@@ -114,7 +115,7 @@ func Test_splitFileNameFromGetterUrl(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gotURL, gotFile := splitFileNameFromGetterUrl(tc.url)
+			gotURL, gotFile := splitFileNameFromGetterURL(tc.url)
 			assert.Equal(t, tc.wantURL, gotURL, "url")
 			assert.Equal(t, tc.wantFile, gotFile, "file name")
 		})

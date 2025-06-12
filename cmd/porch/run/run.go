@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-getter/v2"
@@ -205,15 +207,12 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 		return nil, ErrGetConfigFile
 	}
 
-	tmpFile, err := os.CreateTemp("", "porch-getter-*.yml")
+	tmpDir, err := os.MkdirTemp("", "porch-getter-*")
 	if err != nil {
 		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
-	dst := tmpFile.Name()
-
-	defer os.Remove(tmpFile.Name()) //nolint:errcheck
-	tmpFile.Close()                 //nolint:errcheck
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -226,26 +225,84 @@ func getURL(ctx context.Context, url string) ([]byte, error) {
 
 	req := &getter.Request{
 		Src:     url,
-		Dst:     dst,
+		Dst:     filepath.Join(tmpDir, "g"),
 		Pwd:     wd,
-		GetMode: getter.ModeFile,
+		GetMode: getter.ModeDir,
 	}
 
-	_, err = cli.Get(ctx, req)
+	var fileName string
+	// If it's not a local file URL, we need to download the directory and read the file from there
+	// https://github.com/hashicorp/go-getter/issues/98
+	if ok, err := getter.Detect(req, &getter.FileGetter{}); !ok || err != nil {
+		if err != nil {
+			return nil, errors.Join(ErrGetConfigFile, err)
+		}
+		var newUrl string
+		newUrl, fileName = splitFileNameFromGetterUrl(url)
+		if newUrl == "" || fileName == "" {
+			return nil, errors.Join(ErrGetConfigFile, fmt.Errorf("invalid URL format: %s", url))
+		}
+		req.Src = newUrl
+	}
+
+	if fileName == "" {
+		req.Src = filepath.Dir(url)
+		fileName = filepath.Base(url)
+	}
+
+	res, err := cli.Get(ctx, req)
 	if err != nil {
 		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
-	f, err := os.Open(tmpFile.Name()) //nolint:errcheck
-	if err != nil {
-		return nil, errors.Join(ErrGetConfigFile, err)
-	}
-	defer f.Close() //nolint:errcheck
-
-	bytes, err := os.ReadFile(tmpFile.Name())
+	bytes, err := os.ReadFile(filepath.Join(res.Dst, fileName))
 	if err != nil {
 		return nil, errors.Join(ErrGetConfigFile, err)
 	}
 
 	return bytes, nil
+}
+
+const (
+	goGetterPathSeparator = "//"
+	goGetterRefSeparator  = "?"
+)
+
+// splitFileNameFromGetterUrl splits the URL into the directory and file name.
+// It returns the new getter URL without the file name and the file name itself.
+// It will append any ref query parameter to the new URL if it exists.
+func splitFileNameFromGetterUrl(url string) (string, string) {
+	var ref, fileName string
+
+	parts := strings.Split(url, goGetterPathSeparator)
+	if len(parts) < 3 {
+		return "", ""
+	}
+
+	if strings.Contains(parts[len(parts)-1], goGetterRefSeparator) {
+		refSplit := strings.Split(parts[len(parts)-1], goGetterRefSeparator)
+		if len(refSplit) > 1 {
+			ref = strings.Join(refSplit[1:], "")
+		}
+		parts[len(parts)-1] = refSplit[0]
+	}
+
+	if filepath.Clean(parts[len(parts)-1]) == filepath.Dir(parts[len(parts)-1]) {
+		return "", ""
+	}
+
+	fileName = filepath.Base(parts[len(parts)-1])
+	parts[len(parts)-1] = filepath.Dir(parts[len(parts)-1])
+
+	if parts[len(parts)-1] == "." {
+		parts = parts[:len(parts)-1] // Remove the last part which is the file name
+	}
+
+	newUrl := strings.Join(parts, goGetterPathSeparator)
+
+	if ref != "" {
+		newUrl += goGetterRefSeparator + ref
+	}
+
+	return newUrl, fileName
 }

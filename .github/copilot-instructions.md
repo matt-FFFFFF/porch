@@ -1,6 +1,6 @@
 ### Agent behaviour (that's you!)
 
-- The agent should ask before making any changes to the codebase.
+- The agent must ask before making any changes to the codebase.
   If the prompt does not contain a specific request for code changes,
   the agent should respond with guidance and code snippets on how to implement the requested feature or fix the issue.
   It should then ask if the user would like to proceed with the changes to the codebase.

@@ -104,7 +104,7 @@ func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
 						return errors.Join(ErrFileCopy, err)
 					}
 
-					return afero.WriteFile(fs, dstPath, srcFile, sixFourFour)
+					return afero.WriteFile(fs, dstPath, srcFile, info.Mode())
 				}
 			})
 

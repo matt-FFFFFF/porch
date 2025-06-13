@@ -26,8 +26,6 @@ var (
 )
 
 const (
-	// sixFourFour is the file mode for non-executable files created in the temporary directory.
-	sixFourFour = 0o644
 	// sevenFiveFive is the file mode for directories created in the temporary directory.
 	sevenFiveFive = 0o755
 	// tempDirSuffixLength is the length of the random suffix for the temporary directory.
@@ -104,7 +102,7 @@ func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
 						return errors.Join(ErrFileCopy, err)
 					}
 
-					return afero.WriteFile(fs, dstPath, srcFile, sixFourFour)
+					return afero.WriteFile(fs, dstPath, srcFile, info.Mode().Perm())
 				}
 			})
 

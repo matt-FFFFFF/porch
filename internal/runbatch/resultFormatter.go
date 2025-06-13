@@ -127,8 +127,8 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 
 	// Add stderr if requested and exists
 	if shouldShowDetails && options.IncludeStdErr && len(r.StdErr) > 0 {
-		fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgYellow)) // nolint:errcheck
-		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     "))                          // nolint:errcheck
+		fmt.Fprintf(w, "%s  %s\n", indent, color.Colorize("➜ Error Output:", color.FgHiRed)) // nolint:errcheck
+		fmt.Fprintf(w, "%s", formatOutput(r.StdErr, indent+"     "))                         // nolint:errcheck
 	}
 
 	// Process child results if any, with increased indentation

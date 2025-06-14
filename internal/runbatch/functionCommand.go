@@ -133,7 +133,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	res := &Result{
 		Label:    f.Label,
 		ExitCode: 0,
-		Status:   ResultStatusUnknown,
+		Status:   ResultStatusSuccess,
 	}
 
 	// Wait for either the function to complete or the context to be cancelled

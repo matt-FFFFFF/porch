@@ -149,7 +149,7 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	// Only output attributes if the level is Debug,
 	// and either outputEmptyAttrs is true or there are attributes to output.
-	if LevelVar.Level() == slog.LevelDebug && (h.outputEmptyAttrs || len(attrs) > 0) {
+	if h.h.Enabled(ctx, slog.LevelDebug) && (h.outputEmptyAttrs || len(attrs) > 0) {
 		attrsAsBytes, err = h.jf.Marshal(attrs)
 		if err != nil {
 			return errors.Join(ErrMarshalAttribute, err)

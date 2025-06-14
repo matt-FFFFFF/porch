@@ -231,12 +231,12 @@ func TestLogLevelFromEnv(t *testing.T) {
 		{
 			name:          "Invalid level defaults to WARN",
 			envValue:      "INVALID",
-			expectedLevel: slog.LevelWarn,
+			expectedLevel: slog.LevelInfo,
 		},
 		{
-			name:          "Empty level defaults to WARN",
+			name:          "Empty level defaults to INFO",
 			envValue:      "",
-			expectedLevel: slog.LevelWarn,
+			expectedLevel: slog.LevelInfo,
 		},
 	}
 

@@ -5,6 +5,7 @@ package ctxlog
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -47,6 +48,12 @@ func init() {
 	LevelVar.Set(logLevelFromEnv())
 }
 
+// TUILogger is a logger that discards output to avoid interfering with TUI display.
+// Used when TUI mode is active to prevent log messages from corrupting the interface.
+var TUILogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
+	Level: slog.LevelError, // Only show critical errors, discard info/debug
+}))
+
 // New creates a new context with the given logger.
 // If logger is nil, it uses the default logger.
 // The log level is set based on the environment variable.
@@ -64,6 +71,11 @@ func New(ctx context.Context, logger *slog.Logger) context.Context {
 	}
 
 	return context.WithValue(ctx, loggerKey{}, logger)
+}
+
+// NewForTUI creates a new context with a TUI-compatible logger that won't interfere with display.
+func NewForTUI(ctx context.Context) context.Context {
+	return context.WithValue(ctx, loggerKey{}, TUILogger)
 }
 
 // Logger returns the logger from the context, or the default logger if not found.

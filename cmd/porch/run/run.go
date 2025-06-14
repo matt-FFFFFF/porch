@@ -18,6 +18,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/config"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -28,6 +29,7 @@ const (
 	outputStdOutFlag         = "output-stdout"
 	outputSuccessDetailsFlag = "output-success-details"
 	parallelismFlag          = "parallelism"
+	tuiFlag                  = "tui"
 	writeFlag                = "write"
 	configTimeoutSeconds     = 30
 	cliExitStr               = ""
@@ -104,6 +106,15 @@ To save the results to a file, specify the output file name as an argument.
 				"Defaults to the number of CPU cores available.",
 			Value: 0,
 		},
+		&cli.BoolFlag{
+			Name:        tuiFlag,
+			Aliases:     []string{"t", "interactive"},
+			Usage:       "Run with interactive Terminal User Interface (TUI) showing real-time progress",
+			Value:       false,
+			DefaultText: "false",
+			TakesFile:   false,
+			OnlyOnce:    true,
+		},
 	},
 	Action: actionFunc,
 }
@@ -173,7 +184,26 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	res := topRunnable.Run(ctx)
+	// Execute with TUI or regular mode based on flag
+	var res runbatch.Results
+	var execErr error
+
+	if cmd.Bool(tuiFlag) {
+		// Run with TUI - use TUI-compatible logger that won't interfere with display
+		logger.Info("Starting interactive TUI mode...")
+
+		// Create a TUI-friendly context that suppresses log output
+		tuiCtx := ctxlog.NewForTUI(ctx)
+
+		runner := tui.NewRunner(tuiCtx)
+		res, execErr = runner.Run(tuiCtx, topRunnable)
+		if execErr != nil {
+			logger.Error(fmt.Sprintf("TUI execution error: %s", execErr.Error()))
+		}
+	} else {
+		// Run in standard mode
+		res = topRunnable.Run(ctx)
+	}
 
 	outFileName := cmd.String(outFlag)
 	if outFileName != "" {

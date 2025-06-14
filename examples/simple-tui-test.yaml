@@ -1,0 +1,9 @@
+name: Simple TUI Test
+description: Simple test to verify TUI functionality
+commands:
+  - type: shell
+    name: Hello World
+    command_line: |
+      echo "Hello from Porch TUI!"
+      sleep 2
+      echo "Goodbye!"

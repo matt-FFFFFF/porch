@@ -5,6 +5,9 @@ package tui
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -134,6 +137,9 @@ type Model struct {
 	scrollOffset int // Number of lines scrolled from top
 	totalLines   int // Total number of lines in the rendered content
 
+	// Status tracking
+	startTime time.Time // When the execution started
+
 	// Style definitions
 	styles *Styles
 }
@@ -149,6 +155,7 @@ type Styles struct {
 	Error      lipgloss.Style
 	Help       lipgloss.Style
 	TreeBranch lipgloss.Style
+	StatusBar  lipgloss.Style
 }
 
 // NewStyles creates the default styling for the TUI.
@@ -178,16 +185,22 @@ func NewStyles() *Styles {
 			MarginTop(1),
 		TreeBranch: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("8")),
+		StatusBar: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("15")).
+			Background(lipgloss.Color("8")).
+			Bold(true).
+			Padding(0, 1),
 	}
 }
 
 // NewModel creates a new TUI model.
 func NewModel(ctx context.Context) *Model {
 	return &Model{
-		ctx:      ctx,
-		rootNode: NewCommandNode([]string{}, "Root"),
-		nodeMap:  make(map[string]*CommandNode),
-		styles:   NewStyles(),
+		ctx:       ctx,
+		rootNode:  NewCommandNode([]string{}, "Root"),
+		nodeMap:   make(map[string]*CommandNode),
+		styles:    NewStyles(),
+		startTime: time.Now(),
 	}
 }
 
@@ -200,8 +213,8 @@ func (m *Model) SetReporter(reporter progress.ProgressReporter) {
 
 // getViewportHeight returns the available height for content display.
 func (m *Model) getViewportHeight() int {
-	// Reserve space for title (3 lines), completion message (2 lines), and help text (2 lines)
-	reservedLines := 7
+	// Reserve space for title (3 lines), completion message (2 lines), status bar (1 line), and help text (2 lines)
+	reservedLines := 8
 	if m.height <= reservedLines {
 		return 1 // Minimum viewport height
 	}
@@ -331,4 +344,153 @@ func (m *Model) processProgressEvent(event progress.ProgressEvent) tea.Cmd {
 	}
 
 	return nil
+}
+
+// getCommandStats recursively counts command statuses in the tree.
+func (m *Model) getCommandStats() (completed, running, pending, failed int) {
+	m.visitNodes(m.rootNode, func(node *CommandNode) {
+		// Skip the root node
+		if len(node.Path) == 0 {
+			return
+		}
+
+		status, _, _, _, _, _ := node.GetDisplayInfo()
+		switch status {
+		case StatusSuccess:
+			completed++
+		case StatusRunning:
+			running++
+		case StatusPending:
+			pending++
+		case StatusFailed:
+			failed++
+		}
+	})
+	return
+}
+
+// visitNodes recursively visits all nodes in the tree.
+func (m *Model) visitNodes(node *CommandNode, visitor func(*CommandNode)) {
+	if node == nil {
+		return
+	}
+
+	visitor(node)
+
+	for _, child := range node.Children {
+		m.visitNodes(child, visitor)
+	}
+}
+
+// getMemoryUsage returns the current memory usage of this process and its children.
+func (m *Model) getMemoryUsage() string {
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+
+	// Get the current process memory usage in MB
+	processMemMB := float64(memStats.Alloc) / (1024 * 1024)
+
+	// Try to get total memory usage including child processes
+	totalMemMB := processMemMB
+
+	// On Unix systems, we can try to read /proc/self/status for more accurate memory info
+	if pidMemMB := m.getProcMemoryUsage(); pidMemMB > 0 {
+		totalMemMB = pidMemMB
+	}
+
+	return fmt.Sprintf("%.1fMB", totalMemMB)
+}
+
+// getProcMemoryUsage attempts to read memory usage from /proc/self/status (Linux/Unix).
+func (m *Model) getProcMemoryUsage() float64 {
+	// This is a best-effort attempt to get more accurate memory usage
+	// including child processes where possible
+	data, err := os.ReadFile("/proc/self/status")
+	if err != nil {
+		return 0
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "VmRSS:") {
+			// Extract memory in kB and convert to MB
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				var memKB float64
+				if _, err := fmt.Sscanf(parts[1], "%f", &memKB); err == nil {
+					return memKB / 1024 // Convert kB to MB
+				}
+			}
+		}
+	}
+
+	return 0
+}
+
+// formatDuration formats a duration in HH:MM:SS format.
+func (m *Model) formatDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	seconds := int(d.Seconds()) % 60
+
+	if hours > 0 {
+		return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+	}
+	return fmt.Sprintf("%02d:%02d", minutes, seconds)
+}
+
+// renderStatusBar creates the status bar with fixed columns for running, completed, execution time, and memory usage.
+func (m *Model) renderStatusBar() string {
+	completed, running, _, _ := m.getCommandStats()
+
+	// Calculate runtime
+	runtime := time.Since(m.startTime)
+	runtimeStr := m.formatDuration(runtime)
+
+	// Get memory usage
+	memoryStr := m.getMemoryUsage()
+
+	// Calculate column width (divide available width by 4 columns, accounting for borders)
+	availableWidth := m.width
+	if availableWidth < 40 {
+		availableWidth = 40 // Minimum width
+	}
+
+	// Account for column separators (3 separators = 3 characters)
+	contentWidth := availableWidth - 3
+	colWidth := contentWidth / 4
+
+	// Create the four columns with equal width
+	runningCol := m.formatColumn(fmt.Sprintf("Running: %d", running), colWidth)
+	completedCol := m.formatColumn(fmt.Sprintf("Completed: %d", completed), colWidth)
+	runtimeCol := m.formatColumn(fmt.Sprintf("Runtime: %s", runtimeStr), colWidth)
+	memoryCol := m.formatColumn(fmt.Sprintf("Memory: %s", memoryStr), colWidth)
+
+	// Combine columns with separators
+	statusLine := fmt.Sprintf("%s│%s│%s│%s",
+		runningCol, completedCol, runtimeCol, memoryCol)
+
+	return m.styles.StatusBar.Render(statusLine)
+}
+
+// formatColumn formats a string to fit within the specified column width.
+func (m *Model) formatColumn(text string, width int) string {
+	if width < 1 {
+		return ""
+	}
+
+	// If text is longer than width, truncate it
+	if len(text) > width {
+		if width > 3 {
+			return text[:width-3] + "..."
+		}
+		return text[:width]
+	}
+
+	// Center the text within the column
+	padding := width - len(text)
+	leftPad := padding / 2
+	rightPad := padding - leftPad
+
+	return strings.Repeat(" ", leftPad) + text + strings.Repeat(" ", rightPad)
 }

@@ -224,6 +224,11 @@ func (m *Model) View() string {
 	if m.height > 10 { // Only show help if we have enough space
 		contentBuilder.WriteString("\n")
 
+		// Status bar
+		statusBar := m.renderStatusBar()
+		contentBuilder.WriteString(statusBar)
+		contentBuilder.WriteString("\n")
+
 		// Scroll indicator
 		if m.totalLines > viewportHeight {
 			scrollInfo := fmt.Sprintf("Lines %d-%d of %d",

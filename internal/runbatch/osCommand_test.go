@@ -116,7 +116,6 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 	require.Error(t, res.Error, "expected error for killed process, got nil")
 	require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded, "expected context to be done, but it was not")
 	require.ErrorIs(t, res.Error, ErrTimeoutExceeded, "expected error to be ErrTimeoutExceeded")
-
 }
 
 func TestCommandRun_SigInt(t *testing.T) {

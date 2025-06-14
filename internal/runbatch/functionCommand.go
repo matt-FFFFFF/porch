@@ -87,6 +87,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			if r := recover(); r != nil {
 				// Log the panic
 				logger.Error("Function command panicked", "panic", r)
+
 				var err error
 				switch x := r.(type) {
 				case error:
@@ -110,6 +111,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		}()
 
 		logger.Debug("Running function command")
+
 		startTime := time.Now()
 		startTimeStr := startTime.Format(ctxlog.TimeFormat)
 		fmt.Printf("Executing %s: at %s\n", fullLabel, startTimeStr)
@@ -140,6 +142,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	select {
 	case fr := <-frCh:
 		logger.Debug("Function command result received", "error", fr.Err, "newCwd", fr.NewCwd)
+
 		if fr.Err != nil {
 			return Results{
 				{
@@ -158,6 +161,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 
 	case <-ctx.Done():
 		logger.Debug("Function command context cancelled", "error", ctx.Err())
+
 		return Results{
 			{
 				Label:    f.Label,
@@ -169,5 +173,6 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	}
 
 	logger.Debug("Function command completed successfully", "newCwd", res.newCwd)
+
 	return Results{res}
 }

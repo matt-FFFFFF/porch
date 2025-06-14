@@ -7,14 +7,8 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/matt-FFFFFF/porch/internal/color"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
-)
-
-const (
-	separator = "================================================"
 )
 
 // Watch monitors the signal channel and handles signals.
@@ -23,29 +17,19 @@ func Watch(ctx context.Context, sigCh chan os.Signal, cancel context.CancelFunc)
 	sigMap := make(map[os.Signal]struct{})
 	for sig := range sigCh {
 		if _, ok := sigMap[sig]; ok {
-			ctxlog.Logger(ctx).Info(
-				"watchdog",
-				"detail", "received second signal of type, forcefully terminating",
-				"signal", sig.String())
+			ctxlog.Logger(ctx).Warn(
+				fmt.Sprintf("Received second signal of type %s, forcefully terminating", sig.String()))
 			close(sigCh)
 			cancel()
 
 			return
 		}
 
-		ctxlog.Logger(ctx).Info("watchdog", "detail", "received first signal of type, no-op", "signal", sig.String())
-
-		sb := strings.Builder{}
-		sb.WriteString(color.Colorize(separator, color.FgHiRed))
-		sb.WriteString("\n")
-		sb.WriteString(color.Colorize(`=  Received signal and attempting graceful termination: `, color.FgHiRed))
-		sb.WriteString(color.Colorize(sig.String(), color.FgHiYellow))
-		sb.WriteString("\n")
-		sb.WriteString(color.Colorize(`=  Send the same signal again to forcefully terminate`, color.FgHiRed))
-		sb.WriteString("\n")
-		sb.WriteString(color.Colorize(separator, color.FgHiRed))
-		sb.WriteString("\n")
-		fmt.Print(sb.String())
+		ctxlog.Logger(ctx).Warn(
+			fmt.Sprintf(
+				"Received signal of type %s, attempting to gracefully terminate. "+
+					"Send the same signal again to forcefully terminate.",
+				sig.String()))
 
 		sigMap[sig] = struct{}{}
 	}

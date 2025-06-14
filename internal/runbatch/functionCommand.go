@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 )
@@ -110,16 +109,12 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			}
 		}()
 
-		logger.Debug("Running function command")
-
-		startTime := time.Now()
-		startTimeStr := startTime.Format(ctxlog.TimeFormat)
-		fmt.Printf("Executing %s: at %s\n", fullLabel, startTimeStr)
+		logger.Info(fmt.Sprintf("Executing: %s", fullLabel))
 
 		// Run the function
 		fr := f.Func(ctx, f.Cwd)
 
-		logger.Debug("Function command completed", "result", fr)
+		logger.Debug("Function command completed", "resultErr", fr.Err, "newCwd", fr.NewCwd)
 
 		// Check if we're done before sending to avoid "send on closed channel"
 		select {

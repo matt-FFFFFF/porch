@@ -16,6 +16,16 @@ type loggerKey struct{}
 // DefaultLogger is a text logger with prettified output that is used if no logger is provided.
 var DefaultLogger = slog.New(NewPrettyHandler(&slog.HandlerOptions{
 	Level:     LevelVar,
+	AddSource: false,
+},
+	WithDestinationWriter(os.Stdout),
+	WithAutoColour(),
+))
+
+// DebugLogger is a text logger with prettified output that is used for debug logging.
+// It includes source information and is used for debugging purposes.
+var DebugLogger = slog.New(NewPrettyHandler(&slog.HandlerOptions{
+	Level:     LevelVar,
 	AddSource: true,
 },
 	WithDestinationWriter(os.Stdout),
@@ -47,6 +57,10 @@ func init() {
 func New(ctx context.Context, logger *slog.Logger) context.Context {
 	if logger == nil {
 		logger = DefaultLogger
+	}
+
+	if LevelVar.Level() == slog.LevelDebug {
+		logger = DebugLogger
 	}
 
 	return context.WithValue(ctx, loggerKey{}, logger)
@@ -106,6 +120,6 @@ func logLevelFromEnv() slog.Level {
 	case "ERROR":
 		return slog.LevelError
 	default:
-		return slog.LevelWarn
+		return slog.LevelInfo
 	}
 }

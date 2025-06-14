@@ -11,13 +11,11 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"os"
 	"strings"
 	"sync"
 
 	"github.com/TylerBrock/colorjson"
 	"github.com/matt-FFFFFF/porch/internal/color"
-	"golang.org/x/term"
 )
 
 var (
@@ -32,13 +30,6 @@ const (
 	TimeFormat = "[15:04:05.000]"
 )
 
-var jsonFormatter = colorjson.NewFormatter()
-
-func init() {
-	jsonFormatter.Indent = 2
-	jsonFormatter.DisabledColor = !term.IsTerminal(int(os.Stdout.Fd()))
-}
-
 // PrettyHandler is a custom slog handler that formats log messages to the console in a pretty way.
 type PrettyHandler struct {
 	h                slog.Handler
@@ -48,6 +39,7 @@ type PrettyHandler struct {
 	writer           io.Writer
 	colour           bool
 	outputEmptyAttrs bool
+	jf               *colorjson.Formatter
 }
 
 // Enabled checks if the handler is enabled for the given level.
@@ -155,8 +147,10 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	var attrsAsBytes []byte
 
-	if h.outputEmptyAttrs || len(attrs) > 0 {
-		attrsAsBytes, err = jsonFormatter.Marshal(attrs)
+	// Only output attributes if the level is Debug,
+	// and either outputEmptyAttrs is true or there are attributes to output.
+	if LevelVar.Level() == slog.LevelDebug && (h.outputEmptyAttrs || len(attrs) > 0) {
+		attrsAsBytes, err = h.jf.Marshal(attrs)
 		if err != nil {
 			return errors.Join(ErrMarshalAttribute, err)
 		}
@@ -215,6 +209,10 @@ func NewPrettyHandler(handlerOptions *slog.HandlerOptions, options ...Option) *P
 		handlerOptions = &slog.HandlerOptions{}
 	}
 
+	jfmtr := colorjson.NewFormatter()
+	jfmtr.Indent = 2
+	jfmtr.DisabledColor = !color.Enabled()
+
 	buf := &bytes.Buffer{}
 	handler := &PrettyHandler{
 		b: buf,
@@ -223,8 +221,9 @@ func NewPrettyHandler(handlerOptions *slog.HandlerOptions, options ...Option) *P
 			AddSource:   handlerOptions.AddSource,
 			ReplaceAttr: suppressDefaults(handlerOptions.ReplaceAttr),
 		}),
-		r: handlerOptions.ReplaceAttr,
-		m: &sync.Mutex{},
+		r:  handlerOptions.ReplaceAttr,
+		m:  &sync.Mutex{},
+		jf: jfmtr,
 	}
 
 	for _, opt := range options {

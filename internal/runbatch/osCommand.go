@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/matt-FFFFFF/porch/internal/color"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 	"github.com/matt-FFFFFF/porch/internal/teereader"
@@ -126,10 +127,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		Env:   env,
 		Files: []*os.File{os.Stdin, wOut, wErr},
 	})
-	startTime := time.Now()
-	startTimeStr := startTime.Format(ctxlog.TimeFormat)
 
-	fmt.Printf("Starting %s: at %s\n", fullLabel, startTimeStr)
+	// store start time to display progress later
+	startTime := time.Now()
+
+	logger.Info(fmt.Sprintf("Starting %s", fullLabel))
 
 	if err != nil {
 		res.Error = errors.Join(ErrCouldNotStartProcess, err)
@@ -188,17 +190,16 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				if lastLine != "" {
 					sb.WriteString(". Last output...\n")
-					sb.WriteString("> ")
+					sb.WriteString(color.Colorize("=> ", color.FgHiWhite))
 					sb.WriteString(lastLine)
 				}
 
-				sb.WriteString("\n")
-				fmt.Print(sb.String())
+				logger.Info(sb.String())
 
 			case s := <-c.sigCh:
 				// is this the second signal received of this type?
 				if _, ok := signalCount[s]; ok {
-					logger.Info("received duplicate signal, killing process", "signal", s.String())
+					logger.Debug("received duplicate signal, killing process", "signal", s.String())
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
 					killPs(ctx, ps)
 
@@ -213,11 +214,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				signalCount[s] = struct{}{}
 
-				logger.Info("received signal", "signal", s.String())
+				logger.Debug("received signal", "signal", s.String())
 				fmt.Fprintf(wErr, "received signal: %s\n", s.String()) //nolint:errcheck
 
 				if err := ps.Signal(s); err != nil {
-					logger.Info("failed to send signal", "signal", s.String(), "error", err)
+					logger.Debug("failed to send signal", "signal", s.String(), "error", err)
 				}
 
 				// Try to send reason (non-blocking)
@@ -227,8 +228,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				}
 
 			case <-ctx.Done():
-				logger.Info("context done, killing process")
-				fmt.Fprintln(wErr, "context done, killing process") //nolint:errcheck
+				logger.Debug("context done, killing process")
 				killPs(ctx, ps)
 
 				// Try to send reason (non-blocking)
@@ -247,7 +247,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	state, psErr := ps.Wait()
 
-	fmt.Printf("Finished %s: at %s\n", fullLabel, time.Now().Format(ctxlog.TimeFormat))
+	executionTime := time.Since(startTime)
+	executionTime = executionTime.Round(time.Second)
+	logger.Info(fmt.Sprintf("Finished %s in %s", fullLabel, executionTime))
 
 	// Signal watchdog to stop and prevent goroutine leak
 	close(done)

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-getter/v2"
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/config"
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/urfave/cli/v3"
 )
@@ -29,6 +30,7 @@ const (
 	parallelismFlag          = "parallelism"
 	writeFlag                = "write"
 	configTimeoutSeconds     = 30
+	cliExitStr               = ""
 )
 
 var (
@@ -107,6 +109,9 @@ To save the results to a file, specify the output file name as an argument.
 }
 
 func actionFunc(ctx context.Context, cmd *cli.Command) error {
+	logger := ctxlog.Logger(ctx).With("command", cmd.Name)
+	logger.Debug("Running run command")
+
 	if cmd.Int(parallelismFlag) > 0 {
 		runtime.GOMAXPROCS(cmd.Int(parallelismFlag))
 	}
@@ -114,7 +119,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	url := cmd.StringSlice(fileFlag)
 
 	if len(url) == 0 {
-		return cli.Exit("Please specify at least one URL for the configuration file using the --file or -f flag.", 1)
+		logger.Error("Please specify at least one URL for the configuration file using the --file or -f flag.")
+		return cli.Exit(nil, 1)
 	}
 
 	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
@@ -127,7 +133,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	for i, u := range url {
 		if u == "" {
-			return cli.Exit(fmt.Sprintf("The URL at index %d is empty. Please provide a valid URL.", i), 1)
+			logger.Error(fmt.Sprintf("The URL at index %d is empty. Please provide a valid URL.", i))
+			return cli.Exit(cliExitStr, 1)
 		}
 
 		bytes, err := getURL(ctx, u)
@@ -137,7 +144,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 		rb, err := config.BuildFromYAML(configCtx, factory, bytes)
 		if err != nil {
-			return cli.Exit(fmt.Sprintf("Failed to build config from file %s: %s", url, err.Error()), 1)
+			logger.Error(fmt.Sprintf("Failed to build config from file %s: %s", u, err.Error()))
+			return cli.Exit(cliExitStr, 1)
 		}
 
 		if rb == nil {
@@ -151,7 +159,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	switch l := len(runnables); l {
 	case 0:
-		return cli.Exit("No runnable commands found in the provided configuration files.", 1)
+		logger.Error("No runnable commands found in the provided configuration files.")
+		return cli.Exit(nil, 1)
 	case 1:
 		topRunnable = runnables[0]
 	default:
@@ -166,22 +175,22 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	res := topRunnable.Run(ctx)
 
-	fmt.Fprint(cmd.Writer, "\n\n") //nolint:errcheck
-
 	outFileName := cmd.String(outFlag)
 	if outFileName != "" {
 		f, err := os.Create(outFileName) // Create the output file if it doesn't exist
 		if err != nil {
-			return cli.Exit(fmt.Sprintf("Failed to create output file %s: %s", outFileName, err.Error()), 1)
+			logger.Error(fmt.Sprintf("Failed to create output file %s: %s", outFileName, err.Error()))
+			return cli.Exit(cliExitStr, 1)
 		}
 
 		defer f.Close() //nolint:errcheck
 
 		if err := res.WriteBinary(f); err != nil {
-			return cli.Exit(fmt.Sprintf("Failed to write results to file %s: %s", outFileName, err.Error()), 1)
+			logger.Error(fmt.Sprintf("Failed to write results to file %s: %s", outFileName, err.Error()))
+			return cli.Exit(cliExitStr, 1)
 		}
 
-		fmt.Fprintf(cmd.Writer, "Results written to %s\n\n", outFileName) //nolint:errcheck
+		logger.Info(fmt.Sprintf("Results written to %s", outFileName))
 	}
 
 	opts := runbatch.DefaultOutputOptions()
@@ -189,12 +198,16 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
 	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
 
+	logger.Info("Displaying results...")
+
 	if err := res.WriteTextWithOptions(cmd.Writer, opts); err != nil {
-		return cli.Exit("Failed to write results: "+err.Error(), 1)
+		logger.Error(fmt.Sprintf("Failed to write results: %s", err.Error()))
+		return cli.Exit(nil, 1)
 	}
 
 	if res.HasError() {
-		return cli.Exit("Some commands failed. See above for details.", 1)
+		logger.Error("Some commands failed. See above for details.")
+		return cli.Exit(cliExitStr, 1)
 	}
 
 	return nil

@@ -130,6 +130,10 @@ type Model struct {
 	results   runbatch.Results // Store final results
 	mutex     sync.RWMutex
 
+	// Scrolling support
+	scrollOffset int // Number of lines scrolled from top
+	totalLines   int // Total number of lines in the rendered content
+
 	// Style definitions
 	styles *Styles
 }
@@ -192,6 +196,36 @@ func (m *Model) SetReporter(reporter progress.ProgressReporter) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.reporter = reporter
+}
+
+// getViewportHeight returns the available height for content display.
+func (m *Model) getViewportHeight() int {
+	// Reserve space for title (3 lines), completion message (2 lines), and help text (2 lines)
+	reservedLines := 7
+	if m.height <= reservedLines {
+		return 1 // Minimum viewport height
+	}
+	return m.height - reservedLines
+}
+
+// calculateMaxScrollOffset returns the maximum scroll offset based on content height.
+func (m *Model) calculateMaxScrollOffset() int {
+	viewportHeight := m.getViewportHeight()
+	if m.totalLines <= viewportHeight {
+		return 0 // No scrolling needed
+	}
+	return m.totalLines - viewportHeight
+}
+
+// resetScrollIfNeeded resets scroll position if content shrinks.
+func (m *Model) resetScrollIfNeeded() {
+	maxScroll := m.calculateMaxScrollOffset()
+	if m.scrollOffset > maxScroll {
+		m.scrollOffset = maxScroll
+	}
+	if m.scrollOffset < 0 {
+		m.scrollOffset = 0
+	}
 }
 
 // pathToString converts a command path to a string key.

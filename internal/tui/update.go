@@ -17,6 +17,7 @@ import (
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
+		tea.EnableMouseCellMotion, // Enable mouse support
 		m.listenForProgressEvents(),
 	)
 }
@@ -34,6 +35,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		return m.handleKeyPress(msg)
+
+	case tea.MouseMsg:
+		return m.handleMouseEvent(msg)
 
 	case tea.WindowSizeMsg:
 		m.mutex.Lock()
@@ -71,14 +75,79 @@ type CommandCompletedMsg struct {
 	Results runbatch.Results
 }
 
+// handleMouseEvent processes mouse input for scrolling.
+func (m *Model) handleMouseEvent(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	switch msg.Type {
+	case tea.MouseWheelUp:
+		// Scroll up
+		if m.scrollOffset > 0 {
+			m.scrollOffset--
+		}
+		return m, nil
+	case tea.MouseWheelDown:
+		// Scroll down
+		maxScroll := m.calculateMaxScrollOffset()
+		if m.scrollOffset < maxScroll {
+			m.scrollOffset++
+		}
+		return m, nil
+	}
+
+	return m, nil
+}
+
 // handleKeyPress processes keyboard input.
 func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	switch msg.String() {
 	case "q", "ctrl+c":
 		m.quitting = true
 		return m, tea.Quit
 	case "r":
 		// Refresh view
+		return m, nil
+	case "up", "k":
+		// Scroll up
+		if m.scrollOffset > 0 {
+			m.scrollOffset--
+		}
+		return m, nil
+	case "down", "j":
+		// Scroll down
+		maxScroll := m.calculateMaxScrollOffset()
+		if m.scrollOffset < maxScroll {
+			m.scrollOffset++
+		}
+		return m, nil
+	case "pgup":
+		// Page up (scroll up by viewport height)
+		scrollAmount := m.getViewportHeight()
+		m.scrollOffset -= scrollAmount
+		if m.scrollOffset < 0 {
+			m.scrollOffset = 0
+		}
+		return m, nil
+	case "pgdown":
+		// Page down (scroll down by viewport height)
+		scrollAmount := m.getViewportHeight()
+		maxScroll := m.calculateMaxScrollOffset()
+		m.scrollOffset += scrollAmount
+		if m.scrollOffset > maxScroll {
+			m.scrollOffset = maxScroll
+		}
+		return m, nil
+	case "home":
+		// Jump to top
+		m.scrollOffset = 0
+		return m, nil
+	case "end":
+		// Jump to bottom
+		m.scrollOffset = m.calculateMaxScrollOffset()
 		return m, nil
 	}
 
@@ -94,45 +163,96 @@ func (m *Model) View() string {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	var b strings.Builder
+	var contentBuilder strings.Builder
+	var lines []string
 
 	// Title
 	title := m.styles.Title.Render("🏗️  Porch Command Orchestration")
-	b.WriteString(title)
-	b.WriteString("\n\n")
-	// Command tree
-	m.renderCommandTree(&b, m.rootNode, "", true)
+	lines = append(lines, title, "")
+
+	// Command tree - build all content first to count lines
+	var treeBuilder strings.Builder
+	m.renderCommandTree(&treeBuilder, m.rootNode, "", true)
+	treeContent := treeBuilder.String()
+	treeLines := strings.Split(strings.TrimSuffix(treeContent, "\n"), "\n")
+
+	// Filter out empty lines at the end
+	for len(treeLines) > 0 && strings.TrimSpace(treeLines[len(treeLines)-1]) == "" {
+		treeLines = treeLines[:len(treeLines)-1]
+	}
+
+	lines = append(lines, treeLines...)
 
 	// Show completion status if commands are done
-	m.mutex.RLock()
 	completed := m.completed
 	results := m.results
-	m.mutex.RUnlock()
 
 	if completed {
-		b.WriteString("\n")
+		lines = append(lines, "")
 		if results != nil && results.HasError() {
 			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors")
-			b.WriteString(completionMsg)
+			lines = append(lines, completionMsg)
 		} else {
 			completionMsg := m.styles.Success.Render("✅ Execution completed successfully")
-			b.WriteString(completionMsg)
+			lines = append(lines, completionMsg)
 		}
-		b.WriteString("\n")
 	}
 
-	// Help text
+	// Update total lines count
+	m.totalLines = len(lines)
+	m.resetScrollIfNeeded()
+
+	// Calculate visible range
+	viewportHeight := m.getViewportHeight()
+	startLine := m.scrollOffset
+	endLine := startLine + viewportHeight
+
+	if endLine > len(lines) {
+		endLine = len(lines)
+	}
+
+	// Render visible content
+	if startLine < len(lines) {
+		visibleLines := lines[startLine:endLine]
+		for _, line := range visibleLines {
+			contentBuilder.WriteString(line)
+			contentBuilder.WriteString("\n")
+		}
+	}
+
+	// Add scroll indicators and help text
 	if m.height > 10 { // Only show help if we have enough space
-		helpText := "Press 'q' to quit, 'r' to refresh"
+		contentBuilder.WriteString("\n")
+
+		// Scroll indicator
+		if m.totalLines > viewportHeight {
+			scrollInfo := fmt.Sprintf("Lines %d-%d of %d",
+				startLine+1,
+				min(endLine, m.totalLines),
+				m.totalLines)
+			scrollIndicator := m.styles.Help.Render(scrollInfo)
+			contentBuilder.WriteString(scrollIndicator)
+			contentBuilder.WriteString("\n")
+		}
+
+		// Help text
+		helpText := "↑/↓ or j/k to scroll, PgUp/PgDn for pages, Home/End to jump, 'q' to quit, 'r' to refresh"
 		if completed {
-			helpText = "Press 'q' to quit and return to terminal"
+			helpText = "↑/↓ or j/k to scroll, 'q' to quit and return to terminal"
 		}
 		help := m.styles.Help.Render(helpText)
-		b.WriteString("\n")
-		b.WriteString(help)
+		contentBuilder.WriteString(help)
 	}
 
-	return b.String()
+	return contentBuilder.String()
+}
+
+// min returns the minimum of two integers.
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // renderCommandTree recursively renders the command tree.

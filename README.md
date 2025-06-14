@@ -122,7 +122,7 @@ commands:
 ### Execute the workflow
 
 ```bash
-porch run workflow.yaml
+porch run -f workflow.yaml
 ```
 
 ### View saved results
@@ -135,7 +135,7 @@ porch show results
 
 porch provides a comprehensive CLI with the following commands:
 
-### `porch run <workflow.yaml> [output]`
+### `porch run --file <workflow.yaml>`
 
 Execute a workflow defined in a YAML file.
 
@@ -261,6 +261,19 @@ Execute any shell command with full environment control and configurable exit co
 - `runs_on_exit_codes`: Specific exit codes that trigger execution (used with `runs_on_condition: exit-codes`)
 - `success_exit_codes`: Exit codes that indicate success (defaults to `[0]`)
 - `skip_exit_codes`: Exit codes that skip remaining commands in the current batch
+
+**Using Redirection:**
+
+Porch captures stdout and stderr automatically, and will by default display stderr in the results if the step fails or returns a skippable exit code. Therefore you can use redirection to capture output. E.g. to output to stderr, use `command_line: "your_command 1>&2"`.
+
+```yaml
+command_line: |
+  if [ -z  "$FOO" ]; then
+  echo "FOO is not set. Skipping" 1>&2
+  exit 99
+fi
+skip_exit_codes: [99]
+```
 
 **Example:**
 

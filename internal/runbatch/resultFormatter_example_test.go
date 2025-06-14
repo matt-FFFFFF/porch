@@ -55,8 +55,6 @@ func ExampleResults_WriteTextWithOptions_stderrOutput() {
 	fmt.Println(buf.String())
 
 	// Output:
-	// ===== Results =====
-	//
 	// ✗ Parent Batch (exit code: -1)
 	//   ✗ Command with StdErr (exit code: 1)
 	//     ➜ Error: command failed with output error

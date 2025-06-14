@@ -2,6 +2,9 @@
 
 **porch** is a sophisticated Go-based process orchestration framework designed for running and managing complex command workflows. It provides a flexible, YAML-driven approach to define, compose, and execute command chains with advanced flow control, parallel processing, and comprehensive error handling.
 
+It was designed to solve the problem of orchestrating complex command workflows in a portable and easy-to-use manner.
+Its portability means that you can confidently run the same workflows locally, in CI/CD pipelines, or on any server without worrying about compatibility issues.
+
 ## ✨ Features
 
 ### 🚀 **Command Orchestration**
@@ -43,6 +46,16 @@
 - **Temporary Directory Support**: Isolated execution environments for testing and builds
 
 ## 📦 Installation
+
+### Operating System Support
+
+Porch currently supports the following operating systems:
+
+- Linux
+- macOS
+
+Porch does compile and run on Windows, but the tests do not pass.
+Therefore it is not officially supported.
 
 ### Install from Go modules
 
@@ -179,7 +192,7 @@ Get information about configuration format and available commands.
 **Usage:**
 
 ```bash
-porch config                    # List all available commands
+porch config                   # List all available commands
 porch config shell             # Show shell command schema and example
 porch config serial --markdown # Show serial command docs in Markdown format
 ```
@@ -205,8 +218,8 @@ Every porch workflow starts with a root configuration that defines the overall s
 ```yaml
 name: "Workflow Name"                    # Required: Descriptive name for the workflow
 description: "Workflow description"      # Optional: Description of what this workflow does
-commands: []                            # Required: List of commands to execute
-command_groups: []                      # Optional: Named groups of commands for reuse
+commands: []                             # Required: List of commands to execute
+command_groups: []                       # Optional: Named groups of commands for reuse
 ```
 
 ### Command Groups
@@ -406,7 +419,7 @@ For each command, an environment variable called `ITEM` is set to the path of th
 
 - `none`: Don't change working directory for child commands
 - `item_relative`: Set working directory relative to the current directory
-- `item_absolute`: Set working directory to the absolute path of each found directory
+- `item_absolute`: **experimental** Set working directory to the absolute path of each found directory
 
 **Example:**
 

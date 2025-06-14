@@ -57,7 +57,7 @@ func main() {
 
 	go signalbroker.Watch(ctx, sigCh, cancel)
 
-	rootCmd.Version = fmt.Sprintf("Porch %s (commit: %s)", porch.Version, porch.Commit)
+	rootCmd.Version = fmt.Sprintf("%s (commit: %s)", porch.Version, porch.Commit)
 
 	factory := commandregistry.New(
 		serialcommand.Register,

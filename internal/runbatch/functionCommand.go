@@ -7,6 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 )
 
 var _ Runnable = (*FunctionCommand)(nil)
@@ -60,8 +63,14 @@ type FunctionCommandReturn struct {
 
 // Run implements the Runnable interface for FunctionCommand.
 func (f *FunctionCommand) Run(ctx context.Context) Results {
+	fullLabel := FullLabel(f)
+	logger := ctxlog.Logger(ctx)
+	logger = logger.With("runnableType", "functionCommand").
+		With("label", fullLabel)
+
 	// Return success immediately if function is nil
 	if f.Func == nil {
+		logger.Debug("No function to run, returning success")
 		return Results{{Label: f.Label, ExitCode: 0, Error: nil}}
 	}
 
@@ -76,6 +85,9 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		// Recover from panics and convert them to errors
 		defer func() {
 			if r := recover(); r != nil {
+				// Log the panic
+				logger.Error("Function command panicked", "panic", r)
+
 				var err error
 				switch x := r.(type) {
 				case error:
@@ -88,7 +100,9 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 				select {
 				case <-done:
 					// Already done, don't send on frCh
+					logger.Debug("Function command panic done channel closed, skipping result send")
 				default:
+					logger.Debug("Function command panic sending error", "error", err)
 					frCh <- FunctionCommandReturn{
 						Err: err,
 					}
@@ -96,14 +110,24 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			}
 		}()
 
+		logger.Debug("Running function command")
+
+		startTime := time.Now()
+		startTimeStr := startTime.Format(ctxlog.TimeFormat)
+		fmt.Printf("Executing %s: at %s\n", fullLabel, startTimeStr)
+
 		// Run the function
 		fr := f.Func(ctx, f.Cwd)
+
+		logger.Debug("Function command completed", "result", fr)
 
 		// Check if we're done before sending to avoid "send on closed channel"
 		select {
 		case <-done:
+			logger.Debug("Function command done channel closed, skipping result send")
 			// Already done, don't send on frCh
 		default:
+			logger.Debug("Function command sending result", "result", fr)
 			frCh <- fr
 		}
 	}()
@@ -113,9 +137,12 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		ExitCode: 0,
 		Status:   ResultStatusSuccess,
 	}
+
 	// Wait for either the function to complete or the context to be cancelled
 	select {
 	case fr := <-frCh:
+		logger.Debug("Function command result received", "error", fr.Err, "newCwd", fr.NewCwd)
+
 		if fr.Err != nil {
 			return Results{
 				{
@@ -127,10 +154,14 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			}
 		}
 
+		// No error, set new working directory if provided
 		if fr.NewCwd != "" {
 			res.newCwd = fr.NewCwd
 		}
+
 	case <-ctx.Done():
+		logger.Debug("Function command context cancelled", "error", ctx.Err())
+
 		return Results{
 			{
 				Label:    f.Label,
@@ -140,6 +171,8 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			},
 		}
 	}
+
+	logger.Debug("Function command completed successfully", "newCwd", res.newCwd)
 
 	return Results{res}
 }

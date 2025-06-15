@@ -10,6 +10,15 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
+// ProgressiveLogChannelKey is used to store the channel in the Runnable context
+// for real-time progress updates. This allows commands to report their
+// logging output to the progressive TUI in real-time.
+type ProgressiveLogChannelKey struct{}
+
+// ProgressiveLogUpdateInterval defines the interval in seconds at which
+// the progressive TUI updates its display with new log output.
+type ProgressiveLogUpdateInterval struct{}
+
 // ProgressiveRunnable extends Runnable with progress reporting capabilities.
 // Commands that implement this interface can provide real-time updates
 // during execution while maintaining compatibility with the existing

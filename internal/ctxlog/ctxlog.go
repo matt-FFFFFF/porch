@@ -50,9 +50,11 @@ func init() {
 
 // TUILogger is a logger that discards output to avoid interfering with TUI display.
 // Used when TUI mode is active to prevent log messages from corrupting the interface.
-var TUILogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
-	Level: slog.LevelError, // Only show critical errors, discard info/debug
-}))
+var TUILogger = slog.New(NewPrettyHandler(&slog.HandlerOptions{
+	Level: slog.LevelError,
+},
+	WithDestinationWriter(io.Discard),
+))
 
 // New creates a new context with the given logger.
 // If logger is nil, it uses the default logger.

@@ -125,12 +125,14 @@ func TestMockProgressiveRunnable(t *testing.T) {
 
 	// Verify events were sent
 	events := make([]progress.ProgressEvent, 0, 3)
+
+OuterLoop:
 	for len(events) < 3 {
 		select {
 		case event := <-reporter.Events():
 			events = append(events, event)
 		default:
-			break
+			break OuterLoop
 		}
 	}
 

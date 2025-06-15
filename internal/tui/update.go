@@ -54,6 +54,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.mutex.Lock()
 		m.completed = true
 		m.results = msg.Results
+		// Update error messages from final results to get specific errors
+		m.updateErrorsFromResults()
 		m.mutex.Unlock()
 		return m, nil
 
@@ -80,14 +82,14 @@ func (m *Model) handleMouseEvent(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	switch msg.Type {
-	case tea.MouseWheelUp:
+	switch msg.Button {
+	case tea.MouseButtonWheelUp:
 		// Scroll up
 		if m.scrollOffset > 0 {
 			m.scrollOffset--
 		}
 		return m, nil
-	case tea.MouseWheelDown:
+	case tea.MouseButtonWheelDown:
 		// Scroll down
 		maxScroll := m.calculateMaxScrollOffset()
 		if m.scrollOffset < maxScroll {
@@ -365,7 +367,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		} else {
 			errorPrefix += "│   "
 		}
-		errorLine := m.styles.Error.Render(fmt.Sprintf("  ✗ %s", errorMsg))
+		errorLine := m.styles.Error.Render(fmt.Sprintf("  ➜ Error: %s", errorMsg))
 		b.WriteString(errorPrefix)
 		b.WriteString(errorLine)
 		b.WriteString("\n")

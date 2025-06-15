@@ -6,7 +6,6 @@ package runbatch
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/progress"
@@ -36,6 +35,35 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 		Timestamp:   time.Now(),
 	})
 
+	logCh := make(chan string, 10) // Buffered channel for log messages
+	ctx = context.WithValue(ctx, ProgressiveLogChannelKey{}, logCh)
+	ctx = context.WithValue(ctx, ProgressiveLogUpdateInterval{}, time.Second) // Update every second
+
+	// This goroutine reads from the log channel and reports updates
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return // Exit if context is cancelled
+			case logMsg, ok := <-logCh:
+				if !ok {
+					return // Channel closed, exit
+				}
+				// Report the log message as a progress event
+				reporter.Report(progress.ProgressEvent{
+					CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
+					Type:        progress.EventProgress,
+					Message:     fmt.Sprintf("Output from %s", c.GetLabel()),
+					Timestamp:   time.Now(),
+					Data: progress.EventData{
+						OutputLine:      logMsg,
+						ProgressMessage: fmt.Sprintf("Output from %s", c.GetLabel()),
+					},
+				})
+			}
+		}
+	}()
+
 	// Execute the original command
 	results := c.OSCommand.Run(ctx)
 
@@ -62,24 +90,6 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 					ExitCode: results[0].ExitCode,
 				},
 			})
-		}
-
-		// Report output if available
-		if len(results[0].StdOut) > 0 {
-			outputLines := strings.Split(string(results[0].StdOut), "\n")
-			for _, line := range outputLines {
-				if strings.TrimSpace(line) != "" {
-					reporter.Report(progress.ProgressEvent{
-						CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
-						Type:        progress.EventOutput,
-						Timestamp:   time.Now(),
-						Data: progress.EventData{
-							OutputLine: strings.TrimSpace(line),
-							IsStderr:   false,
-						},
-					})
-				}
-			}
 		}
 	}
 

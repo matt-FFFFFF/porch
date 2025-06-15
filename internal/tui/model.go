@@ -5,6 +5,7 @@ package tui
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -493,4 +494,48 @@ func (m *Model) formatColumn(text string, width int) string {
 	rightPad := padding - leftPad
 
 	return strings.Repeat(" ", leftPad) + text + strings.Repeat(" ", rightPad)
+}
+
+// updateErrorsFromResults updates command node error messages using the final results
+// after execution is complete. This ensures we get the actual detailed error messages
+// rather than generic "result has children with errors" messages.
+func (m *Model) updateErrorsFromResults() {
+	if m.results == nil {
+		return
+	}
+
+	// Recursively update errors from the results tree
+	m.updateNodeErrorsFromResults([]string{}, m.results)
+}
+
+// updateNodeErrorsFromResults recursively updates node errors from results
+func (m *Model) updateNodeErrorsFromResults(basePath []string, results runbatch.Results) {
+	for _, result := range results {
+		// Build the command path for this result
+		var commandPath []string
+		if len(basePath) == 0 {
+			// Root level - use just the label
+			commandPath = []string{result.Label}
+		} else {
+			// Nested level - append to base path
+			commandPath = append(basePath, result.Label)
+		}
+
+		// Find the corresponding node
+		pathKey := pathToString(commandPath)
+		if node, exists := m.nodeMap[pathKey]; exists {
+			// Update error message if this result has a specific error
+			if result.Error != nil && result.Status == runbatch.ResultStatusError {
+				// Only update if we have a more specific error than the generic one
+				if !errors.Is(result.Error, runbatch.ErrResultChildrenHasError) {
+					node.UpdateError(result.Error.Error())
+				}
+			}
+		}
+
+		// Recursively process children
+		if len(result.Children) > 0 {
+			m.updateNodeErrorsFromResults(commandPath, result.Children)
+		}
+	}
 }

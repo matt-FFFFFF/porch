@@ -214,9 +214,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				}
 
 				msg := sb.String()
-
 				if logCh != nil && lastLine != lastLogSent {
-					logCh <- msg // Send the status message to the log channel
+					logCh <- msg           // Send the status message to the log channel
+					lastLogSent = lastLine // Update last log sent to avoid duplicates
 				}
 
 				logger.Info(msg)

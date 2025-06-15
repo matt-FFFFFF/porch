@@ -34,8 +34,9 @@ const (
 )
 
 const (
-	minViewportWidth = 40    // Minimum width for the TUI viewport
-	ellipsis         = "..." // Used for truncating long text
+	minViewportWidth = 40                    // Minimum width for the TUI viewport
+	ellipsis         = "..."                 // Used for truncating long text
+	teaTickInterval  = time.Millisecond * 10 // Interval for periodic updates
 )
 
 // String returns a string representation of the command status.
@@ -340,10 +341,18 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 	case progress.EventStarted:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusRunning)
+		// Trigger immediate UI update when a command starts
+		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		})
 
 	case progress.EventCompleted:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusSuccess)
+		// Trigger immediate UI update on completion
+		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		})
 
 	case progress.EventFailed:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
@@ -352,10 +361,18 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 		if event.Data.Error != nil {
 			node.UpdateError(event.Data.Error.Error())
 		}
+		// Trigger immediate UI update on failure
+		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		})
 
 	case progress.EventOutput:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateOutput(event.Data.OutputLine)
+		// Trigger immediate UI update for real-time output
+		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		})
 
 	case progress.EventProgress:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
@@ -363,10 +380,15 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 		if event.Data.OutputLine != "" {
 			node.UpdateOutput(event.Data.OutputLine)
 		}
+		// Trigger UI update for progress events
+		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		})
 
 	case progress.EventSkipped:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusPending) // Keep as pending for skipped commands
+		// No command needed for skipped events
 	}
 
 	return nil
@@ -520,7 +542,7 @@ func (m *Model) formatColumn(text string, width int) string {
 
 	// Center the text within the column
 	padding := width - len(text)
-	leftPad := padding / 2
+	leftPad := padding / 2 //nolint:mnd
 	rightPad := padding - leftPad
 
 	return strings.Repeat(" ", leftPad) + text + strings.Repeat(" ", rightPad)

@@ -260,15 +260,6 @@ func (m *Model) View() string {
 	return contentBuilder.String()
 }
 
-// min returns the minimum of two integers.
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
-}
-
 // renderCommandTree recursively renders the command tree.
 func (m *Model) renderCommandTree(b *strings.Builder, node *CommandNode, prefix string, isLast bool) {
 	if node == nil {
@@ -360,14 +351,14 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 	}
 
 	// Calculate available width for layout
-	availableWidth := m.width - len(treePrefix) - 2 // Account for prefix and some padding
+	availableWidth := m.width - len(treePrefix) - 2 //nolint:mnd // Account for prefix and some padding
 	if availableWidth < minViewportWidth {
 		availableWidth = minViewportWidth
 	}
 
 	// Split available width: 50% for left (command), 50% for right (output)
 	// This gives more space to the output and reduces truncation
-	leftWidth := availableWidth / 2
+	leftWidth := availableWidth / 2 //nolint:mnd
 	rightWidth := availableWidth - leftWidth
 
 	// Truncate left side if too long

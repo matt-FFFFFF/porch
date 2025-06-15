@@ -73,21 +73,7 @@ func (b *SerialBatch) executeWithProgressReporting(ctx context.Context, reporter
 	}
 
 	// Create progressive versions of child commands for reporting
-	progressiveCommands := make([]Runnable, len(b.Commands))
-	for i, cmd := range b.Commands {
-		if progressive, ok := cmd.(ProgressiveRunnable); ok {
-			// Already progressive, use as-is
-			progressiveCommands[i] = progressive
-		} else {
-			// Wrap non-progressive commands
-			if osCmd, ok := cmd.(*OSCommand); ok {
-				progressiveCommands[i] = NewProgressiveOSCommand(osCmd)
-			} else {
-				// For other command types, use original
-				progressiveCommands[i] = cmd
-			}
-		}
-	}
+	progressiveCommands := wrapAsProgressive(b.Commands)
 
 OuterLoop:
 	for i, cmd := range progressiveCommands { // Use progressive commands here!
@@ -148,29 +134,8 @@ OuterLoop:
 
 				childResults = cmd.Run(ctx)
 
-				// Report completion
-				if childResults.HasError() {
-					reporter.Report(progress.ProgressEvent{
-						CommandPath: []string{cmd.GetLabel()},
-						Type:        progress.EventFailed,
-						Message:     "Command failed",
-						Timestamp:   time.Now(),
-						Data: progress.EventData{
-							ExitCode: childResults[0].ExitCode,
-							Error:    childResults[0].Error,
-						},
-					})
-				} else {
-					reporter.Report(progress.ProgressEvent{
-						CommandPath: []string{cmd.GetLabel()},
-						Type:        progress.EventCompleted,
-						Message:     "Command completed successfully",
-						Timestamp:   time.Now(),
-						Data: progress.EventData{
-							ExitCode: childResults[0].ExitCode,
-						},
-					})
-				}
+				// Report completion using helper
+				reportCommandExecution(reporter, cmd, childResults)
 			}
 
 			prevState.State = childResults[0].Status

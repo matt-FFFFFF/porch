@@ -5,6 +5,7 @@ package runbatch
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/progress"
@@ -140,6 +141,72 @@ func (pc *ProgressContext) ReportSkipped(message string) {
 		Message:     message,
 		Timestamp:   time.Now(),
 	})
+}
+
+// reportCommandExecution is a helper function that reports command execution results
+// consistently across different progressive implementations.
+func reportCommandExecution(reporter progress.ProgressReporter, cmd Runnable, results Results) {
+	commandPath := []string{cmd.GetLabel()}
+
+	if results.HasError() {
+		var exitCode int
+		var err error
+		if len(results) > 0 {
+			exitCode = results[0].ExitCode
+			err = results[0].Error
+		} else {
+			exitCode = -1
+			err = ErrResultChildrenHasError
+		}
+
+		reporter.Report(progress.ProgressEvent{
+			CommandPath: commandPath,
+			Type:        progress.EventFailed,
+			Message:     fmt.Sprintf("Command failed: %s", cmd.GetLabel()),
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: exitCode,
+				Error:    err,
+			},
+		})
+	} else {
+		var exitCode int
+		if len(results) > 0 {
+			exitCode = results[0].ExitCode
+		}
+
+		reporter.Report(progress.ProgressEvent{
+			CommandPath: commandPath,
+			Type:        progress.EventCompleted,
+			Message:     fmt.Sprintf("Command completed successfully: %s", cmd.GetLabel()),
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: exitCode,
+			},
+		})
+	}
+}
+
+// wrapAsProgressive converts regular commands to progressive commands where possible.
+// This helper function consolidates the logic for wrapping non-progressive commands
+// with progress reporting capabilities.
+func wrapAsProgressive(commands []Runnable) []Runnable {
+	progressiveCommands := make([]Runnable, len(commands))
+	for i, cmd := range commands {
+		if progressive, ok := cmd.(ProgressiveRunnable); ok {
+			// Already progressive, use as-is
+			progressiveCommands[i] = progressive
+		} else {
+			// Wrap non-progressive commands
+			if osCmd, ok := cmd.(*OSCommand); ok {
+				progressiveCommands[i] = NewProgressiveOSCommand(osCmd)
+			} else {
+				// For other command types, use original
+				progressiveCommands[i] = cmd
+			}
+		}
+	}
+	return progressiveCommands
 }
 
 // RunRunnableWithProgress is a helper function that runs a Runnable with progress reporting.

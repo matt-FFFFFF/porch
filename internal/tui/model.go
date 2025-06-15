@@ -141,11 +141,6 @@ type Model struct {
 	// Status tracking
 	startTime time.Time // When the execution started
 
-	// Two-column layout support
-	latestOutput     string   // Latest output from any running command
-	latestOutputFrom string   // Which command the latest output is from
-	outputHistory    []string // Recent output lines for the output panel
-
 	// Style definitions
 	styles *Styles
 }
@@ -202,12 +197,11 @@ func NewStyles() *Styles {
 // NewModel creates a new TUI model.
 func NewModel(ctx context.Context) *Model {
 	return &Model{
-		ctx:           ctx,
-		rootNode:      NewCommandNode([]string{}, "Root"),
-		nodeMap:       make(map[string]*CommandNode),
-		styles:        NewStyles(),
-		startTime:     time.Now(),
-		outputHistory: make([]string, 0, 100), // Keep last 100 lines
+		ctx:       ctx,
+		rootNode:  NewCommandNode([]string{}, "Root"),
+		nodeMap:   make(map[string]*CommandNode),
+		styles:    NewStyles(),
+		startTime: time.Now(),
 	}
 }
 
@@ -396,32 +390,33 @@ func (m *Model) visitNodes(node *CommandNode, visitor func(*CommandNode)) {
 	}
 }
 
-// getMemoryUsage returns the current memory usage of this process and its children.
+// getMemoryUsage returns the current memory usage of this process.
+// It attempts to get more accurate memory usage on Unix systems,
+// falling back to Go runtime statistics on other platforms.
 func (m *Model) getMemoryUsage() string {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
-	// Get the current process memory usage in MB
+	// Get the current process memory usage in MB from Go runtime
 	processMemMB := float64(memStats.Alloc) / (1024 * 1024)
 
-	// Try to get total memory usage including child processes
-	totalMemMB := processMemMB
-
-	// On Unix systems, we can try to read /proc/self/status for more accurate memory info
-	if pidMemMB := m.getProcMemoryUsage(); pidMemMB > 0 {
-		totalMemMB = pidMemMB
+	// Try to get more accurate memory usage on Unix systems
+	if unixMemMB := m.getUnixMemoryUsage(); unixMemMB > 0 {
+		return fmt.Sprintf("%.1fMB", unixMemMB)
 	}
 
-	return fmt.Sprintf("%.1fMB", totalMemMB)
+	// Fallback to Go runtime statistics
+	return fmt.Sprintf("%.1fMB", processMemMB)
 }
 
-// getProcMemoryUsage attempts to read memory usage from /proc/self/status (Linux/Unix).
-func (m *Model) getProcMemoryUsage() float64 {
+// getUnixMemoryUsage attempts to read memory usage from /proc/self/status (Linux/Unix).
+// Returns 0 if unable to read or parse the information.
+func (m *Model) getUnixMemoryUsage() float64 {
 	// This is a best-effort attempt to get more accurate memory usage
-	// including child processes where possible
+	// on Unix-like systems. It gracefully fails on other platforms.
 	data, err := os.ReadFile("/proc/self/status")
 	if err != nil {
-		return 0
+		return 0 // Not available on this platform or permission denied
 	}
 
 	lines := strings.Split(string(data), "\n")

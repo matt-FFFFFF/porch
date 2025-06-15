@@ -18,16 +18,7 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
 		tea.EnableMouseCellMotion, // Enable mouse support
-		m.listenForProgressEvents(),
 	)
-}
-
-// listenForProgressEvents returns a command that listens for progress events.
-func (m *Model) listenForProgressEvents() tea.Cmd {
-	return tea.Cmd(func() tea.Msg {
-		// This will be implemented when we connect the progress system
-		return nil
-	})
 }
 
 // Update implements bubbletea.Model.Update.
@@ -384,26 +375,4 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		b.WriteString(rightSide)
 	}
 	b.WriteString("\n")
-}
-
-// renderCommandTreeColumn renders the command tree with proper width constraints
-func (m *Model) renderCommandTreeColumn(width int) string {
-	var treeBuilder strings.Builder
-
-	// Render the command tree
-	m.renderCommandTree(&treeBuilder, m.rootNode, "", true)
-
-	// Add completion status if commands are done
-	if m.completed {
-		treeBuilder.WriteString("\n")
-		if m.results != nil && m.results.HasError() {
-			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors")
-			treeBuilder.WriteString(completionMsg)
-		} else {
-			completionMsg := m.styles.Success.Render("✅ Execution completed successfully")
-			treeBuilder.WriteString(completionMsg)
-		}
-	}
-
-	return treeBuilder.String()
 }

@@ -81,6 +81,7 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 
 	// Channel to receive results from the command execution
 	resultChan := make(chan runbatch.Results, 1)
+
 	var cmdError error
 
 	// Start the command execution in a goroutine
@@ -100,6 +101,7 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 
 	// Start the TUI program in a goroutine
 	tuiDone := make(chan error, 1)
+
 	go func() {
 		if _, err := r.program.Run(); err != nil {
 			tuiDone <- err
@@ -118,11 +120,13 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 		// Wait for user to manually exit the TUI
 		err := <-tuiDone
 		cmdError = err
+
 		r.reporter.Close()
 
 	case err := <-tuiDone:
 		// TUI exited (user pressed 'q' or error occurred)
 		cmdError = err
+
 		r.reporter.Close()
 
 		// Wait for command to complete or timeout

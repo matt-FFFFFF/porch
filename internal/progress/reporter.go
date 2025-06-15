@@ -22,6 +22,7 @@ type ChannelReporter struct {
 // A larger buffer size reduces the chance of blocking when sending events.
 func NewChannelReporter(ctx context.Context, bufferSize int) *ChannelReporter {
 	reporterCtx, cancel := context.WithCancel(ctx)
+
 	return &ChannelReporter{
 		ch:     make(chan ProgressEvent, bufferSize),
 		ctx:    reporterCtx,
@@ -64,8 +65,10 @@ func (cr *ChannelReporter) Close() {
 // This method blocks until the reporter is closed or the context is cancelled.
 func (cr *ChannelReporter) Listen(listener ProgressListener) {
 	cr.wg.Add(1)
+
 	go func() {
 		defer cr.wg.Done()
+
 		for {
 			select {
 			case event, ok := <-cr.ch:
@@ -73,6 +76,7 @@ func (cr *ChannelReporter) Listen(listener ProgressListener) {
 					// Channel closed
 					return
 				}
+
 				listener.OnEvent(event)
 			case <-cr.ctx.Done():
 				// Context cancelled

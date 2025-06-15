@@ -186,6 +186,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	// Execute with TUI or regular mode based on flag
 	var res runbatch.Results
+
 	var execErr error
 
 	if cmd.Bool(tuiFlag) {
@@ -196,6 +197,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		tuiCtx := ctxlog.NewForTUI(ctx)
 
 		runner := tui.NewRunner(tuiCtx)
+
 		res, execErr = runner.Run(tuiCtx, topRunnable)
 		if execErr != nil {
 			logger.Error(fmt.Sprintf("TUI execution error: %s", execErr.Error()))

@@ -150,7 +150,9 @@ func reportCommandExecution(reporter progress.ProgressReporter, cmd Runnable, re
 
 	if results.HasError() {
 		var exitCode int
+
 		var err error
+
 		if len(results) > 0 {
 			exitCode = results[0].ExitCode
 			err = results[0].Error
@@ -192,6 +194,7 @@ func reportCommandExecution(reporter progress.ProgressReporter, cmd Runnable, re
 // with progress reporting capabilities.
 func wrapAsProgressive(commands []Runnable) []Runnable {
 	progressiveCommands := make([]Runnable, len(commands))
+
 	for i, cmd := range commands {
 		if progressive, ok := cmd.(ProgressiveRunnable); ok {
 			// Already progressive, use as-is
@@ -206,6 +209,7 @@ func wrapAsProgressive(commands []Runnable) []Runnable {
 			}
 		}
 	}
+
 	return progressiveCommands
 }
 

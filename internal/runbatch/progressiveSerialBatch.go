@@ -11,7 +11,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
-// Ensure SerialBatch implements ProgressiveRunnable
+// Ensure SerialBatch implements ProgressiveRunnable.
 var _ ProgressiveRunnable = (*SerialBatch)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for SerialBatch.
@@ -61,7 +61,7 @@ func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Pro
 	return results
 }
 
-// executeWithProgressReporting executes the batch using the original logic but with progress reporting
+// executeWithProgressReporting executes the batch using the original logic but with progress reporting.
 func (b *SerialBatch) executeWithProgressReporting(ctx context.Context, reporter progress.ProgressReporter) Results {
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""

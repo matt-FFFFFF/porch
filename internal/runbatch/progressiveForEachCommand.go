@@ -13,7 +13,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
-// Ensure ForEachCommand implements ProgressiveRunnable
+// Ensure ForEachCommand implements ProgressiveRunnable.
 var _ ProgressiveRunnable = (*ForEachCommand)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for ForEachCommand.
@@ -77,6 +77,7 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 		result.Error = err
 		result.ExitCode = -1
 		result.Status = ResultStatusError
+
 		return Results{result}
 	}
 
@@ -138,6 +139,7 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 
 	// Handle different execution modes with progressive execution
 	var run Runnable
+
 	if f.Mode == ForEachParallel {
 		base.Label = f.Label + " (parallel)"
 		run = &ParallelBatch{
@@ -159,13 +161,15 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 
 	// Execute with progress reporting
 	var results Results
+
 	if progressive, ok := run.(ProgressiveRunnable); ok {
 		// Create a child reporter for the batch execution
 		childReporter := NewChildReporter(reporter, []string{f.Label})
 		results = progressive.RunWithProgress(ctx, childReporter)
 	} else {
-		// Fallback to regular execution
-		results = run.Run(ctx)
+		// Fallback to regular execution with basic progress events
+		childReporter := NewChildReporter(reporter, []string{f.Label})
+		results = RunRunnableWithProgress(ctx, run, childReporter, []string{run.GetLabel()})
 	}
 
 	// If any child has an error, set the error on the parent

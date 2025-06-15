@@ -12,7 +12,7 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
-// Ensure ParallelBatch implements ProgressiveRunnable
+// Ensure ParallelBatch implements ProgressiveRunnable.
 var _ ProgressiveRunnable = (*ParallelBatch)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for ParallelBatch.
@@ -65,7 +65,7 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.P
 	return results
 }
 
-// executeWithProgressReporting executes the batch using the original logic but with progress reporting
+// executeWithProgressReporting executes the batch using the original logic but with progress reporting.
 func (b *ParallelBatch) executeWithProgressReporting(ctx context.Context, reporter progress.ProgressReporter, progressiveCommands []Runnable) Results {
 	children := make(Results, 0, len(progressiveCommands))
 	wg := &sync.WaitGroup{}

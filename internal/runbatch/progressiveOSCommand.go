@@ -65,7 +65,7 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 	}()
 
 	// Execute the original command
-	results := c.OSCommand.Run(ctx)
+	results := c.Run(ctx)
 
 	// Report completion based on results
 	if len(results) > 0 {
@@ -96,6 +96,6 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 	return results
 }
 
-// Ensure ProgressiveOSCommand implements both interfaces
+// Ensure ProgressiveOSCommand implements both interfaces.
 var _ Runnable = (*ProgressiveOSCommand)(nil)
 var _ ProgressiveRunnable = (*ProgressiveOSCommand)(nil)

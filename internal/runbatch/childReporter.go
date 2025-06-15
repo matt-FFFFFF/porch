@@ -36,6 +36,7 @@ func (cr *ChildReporter) Report(event progress.ProgressEvent) {
 		// If event has no path, use our prefix
 		event.CommandPath = cr.prefix
 	}
+
 	cr.parent.Report(event)
 }
 

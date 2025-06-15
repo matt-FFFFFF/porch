@@ -35,6 +35,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.mutex.Unlock()
+
 		return m, nil
 
 	case ProgressEventMsg:
@@ -48,6 +49,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Update error messages from final results to get specific errors
 		m.updateErrorsFromResults()
 		m.mutex.Unlock()
+
 		return m, nil
 
 	case tea.QuitMsg:
@@ -79,6 +81,7 @@ func (m *Model) handleMouseEvent(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		if m.scrollOffset > 0 {
 			m.scrollOffset--
 		}
+
 		return m, nil
 	case tea.MouseButtonWheelDown:
 		// Scroll down
@@ -86,6 +89,7 @@ func (m *Model) handleMouseEvent(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		if m.scrollOffset < maxScroll {
 			m.scrollOffset++
 		}
+
 		return m, nil
 	}
 
@@ -109,6 +113,7 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if m.scrollOffset > 0 {
 			m.scrollOffset--
 		}
+
 		return m, nil
 	case "down", "j":
 		// Scroll down
@@ -116,23 +121,28 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if m.scrollOffset < maxScroll {
 			m.scrollOffset++
 		}
+
 		return m, nil
 	case "pgup":
 		// Page up (scroll up by viewport height)
 		scrollAmount := m.getViewportHeight()
+
 		m.scrollOffset -= scrollAmount
 		if m.scrollOffset < 0 {
 			m.scrollOffset = 0
 		}
+
 		return m, nil
 	case "pgdown":
 		// Page down (scroll down by viewport height)
 		scrollAmount := m.getViewportHeight()
 		maxScroll := m.calculateMaxScrollOffset()
 		m.scrollOffset += scrollAmount
+
 		if m.scrollOffset > maxScroll {
 			m.scrollOffset = maxScroll
 		}
+
 		return m, nil
 	case "home":
 		// Jump to top
@@ -157,6 +167,7 @@ func (m *Model) View() string {
 	defer m.mutex.RUnlock()
 
 	var contentBuilder strings.Builder
+
 	var lines []string
 
 	// Title
@@ -165,6 +176,7 @@ func (m *Model) View() string {
 
 	// Command tree - build all content first to count lines
 	var treeBuilder strings.Builder
+
 	m.renderCommandTree(&treeBuilder, m.rootNode, "", true)
 	treeContent := treeBuilder.String()
 	treeLines := strings.Split(strings.TrimSuffix(treeContent, "\n"), "\n")
@@ -182,6 +194,7 @@ func (m *Model) View() string {
 
 	if completed {
 		lines = append(lines, "")
+
 		if results != nil && results.HasError() {
 			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors")
 			lines = append(lines, completionMsg)
@@ -203,6 +216,7 @@ func (m *Model) View() string {
 	// Build visible content
 	for i := startLine; i < endLine && i < len(lines); i++ {
 		contentBuilder.WriteString(lines[i])
+
 		if i < endLine-1 && i < len(lines)-1 {
 			contentBuilder.WriteString("\n")
 		}
@@ -234,6 +248,7 @@ func (m *Model) View() string {
 		if completed {
 			helpText = "↑/↓ or j/k to scroll, 'q' to quit and return to terminal"
 		}
+
 		help := m.styles.Help.Render(helpText)
 		contentBuilder.WriteString(help)
 	}
@@ -246,6 +261,7 @@ func min(a, b int) int {
 	if a < b {
 		return a
 	}
+
 	return b
 }
 
@@ -260,6 +276,7 @@ func (m *Model) renderCommandTree(b *strings.Builder, node *CommandNode, prefix 
 		for i, child := range node.Children {
 			m.renderCommandTree(b, child, "", i == len(node.Children)-1)
 		}
+
 		return
 	}
 
@@ -295,6 +312,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 
 	// Status icon and styling
 	var statusIcon string
+
 	var styledName string
 
 	switch status {
@@ -325,6 +343,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		if endTime != nil {
 			elapsed = endTime.Sub(*startTime)
 		}
+
 		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(time.Millisecond)))
 	}
 
@@ -371,8 +390,10 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 	// Build the complete line
 	b.WriteString(treePrefix)
 	b.WriteString(paddedLeftSide)
+
 	if rightSide != "" {
 		b.WriteString(rightSide)
 	}
+
 	b.WriteString("\n")
 }

@@ -219,6 +219,7 @@ func (m *Model) getViewportHeight() int {
 	if m.height <= reservedLines {
 		return 1 // Minimum viewport height
 	}
+
 	return m.height - reservedLines
 }
 
@@ -228,6 +229,7 @@ func (m *Model) calculateMaxScrollOffset() int {
 	if m.totalLines <= viewportHeight {
 		return 0 // No scrolling needed
 	}
+
 	return m.totalLines - viewportHeight
 }
 
@@ -237,6 +239,7 @@ func (m *Model) resetScrollIfNeeded() {
 	if m.scrollOffset > maxScroll {
 		m.scrollOffset = maxScroll
 	}
+
 	if m.scrollOffset < 0 {
 		m.scrollOffset = 0
 	}
@@ -267,6 +270,7 @@ func (m *Model) getOrCreateNode(path []string, name string) *CommandNode {
 	// Add to parent's children
 	if len(path) > 1 {
 		parentPath := path[:len(path)-1]
+
 		parentKey := pathToString(parentPath)
 		if parent, exists := m.nodeMap[parentKey]; exists {
 			parent.Children = append(parent.Children, node)
@@ -299,6 +303,7 @@ func (m *Model) ensureParentNodes(path []string) {
 			// Add to its parent
 			if len(parentPath) > 1 {
 				grandParentPath := parentPath[:len(parentPath)-1]
+
 				grandParentKey := pathToString(grandParentPath)
 				if grandParent, exists := m.nodeMap[grandParentKey]; exists {
 					grandParent.Children = append(grandParent.Children, parentNode)
@@ -331,6 +336,7 @@ func (m *Model) processProgressEvent(event progress.ProgressEvent) tea.Cmd {
 	case progress.EventFailed:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusFailed)
+
 		if event.Data.Error != nil {
 			node.UpdateError(event.Data.Error.Error())
 		}
@@ -374,6 +380,7 @@ func (m *Model) getCommandStats() (completed, running, pending, failed int) {
 			failed++
 		}
 	})
+
 	return
 }
 
@@ -395,6 +402,7 @@ func (m *Model) visitNodes(node *CommandNode, visitor func(*CommandNode)) {
 // falling back to Go runtime statistics on other platforms.
 func (m *Model) getMemoryUsage() string {
 	var memStats runtime.MemStats
+
 	runtime.ReadMemStats(&memStats)
 
 	// Get the current process memory usage in MB from Go runtime
@@ -445,6 +453,7 @@ func (m *Model) formatDuration(d time.Duration) string {
 	if hours > 0 {
 		return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 	}
+
 	return fmt.Sprintf("%02d:%02d", minutes, seconds)
 }
 
@@ -493,6 +502,7 @@ func (m *Model) formatColumn(text string, width int) string {
 		if width > 3 {
 			return text[:width-3] + "..."
 		}
+
 		return text[:width]
 	}
 
@@ -516,7 +526,7 @@ func (m *Model) updateErrorsFromResults() {
 	m.updateNodeErrorsFromResults([]string{}, m.results)
 }
 
-// updateNodeErrorsFromResults recursively updates node errors from results
+// updateNodeErrorsFromResults recursively updates node errors from results.
 func (m *Model) updateNodeErrorsFromResults(basePath []string, results runbatch.Results) {
 	for _, result := range results {
 		// Build the command path for this result

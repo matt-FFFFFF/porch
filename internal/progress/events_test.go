@@ -160,6 +160,7 @@ func TestChannelReporter_Listen(t *testing.T) {
 
 	// Check that all events were received
 	assert.Len(t, listener.events, len(events))
+
 	for i, expectedEvent := range events {
 		assert.Equal(t, expectedEvent.Type, listener.events[i].Type)
 		assert.Equal(t, expectedEvent.Message, listener.events[i].Message)

@@ -61,7 +61,7 @@ func TestProgressiveRunnableInterface(t *testing.T) {
 	assert.Nil(t, runnable)
 }
 
-// MockProgressiveRunnable is a simple implementation for testing
+// MockProgressiveRunnable is a simple implementation for testing.
 type MockProgressiveRunnable struct {
 	*BaseCommand
 	events []progress.ProgressEvent
@@ -104,6 +104,7 @@ func (m *MockProgressiveRunnable) RunWithProgress(ctx context.Context, reporter 
 
 func TestMockProgressiveRunnable(t *testing.T) {
 	ctx := context.Background()
+
 	reporter := progress.NewChannelReporter(ctx, 10)
 	defer reporter.Close()
 
@@ -115,6 +116,7 @@ func TestMockProgressiveRunnable(t *testing.T) {
 
 	// Verify it implements both interfaces
 	var _ Runnable = mock
+
 	var _ ProgressiveRunnable = mock
 
 	// Test RunWithProgress

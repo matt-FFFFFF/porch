@@ -5,7 +5,6 @@ package runbatch
 
 import (
 	"context"
-	"slices"
 	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/progress"
@@ -16,12 +15,12 @@ var _ ProgressiveRunnable = (*SerialBatch)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for SerialBatch.
 // It reuses the original execution logic but adds progress reporting for child commands.
-func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
 	// Our command path is just our label - the reporter will handle prefixing
 	commandPath := []string{b.Label}
 
 	// Report that this batch is starting
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventStarted,
 		Message:     "Starting serial batch",
@@ -36,7 +35,7 @@ func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Pro
 
 	// Report completion based on results
 	if results.HasError() {
-		reporter.Report(progress.ProgressEvent{
+		reporter.Report(progress.Event{
 			CommandPath: commandPath,
 			Type:        progress.EventFailed,
 			Message:     "Serial batch failed",
@@ -47,7 +46,7 @@ func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Pro
 			},
 		})
 	} else {
-		reporter.Report(progress.ProgressEvent{
+		reporter.Report(progress.Event{
 			CommandPath: commandPath,
 			Type:        progress.EventCompleted,
 			Message:     "Serial batch completed successfully",
@@ -62,7 +61,7 @@ func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Pro
 }
 
 // executeWithProgressReporting executes the batch using the original logic but with progress reporting.
-func (b *SerialBatch) executeWithProgressReporting(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (b *SerialBatch) executeWithProgressReporting(ctx context.Context, reporter progress.Reporter) Results {
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""
 
@@ -88,7 +87,7 @@ OuterLoop:
 			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
 				// Report skipped command
-				reporter.Report(progress.ProgressEvent{
+				reporter.Report(progress.Event{
 					CommandPath: []string{cmd.GetLabel()},
 					Type:        progress.EventSkipped,
 					Message:     "Command skipped intentionally",
@@ -104,7 +103,7 @@ OuterLoop:
 
 			case ShouldRunActionError:
 				// Report skipped command due to error
-				reporter.Report(progress.ProgressEvent{
+				reporter.Report(progress.Event{
 					CommandPath: []string{cmd.GetLabel()},
 					Type:        progress.EventSkipped,
 					Message:     "Command skipped due to previous error",
@@ -125,7 +124,7 @@ OuterLoop:
 				childResults = progressive.RunWithProgress(ctx, reporter)
 			} else {
 				// Fallback to regular execution with simulated progress events
-				reporter.Report(progress.ProgressEvent{
+				reporter.Report(progress.Event{
 					CommandPath: []string{cmd.GetLabel()},
 					Type:        progress.EventStarted,
 					Message:     "Starting command",
@@ -151,7 +150,7 @@ OuterLoop:
 				}
 			}
 
-			results = slices.Concat(results, childResults)
+			results = append(results, childResults...)
 		}
 	}
 

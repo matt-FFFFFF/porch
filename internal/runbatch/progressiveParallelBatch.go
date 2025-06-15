@@ -5,7 +5,6 @@ package runbatch
 
 import (
 	"context"
-	"slices"
 	"sync"
 	"time"
 
@@ -17,12 +16,12 @@ var _ ProgressiveRunnable = (*ParallelBatch)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for ParallelBatch.
 // It reuses the original execution logic but adds progress reporting for child commands.
-func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
 	// Our command path is just our label - the reporter will handle prefixing
 	commandPath := []string{b.Label}
 
 	// Report that this batch is starting
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventStarted,
 		Message:     "Starting parallel batch",
@@ -40,7 +39,7 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.P
 
 	// Report completion based on results
 	if results.HasError() {
-		reporter.Report(progress.ProgressEvent{
+		reporter.Report(progress.Event{
 			CommandPath: commandPath,
 			Type:        progress.EventFailed,
 			Message:     "Parallel batch failed",
@@ -51,7 +50,7 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.P
 			},
 		})
 	} else {
-		reporter.Report(progress.ProgressEvent{
+		reporter.Report(progress.Event{
 			CommandPath: commandPath,
 			Type:        progress.EventCompleted,
 			Message:     "Parallel batch completed successfully",
@@ -66,7 +65,9 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.P
 }
 
 // executeWithProgressReporting executes the batch using the original logic but with progress reporting.
-func (b *ParallelBatch) executeWithProgressReporting(ctx context.Context, reporter progress.ProgressReporter, progressiveCommands []Runnable) Results {
+func (b *ParallelBatch) executeWithProgressReporting(
+	ctx context.Context, reporter progress.Reporter, progressiveCommands []Runnable,
+) Results {
 	children := make(Results, 0, len(progressiveCommands))
 	wg := &sync.WaitGroup{}
 	resChan := make(chan Results, len(progressiveCommands))
@@ -87,7 +88,7 @@ func (b *ParallelBatch) executeWithProgressReporting(ctx context.Context, report
 				childResults = progressive.RunWithProgress(ctx, reporter)
 			} else {
 				// Fallback to regular execution with simulated progress events
-				reporter.Report(progress.ProgressEvent{
+				reporter.Report(progress.Event{
 					CommandPath: []string{c.GetLabel()},
 					Type:        progress.EventStarted,
 					Message:     "Starting command",
@@ -115,7 +116,7 @@ func (b *ParallelBatch) executeWithProgressReporting(ctx context.Context, report
 	close(resChan)
 
 	for r := range resChan {
-		children = slices.Concat(children, r)
+		children = append(children, r...)
 	}
 
 	res := Results{&Result{

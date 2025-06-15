@@ -16,26 +16,26 @@ import (
 type Runner struct {
 	model    *Model
 	program  *tea.Program
-	reporter *TUIReporter
+	reporter *Reporter
 	mutex    sync.Mutex
 }
 
-// TUIReporter implements ProgressReporter and forwards events to the TUI.
-type TUIReporter struct {
+// Reporter implements ProgressReporter and forwards events to the TUI.
+type Reporter struct {
 	program *tea.Program
 	closed  bool
 	mutex   sync.RWMutex
 }
 
 // NewTUIReporter creates a new TUI progress reporter.
-func NewTUIReporter(program *tea.Program) *TUIReporter {
-	return &TUIReporter{
+func NewTUIReporter(program *tea.Program) *Reporter {
+	return &Reporter{
 		program: program,
 	}
 }
 
 // Report implements ProgressReporter.Report.
-func (tr *TUIReporter) Report(event progress.ProgressEvent) {
+func (tr *Reporter) Report(event progress.Event) {
 	tr.mutex.RLock()
 	defer tr.mutex.RUnlock()
 
@@ -48,7 +48,7 @@ func (tr *TUIReporter) Report(event progress.ProgressEvent) {
 }
 
 // Close implements ProgressReporter.Close.
-func (tr *TUIReporter) Close() {
+func (tr *Reporter) Close() {
 	tr.mutex.Lock()
 	defer tr.mutex.Unlock()
 	tr.closed = true
@@ -70,7 +70,7 @@ func NewRunner(ctx context.Context) *Runner {
 }
 
 // GetReporter returns the progress reporter for this TUI runner.
-func (r *Runner) GetReporter() progress.ProgressReporter {
+func (r *Runner) GetReporter() progress.Reporter {
 	return r.reporter
 }
 
@@ -165,7 +165,9 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 
 // RunWithoutTUI runs a command with progress reporting but without the TUI.
 // This is useful for headless environments or when TUI is not desired.
-func RunWithoutTUI(ctx context.Context, runnable runbatch.Runnable, reporter progress.ProgressReporter) runbatch.Results {
+func RunWithoutTUI(
+	ctx context.Context, runnable runbatch.Runnable, reporter progress.Reporter,
+) runbatch.Results {
 	// Check if the runnable supports progress reporting
 	if progressive, ok := runnable.(runbatch.ProgressiveRunnable); ok {
 		return progressive.RunWithProgress(ctx, reporter)

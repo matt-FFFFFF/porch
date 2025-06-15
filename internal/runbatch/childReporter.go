@@ -10,12 +10,12 @@ import (
 // ChildReporter creates a child progress reporter that prefixes command paths.
 // This is used by progressive implementations to create nested progress reporting.
 type ChildReporter struct {
-	parent progress.ProgressReporter
+	parent progress.Reporter
 	prefix []string
 }
 
 // NewChildReporter creates a new child reporter with the given path prefix.
-func NewChildReporter(parent progress.ProgressReporter, prefix []string) *ChildReporter {
+func NewChildReporter(parent progress.Reporter, prefix []string) *ChildReporter {
 	return &ChildReporter{
 		parent: parent,
 		prefix: prefix,
@@ -23,7 +23,7 @@ func NewChildReporter(parent progress.ProgressReporter, prefix []string) *ChildR
 }
 
 // Report implements ProgressReporter by correctly handling nested command paths.
-func (cr *ChildReporter) Report(event progress.ProgressEvent) {
+func (cr *ChildReporter) Report(event progress.Event) {
 	// If the event has a non-empty command path, it represents the relative path
 	// from our context. We need to prepend our prefix to create the full path.
 	if len(event.CommandPath) > 0 {

@@ -17,12 +17,12 @@ import (
 var _ ProgressiveRunnable = (*ForEachCommand)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for ForEachCommand.
-func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
 	// Our command path is just our label - the reporter will handle prefixing
 	commandPath := []string{f.Label}
 
 	// Report that this foreach is starting
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventStarted,
 		Message:     "Starting foreach command",
@@ -35,7 +35,7 @@ func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.
 
 	// Report completion based on results
 	if results.HasError() {
-		reporter.Report(progress.ProgressEvent{
+		reporter.Report(progress.Event{
 			CommandPath: commandPath,
 			Type:        progress.EventFailed,
 			Message:     "ForEach command failed",
@@ -46,7 +46,7 @@ func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.
 			},
 		})
 	} else {
-		reporter.Report(progress.ProgressEvent{
+		reporter.Report(progress.Event{
 			CommandPath: commandPath,
 			Type:        progress.EventCompleted,
 			Message:     "ForEach command completed successfully",
@@ -62,7 +62,7 @@ func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.
 
 // runWithProgressiveChildren runs the foreach command using the original logic
 // but with progressive reporting for child batches.
-func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporter progress.Reporter) Results {
 	// This is mostly copied from the original Run method, but with progressive execution
 	result := &Result{
 		Label:    f.Label,

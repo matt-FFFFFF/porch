@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-// ProgressEvent represents a real-time update from command execution.
+// Event represents a real-time update from command execution.
 // Events are emitted throughout the command lifecycle to provide
 // real-time feedback for TUI and other monitoring systems.
-type ProgressEvent struct {
+type Event struct {
 	CommandPath []string  // Hierarchical path to command (e.g., ["Build", "Quality Checks", "Unit Tests"])
 	Type        EventType // Event type indicating what happened
 	Message     string    // Human-readable status message
@@ -70,40 +70,40 @@ type EventData struct {
 	ProgressMessage string // Additional progress information
 }
 
-// ProgressReporter is the interface for sending progress events.
+// Reporter is the interface for sending progress events.
 // Commands implement this to emit real-time updates during execution.
-type ProgressReporter interface {
+type Reporter interface {
 	// Report sends a progress event. Implementations should be non-blocking
 	// and handle the case where the receiver might not be listening.
-	Report(event ProgressEvent)
+	Report(event Event)
 	// Close signals that no more events will be sent and cleans up resources.
 	Close()
 }
 
-// ProgressListener receives progress events from commands.
+// Listener receives progress events from commands.
 // TUI implementations and other monitoring systems implement this interface.
-type ProgressListener interface {
+type Listener interface {
 	// OnEvent is called when a progress event is received.
 	// Implementations should handle events quickly to avoid blocking
 	// the reporting goroutine.
-	OnEvent(event ProgressEvent)
+	OnEvent(event Event)
 }
 
-// NullReporter is a no-op implementation of ProgressReporter.
+// NullReporter is a no-op implementation of Reporter.
 // Used when progress reporting is not needed.
 type NullReporter struct{}
 
-// Report implements ProgressReporter.Report by doing nothing.
-func (nr *NullReporter) Report(event ProgressEvent) {
+// Report implements Reporter.Report by doing nothing.
+func (nr *NullReporter) Report(_ Event) {
 	// No-op
 }
 
-// Close implements ProgressReporter.Close by doing nothing.
+// Close implements Reporter.Close by doing nothing.
 func (nr *NullReporter) Close() {
 	// No-op
 }
 
 // NewNullReporter creates a new NullReporter.
-func NewNullReporter() ProgressReporter {
+func NewNullReporter() Reporter {
 	return &NullReporter{}
 }

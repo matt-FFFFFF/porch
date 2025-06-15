@@ -64,7 +64,6 @@ func TestProgressiveRunnableInterface(t *testing.T) {
 // MockProgressiveRunnable is a simple implementation for testing.
 type MockProgressiveRunnable struct {
 	*BaseCommand
-	events []progress.ProgressEvent
 }
 
 func (m *MockProgressiveRunnable) Run(ctx context.Context) Results {
@@ -74,23 +73,23 @@ func (m *MockProgressiveRunnable) Run(ctx context.Context) Results {
 	}}
 }
 
-func (m *MockProgressiveRunnable) RunWithProgress(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (m *MockProgressiveRunnable) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
 	// Report start
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: []string{m.Label},
 		Type:        progress.EventStarted,
 		Message:     "Starting " + m.Label,
 	})
 
 	// Report some progress
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: []string{m.Label},
 		Type:        progress.EventProgress,
 		Message:     "Processing " + m.Label,
 	})
 
 	// Report completion
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: []string{m.Label},
 		Type:        progress.EventCompleted,
 		Message:     "Completed " + m.Label,
@@ -126,7 +125,7 @@ func TestMockProgressiveRunnable(t *testing.T) {
 	assert.Equal(t, ResultStatusSuccess, results[0].Status)
 
 	// Verify events were sent
-	events := make([]progress.ProgressEvent, 0, 3)
+	events := make([]progress.Event, 0, 3)
 
 OuterLoop:
 	for len(events) < 3 {

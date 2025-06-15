@@ -107,7 +107,7 @@ func TestModel_ProcessProgressEvent(t *testing.T) {
 	commandPath := []string{"build", "test"}
 
 	// Test EventStarted
-	event := progress.ProgressEvent{
+	event := progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventStarted,
 		Message:     "Starting test",
@@ -124,7 +124,7 @@ func TestModel_ProcessProgressEvent(t *testing.T) {
 	assert.Equal(t, StatusRunning, status)
 
 	// Test EventOutput
-	event = progress.ProgressEvent{
+	event = progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventOutput,
 		Data: progress.EventData{
@@ -139,7 +139,7 @@ func TestModel_ProcessProgressEvent(t *testing.T) {
 	assert.Equal(t, "Test output line", output)
 
 	// Test EventCompleted
-	event = progress.ProgressEvent{
+	event = progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventCompleted,
 		Message:     "Test completed",
@@ -152,7 +152,7 @@ func TestModel_ProcessProgressEvent(t *testing.T) {
 	assert.Equal(t, StatusSuccess, status)
 
 	// Test EventFailed
-	event = progress.ProgressEvent{
+	event = progress.Event{
 		CommandPath: commandPath,
 		Type:        progress.EventFailed,
 		Message:     "Test failed",
@@ -171,10 +171,10 @@ func TestModel_ProcessProgressEvent(t *testing.T) {
 
 func TestTUIReporter(t *testing.T) {
 	// This is a basic test since we can't easily test the full bubbletea integration
-	reporter := &TUIReporter{}
+	reporter := &Reporter{}
 
 	// Test that reporting on a nil program doesn't panic
-	event := progress.ProgressEvent{
+	event := progress.Event{
 		CommandPath: []string{"test"},
 		Type:        progress.EventStarted,
 		Message:     "Test message",

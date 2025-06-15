@@ -11,6 +11,10 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
+const (
+	defaultProgressiveLogChannelBufferSize = 10 // Size of the log channel buffer
+)
+
 // ProgressiveOSCommand extends OSCommand with progress reporting capabilities.
 // It implements both Runnable and ProgressiveRunnable interfaces.
 type ProgressiveOSCommand struct {
@@ -26,17 +30,17 @@ func NewProgressiveOSCommand(osCommand *OSCommand) *ProgressiveOSCommand {
 
 // RunWithProgress implements ProgressiveRunnable.RunWithProgress.
 // It executes the OS command while providing real-time progress updates.
-func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter progress.ProgressReporter) Results {
+func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
 	// Report that we're starting with our command label as the path
-	reporter.Report(progress.ProgressEvent{
+	reporter.Report(progress.Event{
 		CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
 		Type:        progress.EventStarted,
 		Message:     fmt.Sprintf("Starting %s", c.GetLabel()),
 		Timestamp:   time.Now(),
 	})
 
-	logCh := make(chan string, 10) // Buffered channel for log messages
-	ctx = context.WithValue(ctx, ProgressiveLogChannelKey{}, logCh)
+	logCh := make(chan string, defaultProgressiveLogChannelBufferSize) // Buffered channel for log messages
+	ctx = context.WithValue(ctx, ProgressiveLogChannelKey{}, (chan<- string)(logCh))
 	ctx = context.WithValue(ctx, ProgressiveLogUpdateInterval{}, time.Second) // Update every second
 
 	// This goroutine reads from the log channel and reports updates
@@ -50,7 +54,7 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 					return // Channel closed, exit
 				}
 				// Report the log message as a progress event
-				reporter.Report(progress.ProgressEvent{
+				reporter.Report(progress.Event{
 					CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
 					Type:        progress.EventProgress,
 					Message:     fmt.Sprintf("Output from %s", c.GetLabel()),
@@ -70,7 +74,7 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 	// Report completion based on results
 	if len(results) > 0 {
 		if results.HasError() {
-			reporter.Report(progress.ProgressEvent{
+			reporter.Report(progress.Event{
 				CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
 				Type:        progress.EventFailed,
 				Message:     fmt.Sprintf("Command failed: %s", c.GetLabel()),
@@ -81,7 +85,7 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 				},
 			})
 		} else {
-			reporter.Report(progress.ProgressEvent{
+			reporter.Report(progress.Event{
 				CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
 				Type:        progress.EventCompleted,
 				Message:     fmt.Sprintf("Command completed: %s", c.GetLabel()),

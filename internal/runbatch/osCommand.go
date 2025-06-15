@@ -22,8 +22,9 @@ import (
 )
 
 const (
-	maxBufferSize     = 8 * 1024 * 1024 // 8MB
-	maxLastLineLength = 120
+	maxBufferSize        = 8 * 1024 * 1024 // 8MB
+	maxLastLineLength    = 120
+	defaultTickerSeconds = 10 // Default ticker interval for process status updates
 )
 
 var _ Runnable = (*OSCommand)(nil)
@@ -76,7 +77,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
 
-	tickerInterval := 10 * time.Second // Interval for the process watchdog ticker
+	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
 
 	var logCh chan string
 
@@ -186,6 +187,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		ticker := time.NewTicker(tickerInterval)
 		defer ticker.Stop()
 
+		var lastLogSent string
+
 		for {
 			select {
 			case <-done:
@@ -212,7 +215,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				msg := sb.String()
 
-				if logCh != nil {
+				if logCh != nil && lastLine != lastLogSent {
 					logCh <- msg // Send the status message to the log channel
 				}
 

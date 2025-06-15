@@ -67,7 +67,7 @@ func TestNullReporter(t *testing.T) {
 	require.NotNil(t, reporter)
 
 	// These should not panic
-	reporter.Report(ProgressEvent{
+	reporter.Report(Event{
 		CommandPath: []string{"test"},
 		Type:        EventStarted,
 		Message:     "test message",
@@ -83,7 +83,7 @@ func TestChannelReporter(t *testing.T) {
 	require.NotNil(t, reporter)
 
 	// Test reporting events
-	event := ProgressEvent{
+	event := Event{
 		CommandPath: []string{"test", "command"},
 		Type:        EventStarted,
 		Message:     "Test started",
@@ -105,7 +105,7 @@ func TestChannelReporter(t *testing.T) {
 	reporter.Close()
 
 	// Test that closed reporter drops events
-	reporter.Report(ProgressEvent{
+	reporter.Report(Event{
 		Type:    EventCompleted,
 		Message: "Should be dropped",
 	})
@@ -118,19 +118,19 @@ func TestChannelReporter_BufferOverflow(t *testing.T) {
 	require.NotNil(t, reporter)
 
 	// Fill the buffer
-	reporter.Report(ProgressEvent{Type: EventStarted, Message: "Event 1"})
+	reporter.Report(Event{Type: EventStarted, Message: "Event 1"})
 
 	// This should not block due to the non-blocking send
-	reporter.Report(ProgressEvent{Type: EventProgress, Message: "Event 2"})
+	reporter.Report(Event{Type: EventProgress, Message: "Event 2"})
 
 	reporter.Close()
 }
 
 type mockListener struct {
-	events []ProgressEvent
+	events []Event
 }
 
-func (ml *mockListener) OnEvent(event ProgressEvent) {
+func (ml *mockListener) OnEvent(event Event) {
 	ml.events = append(ml.events, event)
 }
 
@@ -143,7 +143,7 @@ func TestChannelReporter_Listen(t *testing.T) {
 	reporter.Listen(listener)
 
 	// Send some events
-	events := []ProgressEvent{
+	events := []Event{
 		{Type: EventStarted, Message: "Started"},
 		{Type: EventProgress, Message: "Progress"},
 		{Type: EventCompleted, Message: "Completed"},

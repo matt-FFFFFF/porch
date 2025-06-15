@@ -13,6 +13,10 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
+const (
+	minStatusBarAvailableHeight = 10
+)
+
 // Init implements bubbletea.Model.Init.
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
@@ -62,7 +66,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // ProgressEventMsg wraps a progress event for the tea framework.
 type ProgressEventMsg struct {
-	Event progress.ProgressEvent
+	Event progress.Event
 }
 
 // CommandCompletedMsg indicates that all commands have finished executing.
@@ -223,7 +227,7 @@ func (m *Model) View() string {
 	}
 
 	// Add scroll indicators and help text
-	if m.height > 10 { // Only show help if we have enough space
+	if m.height > minStatusBarAvailableHeight { // Only show help if we have enough space
 		contentBuilder.WriteString("\n")
 		contentBuilder.WriteString("\n") // Extra line gap before status bar
 
@@ -357,8 +361,8 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 
 	// Calculate available width for layout
 	availableWidth := m.width - len(treePrefix) - 2 // Account for prefix and some padding
-	if availableWidth < 40 {
-		availableWidth = 40 // Minimum width
+	if availableWidth < minViewportWidth {
+		availableWidth = minViewportWidth
 	}
 
 	// Split available width: 50% for left (command), 50% for right (output)
@@ -368,8 +372,8 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 
 	// Truncate left side if too long
 	if len(leftSide) > leftWidth {
-		if leftWidth > 3 {
-			leftSide = leftSide[:leftWidth-3] + "..."
+		if leftWidth > len(ellipsis) {
+			leftSide = leftSide[:leftWidth-len(ellipsis)] + ellipsis
 		} else {
 			leftSide = leftSide[:leftWidth]
 		}
@@ -377,8 +381,8 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 
 	// Truncate right side if too long
 	if len(rightSide) > rightWidth {
-		if rightWidth > 3 {
-			rightSide = rightSide[:rightWidth-3] + "..."
+		if rightWidth > len(ellipsis) {
+			rightSide = rightSide[:rightWidth-len(ellipsis)] + ellipsis
 		} else {
 			rightSide = rightSide[:rightWidth]
 		}

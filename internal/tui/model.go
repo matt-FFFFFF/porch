@@ -23,10 +23,19 @@ import (
 type CommandStatus int
 
 const (
+	// StatusPending indicates the command is waiting to be executed.
 	StatusPending CommandStatus = iota
+	// StatusRunning indicates the command is currently executing.
 	StatusRunning
+	// StatusSuccess indicates the command completed successfully.
 	StatusSuccess
+	// StatusFailed indicates the command failed.
 	StatusFailed
+)
+
+const (
+	minViewportWidth = 40    // Minimum width for the TUI viewport
+	ellipsis         = "..." // Used for truncating long text
 )
 
 // String returns a string representation of the command status.
@@ -124,7 +133,7 @@ func (cn *CommandNode) GetDisplayInfo() (CommandStatus, string, string, string, 
 // Model represents the TUI application state.
 type Model struct {
 	ctx       context.Context
-	reporter  progress.ProgressReporter
+	reporter  progress.Reporter
 	rootNode  *CommandNode
 	nodeMap   map[string]*CommandNode // Maps path strings to nodes for quick lookup
 	width     int
@@ -206,7 +215,7 @@ func NewModel(ctx context.Context) *Model {
 }
 
 // SetReporter sets the progress reporter for the model.
-func (m *Model) SetReporter(reporter progress.ProgressReporter) {
+func (m *Model) SetReporter(reporter progress.Reporter) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.reporter = reporter
@@ -308,16 +317,19 @@ func (m *Model) ensureParentNodes(path []string) {
 				if grandParent, exists := m.nodeMap[grandParentKey]; exists {
 					grandParent.Children = append(grandParent.Children, parentNode)
 				}
-			} else {
-				// Add to root
-				m.rootNode.Children = append(m.rootNode.Children, parentNode)
+
+				continue
 			}
+			// Add to root
+			m.rootNode.Children = append(m.rootNode.Children, parentNode)
+
+			continue
 		}
 	}
 }
 
 // processProgressEvent handles incoming progress events.
-func (m *Model) processProgressEvent(event progress.ProgressEvent) tea.Cmd {
+func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 	// Extract command name from the last element of the path
 	commandName := "Unknown"
 	if len(event.CommandPath) > 0 {
@@ -406,7 +418,7 @@ func (m *Model) getMemoryUsage() string {
 	runtime.ReadMemStats(&memStats)
 
 	// Get the current process memory usage in MB from Go runtime
-	processMemMB := float64(memStats.Alloc) / (1024 * 1024)
+	processMemMB := float64(memStats.Alloc) / (1024 * 1024) //nolint:mnd
 
 	// Try to get more accurate memory usage on Unix systems
 	if unixMemMB := m.getUnixMemoryUsage(); unixMemMB > 0 {
@@ -432,10 +444,10 @@ func (m *Model) getUnixMemoryUsage() float64 {
 		if strings.HasPrefix(line, "VmRSS:") {
 			// Extract memory in kB and convert to MB
 			parts := strings.Fields(line)
-			if len(parts) >= 2 {
+			if len(parts) >= 2 { //nolint:mnd
 				var memKB float64
 				if _, err := fmt.Sscanf(parts[1], "%f", &memKB); err == nil {
-					return memKB / 1024 // Convert kB to MB
+					return memKB / 1024 //nolint:mnd // Convert kB to MB
 				}
 			}
 		}
@@ -447,8 +459,8 @@ func (m *Model) getUnixMemoryUsage() float64 {
 // formatDuration formats a duration in HH:MM:SS format.
 func (m *Model) formatDuration(d time.Duration) string {
 	hours := int(d.Hours())
-	minutes := int(d.Minutes()) % 60
-	seconds := int(d.Seconds()) % 60
+	minutes := int(d.Minutes()) % 60 //nolint:mnd
+	seconds := int(d.Seconds()) % 60 //nolint:mnd
 
 	if hours > 0 {
 		return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
@@ -470,13 +482,13 @@ func (m *Model) renderStatusBar() string {
 
 	// Calculate column width (divide available width by 4 columns, accounting for borders)
 	availableWidth := m.width
-	if availableWidth < 40 {
-		availableWidth = 40 // Minimum width
+	if availableWidth < minViewportWidth {
+		availableWidth = minViewportWidth
 	}
 
 	// Account for column separators (3 separators = 3 characters)
-	contentWidth := availableWidth - 3
-	colWidth := contentWidth / 4
+	contentWidth := availableWidth - 3 //nolint:mnd
+	colWidth := contentWidth / 4       //nolint:mnd
 
 	// Create the four columns with equal width
 	runningCol := m.formatColumn(fmt.Sprintf("Running: %d", running), colWidth)
@@ -499,8 +511,8 @@ func (m *Model) formatColumn(text string, width int) string {
 
 	// If text is longer than width, truncate it
 	if len(text) > width {
-		if width > 3 {
-			return text[:width-3] + "..."
+		if width > len(ellipsis) { //nolint:mnd
+			return text[:width-len(ellipsis)] + ellipsis
 		}
 
 		return text[:width]

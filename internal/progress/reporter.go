@@ -11,7 +11,7 @@ import (
 // ChannelReporter implements ProgressReporter using a Go channel.
 // It provides a thread-safe way to send progress events to listeners.
 type ChannelReporter struct {
-	ch     chan ProgressEvent
+	ch     chan Event
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
@@ -24,7 +24,7 @@ func NewChannelReporter(ctx context.Context, bufferSize int) *ChannelReporter {
 	reporterCtx, cancel := context.WithCancel(ctx)
 
 	return &ChannelReporter{
-		ch:     make(chan ProgressEvent, bufferSize),
+		ch:     make(chan Event, bufferSize),
 		ctx:    reporterCtx,
 		cancel: cancel,
 	}
@@ -33,7 +33,7 @@ func NewChannelReporter(ctx context.Context, bufferSize int) *ChannelReporter {
 // Report implements ProgressReporter.Report.
 // It sends the event to the channel in a non-blocking manner.
 // If the channel is full or closed, the event is dropped.
-func (cr *ChannelReporter) Report(event ProgressEvent) {
+func (cr *ChannelReporter) Report(event Event) {
 	select {
 	case <-cr.ctx.Done():
 		// Reporter is closed, drop the event
@@ -63,7 +63,7 @@ func (cr *ChannelReporter) Close() {
 
 // Listen starts listening for events and forwards them to the provided listener.
 // This method blocks until the reporter is closed or the context is cancelled.
-func (cr *ChannelReporter) Listen(listener ProgressListener) {
+func (cr *ChannelReporter) Listen(listener Listener) {
 	cr.wg.Add(1)
 
 	go func() {
@@ -88,7 +88,7 @@ func (cr *ChannelReporter) Listen(listener ProgressListener) {
 
 // Events returns a read-only channel of progress events.
 // Useful when you want to handle events manually instead of using a listener.
-func (cr *ChannelReporter) Events() <-chan ProgressEvent {
+func (cr *ChannelReporter) Events() <-chan Event {
 	return cr.ch
 }
 

@@ -26,8 +26,6 @@ const (
 	EventStarted EventType = iota
 	// EventProgress indicates general progress information.
 	EventProgress
-	// EventOutput indicates new stdout/stderr output is available.
-	EventOutput
 	// EventCompleted indicates successful completion.
 	EventCompleted
 	// EventFailed indicates the command failed.
@@ -43,8 +41,6 @@ func (et EventType) String() string {
 		return "started"
 	case EventProgress:
 		return "progress"
-	case EventOutput:
-		return "output"
 	case EventCompleted:
 		return "completed"
 	case EventFailed:

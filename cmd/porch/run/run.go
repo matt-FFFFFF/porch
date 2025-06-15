@@ -4,6 +4,7 @@
 package run
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -189,20 +190,25 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 	var execErr error
 
-	if cmd.Bool(tuiFlag) {
+	switch cmd.Bool(tuiFlag) {
+	case true:
 		// Run with TUI - use TUI-compatible logger that won't interfere with display
 		logger.Info("Starting interactive TUI mode...")
 
+		buf := new(bytes.Buffer)
 		// Create a TUI-friendly context that suppresses log output
-		tuiCtx := ctxlog.NewForTUI(ctx)
+		tuiCtx := ctxlog.NewForTUI(ctx, buf)
 
 		runner := tui.NewRunner(tuiCtx)
 
 		res, execErr = runner.Run(tuiCtx, topRunnable)
+
+		buf.WriteTo(cmd.Writer) // Write any buffered log output to the command writer
+
 		if execErr != nil {
-			logger.Error(fmt.Sprintf("TUI execution error: %s", execErr.Error()))
+			logger.Error(fmt.Sprintf("TUI execution error: %s", execErr.Error()), "error", execErr.Error())
 		}
-	} else {
+	default:
 		// Run in standard mode
 		res = topRunnable.Run(ctx)
 	}

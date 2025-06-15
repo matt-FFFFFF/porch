@@ -48,14 +48,6 @@ func init() {
 	LevelVar.Set(logLevelFromEnv())
 }
 
-// TUILogger is a logger that discards output to avoid interfering with TUI display.
-// Used when TUI mode is active to prevent log messages from corrupting the interface.
-var TUILogger = slog.New(NewPrettyHandler(&slog.HandlerOptions{
-	Level: slog.LevelError,
-},
-	WithDestinationWriter(io.Discard),
-))
-
 // New creates a new context with the given logger.
 // If logger is nil, it uses the default logger.
 // The log level is set based on the environment variable.
@@ -76,8 +68,16 @@ func New(ctx context.Context, logger *slog.Logger) context.Context {
 }
 
 // NewForTUI creates a new context with a TUI-compatible logger that won't interfere with display.
-func NewForTUI(ctx context.Context) context.Context {
-	return context.WithValue(ctx, loggerKey{}, TUILogger)
+func NewForTUI(ctx context.Context, w io.Writer) context.Context {
+	// TUILogger is a logger that has a selectable output write to avoid interfering with TUI display.
+	// Used when TUI mode is active to prevent log messages from corrupting the interface.
+	tuiLogger := slog.New(NewPrettyHandler(&slog.HandlerOptions{
+		Level: LevelVar,
+	},
+		WithDestinationWriter(w),
+		WithAutoColour(),
+	))
+	return context.WithValue(ctx, loggerKey{}, tuiLogger)
 }
 
 // Logger returns the logger from the context, or the default logger if not found.

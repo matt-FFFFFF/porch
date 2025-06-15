@@ -29,11 +29,6 @@ func TestEventType_String(t *testing.T) {
 			expected:  "progress",
 		},
 		{
-			name:      "EventOutput",
-			eventType: EventOutput,
-			expected:  "output",
-		},
-		{
 			name:      "EventCompleted",
 			eventType: EventCompleted,
 			expected:  "completed",

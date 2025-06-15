@@ -79,12 +79,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
 
-	var logCh chan string
+	var logCh chan<- string
 
 	if logInt := ctx.Value(ProgressiveLogChannelKey{}); logInt != nil {
-		if v, ok := logInt.(chan string); ok {
+		if v, ok := logInt.(chan<- string); ok {
 			logCh = v
-			defer close(logCh) // Ensure the channel is closed when done
 		}
 	}
 
@@ -215,7 +214,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				msg := sb.String()
 				if logCh != nil && lastLine != lastLogSent {
-					logCh <- msg           // Send the status message to the log channel
+					logger.Debug("sending last log message to log channel", "message", lastLine)
+					logCh <- lastLine      // Send the status message to the log channel
 					lastLogSent = lastLine // Update last log sent to avoid duplicates
 				}
 

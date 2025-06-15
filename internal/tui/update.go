@@ -339,7 +339,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 			elapsed = endTime.Sub(*startTime)
 		}
 
-		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(time.Millisecond)))
+		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(100*time.Millisecond)))
 	}
 
 	// Build the right side (output or error)

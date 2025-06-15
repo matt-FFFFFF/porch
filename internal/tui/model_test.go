@@ -123,21 +123,6 @@ func TestModel_ProcessProgressEvent(t *testing.T) {
 	status, _, _, _, _, _ := node.GetDisplayInfo()
 	assert.Equal(t, StatusRunning, status)
 
-	// Test EventOutput
-	event = progress.Event{
-		CommandPath: commandPath,
-		Type:        progress.EventOutput,
-		Data: progress.EventData{
-			OutputLine: "Test output line",
-		},
-		Timestamp: time.Now(),
-	}
-
-	model.processProgressEvent(event)
-
-	_, _, output, _, _, _ := node.GetDisplayInfo()
-	assert.Equal(t, "Test output line", output)
-
 	// Test EventCompleted
 	event = progress.Event{
 		CommandPath: commandPath,

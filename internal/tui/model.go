@@ -34,9 +34,9 @@ const (
 )
 
 const (
-	minViewportWidth = 40                    // Minimum width for the TUI viewport
-	ellipsis         = "..."                 // Used for truncating long text
-	teaTickInterval  = time.Millisecond * 10 // Interval for periodic updates
+	minViewportWidth = 40                     // Minimum width for the TUI viewport
+	ellipsis         = "..."                  // Used for truncating long text
+	teaTickInterval  = 100 * time.Millisecond // Interval for periodic updates
 )
 
 // String returns a string representation of the command status.
@@ -361,18 +361,6 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 		if event.Data.Error != nil {
 			node.UpdateError(event.Data.Error.Error())
 		}
-		// Trigger immediate UI update on failure
-		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
-			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
-		})
-
-	case progress.EventOutput:
-		node := m.getOrCreateNode(event.CommandPath, commandName)
-		node.UpdateOutput(event.Data.OutputLine)
-		// Trigger immediate UI update for real-time output
-		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
-			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
-		})
 
 	case progress.EventProgress:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
@@ -380,10 +368,6 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 		if event.Data.OutputLine != "" {
 			node.UpdateOutput(event.Data.OutputLine)
 		}
-		// Trigger UI update for progress events
-		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
-			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
-		})
 
 	case progress.EventSkipped:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
@@ -391,7 +375,10 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 		// No command needed for skipped events
 	}
 
-	return nil
+	// Trigger immediate UI update on failure
+	return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
+		return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+	})
 }
 
 // getCommandStats recursively counts command statuses in the tree.

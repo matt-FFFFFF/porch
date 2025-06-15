@@ -88,12 +88,13 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 	go func() {
 		defer close(resultChan)
 
-		// Check if the runnable supports progress reporting
-		if progressive, ok := runnable.(runbatch.ProgressiveRunnable); ok {
-			result := progressive.RunWithProgress(ctx, r.reporter)
+		// If the runnable implements ProgressiveRunnable, use that method
+		// Otherwise, fall back to the regular Run method.
+		switch runnable := runnable.(type) {
+		case runbatch.ProgressiveRunnable:
+			result := runnable.RunWithProgress(ctx, r.reporter)
 			resultChan <- result
-		} else {
-			// Fallback to regular execution
+		default:
 			result := runnable.Run(ctx)
 			resultChan <- result
 		}
@@ -135,11 +136,9 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 			// Command completed normally
 		case <-ctx.Done():
 			// Context cancelled, return what we have
-			if result == nil {
-				result = runbatch.Results{&runbatch.Result{
-					Error: ctx.Err(),
-				}}
-			}
+			result = runbatch.Results{&runbatch.Result{
+				Error: ctx.Err(),
+			}}
 		}
 
 	case <-ctx.Done():

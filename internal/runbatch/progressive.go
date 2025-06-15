@@ -81,7 +81,7 @@ func (pc *ProgressContext) ReportStarted(message string) {
 	})
 }
 
-// ReportProgress is a convenience method to report general progress.
+// ReportProgress is a convenience method to report general progress or command output.
 func (pc *ProgressContext) ReportProgress(message string) {
 	pc.Reporter.Report(progress.Event{
 		CommandPath: pc.CommandPath,
@@ -90,20 +90,6 @@ func (pc *ProgressContext) ReportProgress(message string) {
 		Timestamp:   time.Now(),
 		Data: progress.EventData{
 			ProgressMessage: message,
-		},
-	})
-}
-
-// ReportOutput is a convenience method to report command output.
-func (pc *ProgressContext) ReportOutput(outputLine string, isStderr bool) {
-	pc.Reporter.Report(progress.Event{
-		CommandPath: pc.CommandPath,
-		Type:        progress.EventOutput,
-		Message:     "Output received",
-		Timestamp:   time.Now(),
-		Data: progress.EventData{
-			OutputLine: outputLine,
-			IsStderr:   isStderr,
 		},
 	})
 }

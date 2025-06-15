@@ -200,24 +200,19 @@ func (m *Model) View() string {
 		}
 	}
 
-	// Update total lines count
+	// Store total lines for scrolling calculations
 	m.totalLines = len(lines)
 	m.resetScrollIfNeeded()
 
-	// Calculate visible range
+	// Calculate visible content with scrolling
 	viewportHeight := m.getViewportHeight()
 	startLine := m.scrollOffset
 	endLine := startLine + viewportHeight
 
-	if endLine > len(lines) {
-		endLine = len(lines)
-	}
-
-	// Render visible content
-	if startLine < len(lines) {
-		visibleLines := lines[startLine:endLine]
-		for _, line := range visibleLines {
-			contentBuilder.WriteString(line)
+	// Build visible content
+	for i := startLine; i < endLine && i < len(lines); i++ {
+		contentBuilder.WriteString(lines[i])
+		if i < endLine-1 && i < len(lines)-1 {
 			contentBuilder.WriteString("\n")
 		}
 	}
@@ -225,6 +220,7 @@ func (m *Model) View() string {
 	// Add scroll indicators and help text
 	if m.height > 10 { // Only show help if we have enough space
 		contentBuilder.WriteString("\n")
+		contentBuilder.WriteString("\n") // Extra line gap before status bar
 
 		// Status bar
 		statusBar := m.renderStatusBar()
@@ -294,7 +290,7 @@ func (m *Model) renderCommandTree(b *strings.Builder, node *CommandNode, prefix 
 	}
 }
 
-// renderCommandNode renders a single command node.
+// renderCommandNode renders a single command node with inline output display.
 func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix string, isLast bool) {
 	status, name, output, errorMsg, startTime, endTime := node.GetDisplayInfo()
 
@@ -328,9 +324,9 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		styledName = m.styles.Pending.Render(name)
 	}
 
-	// Build the main line
+	// Build the left side (command info)
 	treePrefix := m.styles.TreeBranch.Render(prefix + connector)
-	statusText := fmt.Sprintf("%s %s", statusIcon, styledName)
+	leftSide := fmt.Sprintf("%s %s", statusIcon, styledName)
 
 	// Add timing information if available
 	if startTime != nil {
@@ -338,38 +334,76 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		if endTime != nil {
 			elapsed = endTime.Sub(*startTime)
 		}
-		statusText += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(time.Millisecond)))
+		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(time.Millisecond)))
 	}
 
-	b.WriteString(treePrefix)
-	b.WriteString(statusText)
-	b.WriteString("\n")
-
-	// Add output line if available
-	if output != "" && status == StatusRunning {
-		outputPrefix := prefix
-		if isLast {
-			outputPrefix += "    "
-		} else {
-			outputPrefix += "│   "
-		}
-		outputLine := m.styles.Output.Render(fmt.Sprintf("  → %s", output))
-		b.WriteString(outputPrefix)
-		b.WriteString(outputLine)
-		b.WriteString("\n")
-	}
-
-	// Add error message if failed
+	// Build the right side (output or error)
+	var rightSide string
 	if errorMsg != "" && status == StatusFailed {
-		errorPrefix := prefix
-		if isLast {
-			errorPrefix += "    "
-		} else {
-			errorPrefix += "│   "
-		}
-		errorLine := m.styles.Error.Render(fmt.Sprintf("  ➜ Error: %s", errorMsg))
-		b.WriteString(errorPrefix)
-		b.WriteString(errorLine)
-		b.WriteString("\n")
+		rightSide = m.styles.Error.Render(fmt.Sprintf("Error: %s", errorMsg))
+	} else if output != "" && status == StatusRunning {
+		rightSide = m.styles.Output.Render(output)
 	}
+
+	// Calculate available width for layout
+	availableWidth := m.width - len(treePrefix) - 2 // Account for prefix and some padding
+	if availableWidth < 40 {
+		availableWidth = 40 // Minimum width
+	}
+
+	// Split available width: 50% for left (command), 50% for right (output)
+	// This gives more space to the output and reduces truncation
+	leftWidth := availableWidth / 2
+	rightWidth := availableWidth - leftWidth
+
+	// Truncate left side if too long
+	if len(leftSide) > leftWidth {
+		if leftWidth > 3 {
+			leftSide = leftSide[:leftWidth-3] + "..."
+		} else {
+			leftSide = leftSide[:leftWidth]
+		}
+	}
+
+	// Truncate right side if too long
+	if len(rightSide) > rightWidth {
+		if rightWidth > 3 {
+			rightSide = rightSide[:rightWidth-3] + "..."
+		} else {
+			rightSide = rightSide[:rightWidth]
+		}
+	}
+
+	// Pad left side to align right side
+	paddedLeftSide := leftSide + strings.Repeat(" ", leftWidth-len(leftSide))
+
+	// Build the complete line
+	b.WriteString(treePrefix)
+	b.WriteString(paddedLeftSide)
+	if rightSide != "" {
+		b.WriteString(rightSide)
+	}
+	b.WriteString("\n")
+}
+
+// renderCommandTreeColumn renders the command tree with proper width constraints
+func (m *Model) renderCommandTreeColumn(width int) string {
+	var treeBuilder strings.Builder
+
+	// Render the command tree
+	m.renderCommandTree(&treeBuilder, m.rootNode, "", true)
+
+	// Add completion status if commands are done
+	if m.completed {
+		treeBuilder.WriteString("\n")
+		if m.results != nil && m.results.HasError() {
+			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors")
+			treeBuilder.WriteString(completionMsg)
+		} else {
+			completionMsg := m.styles.Success.Render("✅ Execution completed successfully")
+			treeBuilder.WriteString(completionMsg)
+		}
+	}
+
+	return treeBuilder.String()
 }

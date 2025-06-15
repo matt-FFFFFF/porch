@@ -141,6 +141,11 @@ type Model struct {
 	// Status tracking
 	startTime time.Time // When the execution started
 
+	// Two-column layout support
+	latestOutput     string   // Latest output from any running command
+	latestOutputFrom string   // Which command the latest output is from
+	outputHistory    []string // Recent output lines for the output panel
+
 	// Style definitions
 	styles *Styles
 }
@@ -197,11 +202,12 @@ func NewStyles() *Styles {
 // NewModel creates a new TUI model.
 func NewModel(ctx context.Context) *Model {
 	return &Model{
-		ctx:       ctx,
-		rootNode:  NewCommandNode([]string{}, "Root"),
-		nodeMap:   make(map[string]*CommandNode),
-		styles:    NewStyles(),
-		startTime: time.Now(),
+		ctx:           ctx,
+		rootNode:      NewCommandNode([]string{}, "Root"),
+		nodeMap:       make(map[string]*CommandNode),
+		styles:        NewStyles(),
+		startTime:     time.Now(),
+		outputHistory: make([]string, 0, 100), // Keep last 100 lines
 	}
 }
 
@@ -338,6 +344,13 @@ func (m *Model) processProgressEvent(event progress.ProgressEvent) tea.Cmd {
 	case progress.EventOutput:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateOutput(event.Data.OutputLine)
+
+	case progress.EventProgress:
+		node := m.getOrCreateNode(event.CommandPath, commandName)
+		// Update the node with the latest output
+		if event.Data.OutputLine != "" {
+			node.UpdateOutput(event.Data.OutputLine)
+		}
 
 	case progress.EventSkipped:
 		node := m.getOrCreateNode(event.CommandPath, commandName)

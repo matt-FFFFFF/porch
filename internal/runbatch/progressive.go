@@ -31,106 +31,6 @@ type ProgressiveRunnable interface {
 	RunWithProgress(ctx context.Context, reporter progress.Reporter) Results
 }
 
-// ProgressContext wraps a context with progress reporting capabilities.
-// It provides a convenient way to pass both context and progress reporting
-// down through the command hierarchy.
-type ProgressContext struct {
-	context.Context
-	Reporter    progress.Reporter
-	CommandPath []string
-}
-
-// NewProgressContext creates a new progress-aware context.
-// The commandPath represents the hierarchical path to the current command
-// in the execution tree (e.g., ["Build", "Quality Checks", "Unit Tests"]).
-func NewProgressContext(
-	ctx context.Context, reporter progress.Reporter, commandPath []string,
-) *ProgressContext {
-	pathCopy := make([]string, len(commandPath))
-	copy(pathCopy, commandPath)
-
-	return &ProgressContext{
-		Context:     ctx,
-		Reporter:    reporter,
-		CommandPath: pathCopy,
-	}
-}
-
-// Child creates a child context with an extended command path.
-// This is used when descending into nested commands to maintain
-// the full hierarchical path for progress reporting.
-func (pc *ProgressContext) Child(pathSegment string) *ProgressContext {
-	newPath := make([]string, len(pc.CommandPath)+1)
-	copy(newPath, pc.CommandPath)
-	newPath[len(pc.CommandPath)] = pathSegment
-
-	return &ProgressContext{
-		Context:     pc.Context,
-		Reporter:    pc.Reporter,
-		CommandPath: newPath,
-	}
-}
-
-// ReportStarted is a convenience method to report that a command has started.
-func (pc *ProgressContext) ReportStarted(message string) {
-	pc.Reporter.Report(progress.Event{
-		CommandPath: pc.CommandPath,
-		Type:        progress.EventStarted,
-		Message:     message,
-		Timestamp:   time.Now(),
-	})
-}
-
-// ReportProgress is a convenience method to report general progress or command output.
-func (pc *ProgressContext) ReportProgress(message string) {
-	pc.Reporter.Report(progress.Event{
-		CommandPath: pc.CommandPath,
-		Type:        progress.EventProgress,
-		Message:     message,
-		Timestamp:   time.Now(),
-		Data: progress.EventData{
-			ProgressMessage: message,
-		},
-	})
-}
-
-// ReportCompleted is a convenience method to report successful completion.
-func (pc *ProgressContext) ReportCompleted(message string, exitCode int) {
-	pc.Reporter.Report(progress.Event{
-		CommandPath: pc.CommandPath,
-		Type:        progress.EventCompleted,
-		Message:     message,
-		Timestamp:   time.Now(),
-		Data: progress.EventData{
-			ExitCode: exitCode,
-		},
-	})
-}
-
-// ReportFailed is a convenience method to report command failure.
-func (pc *ProgressContext) ReportFailed(message string, exitCode int, err error) {
-	pc.Reporter.Report(progress.Event{
-		CommandPath: pc.CommandPath,
-		Type:        progress.EventFailed,
-		Message:     message,
-		Timestamp:   time.Now(),
-		Data: progress.EventData{
-			ExitCode: exitCode,
-			Error:    err,
-		},
-	})
-}
-
-// ReportSkipped is a convenience method to report that a command was skipped.
-func (pc *ProgressContext) ReportSkipped(message string) {
-	pc.Reporter.Report(progress.Event{
-		CommandPath: pc.CommandPath,
-		Type:        progress.EventSkipped,
-		Message:     message,
-		Timestamp:   time.Now(),
-	})
-}
-
 // reportCommandExecution is a helper function that reports command execution results
 // consistently across different progressive implementations.
 func reportCommandExecution(reporter progress.Reporter, cmd Runnable, results Results) {
@@ -207,8 +107,6 @@ func wrapAsProgressive(commands []Runnable) []Runnable {
 func RunRunnableWithProgress(
 	ctx context.Context, runnable Runnable, reporter progress.Reporter, commandPath []string,
 ) Results {
-	progressCtx := NewProgressContext(ctx, reporter, commandPath)
-
 	// Check if the runnable supports progress reporting
 	if progressive, ok := runnable.(ProgressiveRunnable); ok {
 		// Create a child reporter with the provided command path for proper hierarchical context
@@ -217,15 +115,37 @@ func RunRunnableWithProgress(
 	}
 
 	// Fallback: run normally and synthesize basic events
-	progressCtx.ReportStarted("Starting " + runnable.GetLabel())
+	reporter.Report(progress.Event{
+		CommandPath: commandPath,
+		Type:        progress.EventStarted,
+		Message:     "Starting " + runnable.GetLabel(),
+		Timestamp:   time.Now(),
+	})
 
 	results := runnable.Run(ctx)
 
 	// Report completion based on results
 	if results.HasError() {
-		progressCtx.ReportFailed("Command failed", -1, ErrResultChildrenHasError)
+		reporter.Report(progress.Event{
+			CommandPath: commandPath,
+			Type:        progress.EventFailed,
+			Message:     "Command failed",
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: -1,
+				Error:    ErrResultChildrenHasError,
+			},
+		})
 	} else {
-		progressCtx.ReportCompleted("Command completed successfully", 0)
+		reporter.Report(progress.Event{
+			CommandPath: commandPath,
+			Type:        progress.EventCompleted,
+			Message:     "Command completed successfully",
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: 0,
+			},
+		})
 	}
 
 	return results

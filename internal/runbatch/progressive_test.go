@@ -12,45 +12,78 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestProgressContext(t *testing.T) {
+func TestRunRunnableWithProgress_ProgressiveRunnable(t *testing.T) {
 	ctx := context.Background()
-	reporter := progress.NewNullReporter()
-	path := []string{"test", "command"}
+	reporter := progress.NewChannelReporter(ctx, 10)
 
-	progressCtx := NewProgressContext(ctx, reporter, path)
+	defer reporter.Close()
 
-	assert.Equal(t, reporter, progressCtx.Reporter)
-	assert.Equal(t, path, progressCtx.CommandPath)
-}
-
-func TestProgressContext_Child(t *testing.T) {
-	ctx := context.Background()
-	reporter := progress.NewNullReporter()
-	parentPath := []string{"parent"}
-
-	parentCtx := NewProgressContext(ctx, reporter, parentPath)
-	childCtx := parentCtx.Child("child")
-
-	expectedPath := []string{"parent", "child"}
-	assert.Equal(t, expectedPath, childCtx.CommandPath)
-	assert.Equal(t, reporter, childCtx.Reporter)
-	assert.Equal(t, ctx, childCtx.Context)
-}
-
-func TestProgressContext_DeepNesting(t *testing.T) {
-	ctx := context.Background()
-	reporter := progress.NewNullReporter()
-
-	// Test deep nesting
-	progressCtx := NewProgressContext(ctx, reporter, []string{"root"})
-
-	for i := 0; i < 10; i++ {
-		progressCtx = progressCtx.Child("level" + string(rune('0'+i)))
+	mock := &MockProgressiveRunnable{
+		BaseCommand: &BaseCommand{
+			Label: "test-command",
+		},
 	}
 
-	assert.Len(t, progressCtx.CommandPath, 11) // root + 10 levels
-	assert.Equal(t, "root", progressCtx.CommandPath[0])
-	assert.Equal(t, "level9", progressCtx.CommandPath[10])
+	commandPath := []string{"parent", "child"}
+	results := RunRunnableWithProgress(ctx, mock, reporter, commandPath)
+
+	require.Len(t, results, 1)
+	assert.Equal(t, "test-command", results[0].Label)
+	assert.Equal(t, ResultStatusSuccess, results[0].Status)
+}
+
+func TestRunRunnableWithProgress_FallbackRunnable(t *testing.T) {
+	ctx := context.Background()
+	reporter := progress.NewChannelReporter(ctx, 10)
+
+	defer reporter.Close()
+
+	// Create a simple mock runnable that doesn't implement ProgressiveRunnable
+	mock := &SimpleMockRunnable{
+		BaseCommand: &BaseCommand{
+			Label: "regular-command",
+		},
+	}
+
+	commandPath := []string{"parent", "child"}
+	results := RunRunnableWithProgress(ctx, mock, reporter, commandPath)
+
+	require.Len(t, results, 1)
+	assert.Equal(t, "regular-command", results[0].Label)
+
+	// Verify fallback events were sent
+	events := make([]progress.Event, 0, 2)
+
+OuterLoop:
+	for len(events) < 2 {
+		select {
+		case event := <-reporter.Events():
+			events = append(events, event)
+		default:
+			break OuterLoop
+		}
+	}
+
+	require.Len(t, events, 2)
+	assert.Equal(t, progress.EventStarted, events[0].Type)
+	assert.Equal(t, commandPath, events[0].CommandPath)
+	assert.Equal(t, "Starting regular-command", events[0].Message)
+
+	assert.Equal(t, progress.EventCompleted, events[1].Type)
+	assert.Equal(t, commandPath, events[1].CommandPath)
+	assert.Equal(t, "Command completed successfully", events[1].Message)
+}
+
+// SimpleMockRunnable is a basic implementation of Runnable for testing.
+type SimpleMockRunnable struct {
+	*BaseCommand
+}
+
+func (s *SimpleMockRunnable) Run(ctx context.Context) Results {
+	return Results{&Result{
+		Label:  s.Label,
+		Status: ResultStatusSuccess,
+	}}
 }
 
 func TestProgressiveRunnableInterface(t *testing.T) {

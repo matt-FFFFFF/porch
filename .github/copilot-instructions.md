@@ -7,7 +7,6 @@
 
 ### Code Style
 
-- Use `gofmt` to format your Go code.
 - Run `golangci-lint run` to check for linting issues, use with the `--fix` flag to automatically fix issues where possible.
   - Inspect the `.golangci.yml` file in the root of this repo for specific linting rules.
 - Each package should have a `doc.go` file that contains package-level documentation using the `// Package <name> ...` comment format.
@@ -15,7 +14,10 @@
     // Copyright (c) matt-FFFFFF 2025. All rights reserved.
     // SPDX-License-Identifier: MIT
 - Complex nested if statements should be avoided. Use switch statements or early returns instead.
-- Avoid use of `else` after `if` statements when possible. Use early returns to simplify control flow.
+- Do not use `else` after an `if` statement, ever.
+  - Use early returns to simplify control flow and improve readability.
+  - Use `continue` and `break` statements to control loops.
+  - Use `switch` statements for multiple conditions instead of nested `if` statements.
 - All exported functions and types should have comments that explain their purpose.
 - Keep the happy path left aligned, and use indentation for error handling or complex logic.
 

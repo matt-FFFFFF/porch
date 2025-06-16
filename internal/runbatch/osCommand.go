@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	maxBufferSize     = 8 * 1024 * 1024  // 8MB
-	tickerInterval    = 10 * time.Second // Interval for the process watchdog ticker
-	maxLastLineLength = 120
+	maxBufferSize        = 8 * 1024 * 1024 // 8MB
+	maxLastLineLength    = 120
+	defaultTickerSeconds = 10 // Default ticker interval for process status updates
 )
 
 var _ Runnable = (*OSCommand)(nil)
@@ -76,6 +76,22 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		With("label", fullLabel)
 
 	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
+
+	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
+
+	var logCh chan<- string
+
+	if logInt := ctx.Value(ProgressiveLogChannelKey{}); logInt != nil {
+		if v, ok := logInt.(chan<- string); ok {
+			logCh = v
+		}
+	}
+
+	if updateInt := ctx.Value(ProgressiveLogUpdateInterval{}); updateInt != nil {
+		if v, ok := updateInt.(time.Duration); ok {
+			tickerInterval = v
+		}
+	}
 
 	if c.SuccessExitCodes == nil {
 		c.SuccessExitCodes = []int{0} // Default to success on exit code 0
@@ -170,6 +186,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		ticker := time.NewTicker(tickerInterval)
 		defer ticker.Stop()
 
+		var lastLogSent string
+
 		for {
 			select {
 			case <-done:
@@ -190,11 +208,19 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				if lastLine != "" {
 					sb.WriteString(". Last output...\n")
-					sb.WriteString(color.Colorize("=> ", color.FgHiWhite))
+					sb.WriteString(color.Colorize("=> ", color.FgGreen))
 					sb.WriteString(lastLine)
 				}
 
-				logger.Info(sb.String())
+				msg := sb.String()
+
+				if logCh != nil && lastLine != lastLogSent {
+					logger.Debug("sending last log message to log channel", "message", lastLine)
+					logCh <- lastLine      // Send the status message to the log channel
+					lastLogSent = lastLine // Update last log sent to avoid duplicates
+				}
+
+				logger.Info(msg)
 
 			case s := <-c.sigCh:
 				// is this the second signal received of this type?

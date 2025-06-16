@@ -62,14 +62,15 @@ func (c *Commander) Create(
 	// Determine which commands to use
 	var commandsToProcess []any
 
-	if def.CommandGroup != "" {
+	switch {
+	case def.CommandGroup != "":
 		commands, err := factory.ResolveCommandGroup(def.CommandGroup)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve command group %q: %w", def.CommandGroup, err)
 		}
 
 		commandsToProcess = commands
-	} else {
+	default:
 		commandsToProcess = def.Commands
 	}
 

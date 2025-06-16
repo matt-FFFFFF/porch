@@ -212,16 +212,14 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 	base := NewBaseCommand(f.Label, f.Cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env))
 	base.SetParent(f.GetParent())
 
-	// Handle different execution modes
-	if f.Mode == ForEachParallel {
+	switch f.Mode {
+	case ForEachParallel:
 		base.Label = f.Label + " (parallel)"
 		run = &ParallelBatch{
 			BaseCommand: base,
 			Commands:    foreachCommands,
 		}
-	}
-
-	if f.Mode == ForEachSerial {
+	case ForEachSerial:
 		base.Label = f.Label + " (serial)"
 		run = &SerialBatch{
 			BaseCommand: base,

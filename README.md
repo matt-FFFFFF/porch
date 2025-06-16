@@ -1,5 +1,7 @@
 # porch - A Portable Process Orchestration Framework
 
+![tui](./images/tui-example.png)
+
 **porch** is a sophisticated Go-based process orchestration framework designed for running and managing complex command workflows. It provides a flexible, YAML-driven approach to define, compose, and execute command chains with advanced flow control, parallel processing, and comprehensive error handling.
 
 It was designed to solve the problem of orchestrating complex command workflows in a portable and easy-to-use manner.
@@ -33,6 +35,7 @@ Its portability means that you can confidently run the same workflows locally, i
 
 ### 🎨 **Beautiful Output**
 
+- **TUI**: Real-time terminal user interface for live command progress monitoring
 - **Tree Visualization**: Clear hierarchical display of command execution
 - **Colorized Output**: Terminal-aware colored output for better readability
 - **Structured Results**: JSON and pretty-printed result formatting

@@ -46,9 +46,11 @@ func New(
 	}
 
 	var osCommandArgs []string
-	if runtime.GOOS == GOOSWindows {
+
+	switch runtime.GOOS {
+	case GOOSWindows:
 		osCommandArgs = []string{commandSwitchWindows, command}
-	} else {
+	default:
 		osCommandArgs = []string{commandSwitchUnix, command}
 	}
 

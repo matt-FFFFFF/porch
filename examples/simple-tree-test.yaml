@@ -1,0 +1,24 @@
+name: Simple Tree Test
+description: Test nested command structure
+commands:
+  - type: serial
+    name: Outer Serial
+    commands:
+      - type: shell
+        name: First Command
+        command_line: echo "First" && sleep 1
+
+      - type: serial
+        name: Inner Serial
+        commands:
+          - type: shell
+            name: Inner Command 1
+            command_line: echo "Inner 1" && sleep 1
+
+          - type: shell
+            name: Inner Command 2
+            command_line: echo "Inner 2" && sleep 1
+
+      - type: shell
+        name: Last Command
+        command_line: echo "Last" && sleep 1

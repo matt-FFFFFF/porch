@@ -5,6 +5,7 @@ package ctxlog
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -64,6 +65,20 @@ func New(ctx context.Context, logger *slog.Logger) context.Context {
 	}
 
 	return context.WithValue(ctx, loggerKey{}, logger)
+}
+
+// NewForTUI creates a new context with a TUI-compatible logger that won't interfere with display.
+func NewForTUI(ctx context.Context, w io.Writer) context.Context {
+	// TUILogger is a logger that has a selectable output write to avoid interfering with TUI display.
+	// Used when TUI mode is active to prevent log messages from corrupting the interface.
+	tuiLogger := slog.New(NewPrettyHandler(&slog.HandlerOptions{
+		Level: LevelVar,
+	},
+		WithDestinationWriter(w),
+		WithAutoColour(),
+	))
+
+	return context.WithValue(ctx, loggerKey{}, tuiLogger)
 }
 
 // Logger returns the logger from the context, or the default logger if not found.

@@ -520,16 +520,6 @@ func (m *Model) renderStatusBar() string {
 	// Get memory usage
 	memoryStr := m.getMemoryUsage()
 
-	// // Calculate column width (use viewport width to match bordered content)
-	// availableWidth := m.viewport.Width
-	// if availableWidth < minViewportWidth {
-	// 	availableWidth = minViewportWidth
-	// }
-
-	// // Account for column separators (3 separators = 3 characters)
-	// contentWidth := availableWidth - 3 //nolint:mnd
-	// colWidth := contentWidth / 4       //nolint:mnd
-
 	// Create the four columns with equal width
 	runningCol := fmt.Sprintf("⚡ %d", running)
 	completedCol := fmt.Sprintf("✅ %d", completed)

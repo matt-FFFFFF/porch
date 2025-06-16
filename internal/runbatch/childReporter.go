@@ -40,7 +40,32 @@ func (cr *ChildReporter) Report(event progress.Event) {
 	cr.parent.Report(event)
 }
 
-// Close implements ProgressReporter by delegating to the parent.
+// Close implements Reporter by delegating to the parent.
 func (cr *ChildReporter) Close() {
+	// Don't close the parent reporter as it might be used by other children
+}
+
+// TransparentReporter is a reporter that passes events through without modifying the command path.
+// This is useful for intermediate commands that should not appear in the progress hierarchy,
+// such as ForEachCommand which creates a batch internally.
+type TransparentReporter struct {
+	parent progress.Reporter
+}
+
+// NewTransparentReporter creates a new transparent reporter that passes events through
+// to the parent without adding any command path prefixes.
+func NewTransparentReporter(parent progress.Reporter) *TransparentReporter {
+	return &TransparentReporter{
+		parent: parent,
+	}
+}
+
+// Report implements ProgressReporter by passing the event through unchanged.
+func (tr *TransparentReporter) Report(event progress.Event) {
+	tr.parent.Report(event)
+}
+
+// Close implements Reporter by delegating to the parent.
+func (tr *TransparentReporter) Close() {
 	// Don't close the parent reporter as it might be used by other children
 }

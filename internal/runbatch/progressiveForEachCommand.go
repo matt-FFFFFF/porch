@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"maps"
 	"path/filepath"
-	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
@@ -18,23 +17,14 @@ var _ ProgressiveRunnable = (*ForEachCommand)(nil)
 
 // RunWithProgress implements ProgressiveRunnable for ForEachCommand.
 func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
-	// Report that this foreach is starting
-	reporter.Report(progress.Event{
-		CommandPath: []string{f.Label},
-		Type:        progress.EventStarted,
-		Message:     "Starting foreach command",
-		Timestamp:   time.Now(),
-	})
+	results := f.runWithProgressiveChildren(ctx, reporter)
+	// Don't report our own start/completion events - we want to be transparent
+	// in the progress hierarchy and let the internal batch report directly.
 
 	// Use the original Run method but with progressive reporting
 	// We'll override the child commands to be progressive if possible
-	results := f.runWithProgressiveChildren(ctx, reporter)
 
-	// Report completion based on results
-	ReportExecutionComplete(reporter, f.Label, results,
-		"ForEach command completed successfully",
-		"ForEach command failed")
-
+	// Don't report completion - let the internal batch handle all reporting
 	return results
 }
 
@@ -141,13 +131,13 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 	var results Results
 
 	if progressive, ok := run.(ProgressiveRunnable); ok {
-		// Create a child reporter for the batch execution
-		childReporter := NewChildReporter(reporter, []string{f.Label})
-		results = progressive.RunWithProgress(ctx, childReporter)
+		// Use a transparent reporter so the batch reports directly without the ForEach layer
+		transparentReporter := NewTransparentReporter(reporter)
+		results = progressive.RunWithProgress(ctx, transparentReporter)
 	} else {
-		// Fallback to regular execution with basic progress events
-		childReporter := NewChildReporter(reporter, []string{f.Label})
-		results = RunRunnableWithProgress(ctx, run, childReporter, []string{run.GetLabel()})
+		// Fallback to regular execution with transparent progress events
+		transparentReporter := NewTransparentReporter(reporter)
+		results = RunRunnableWithProgress(ctx, run, transparentReporter, []string{run.GetLabel()})
 	}
 
 	// If any child has an error, set the error on the parent

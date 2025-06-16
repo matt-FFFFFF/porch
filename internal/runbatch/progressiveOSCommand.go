@@ -32,13 +32,8 @@ func NewProgressiveOSCommand(osCommand *OSCommand) *ProgressiveOSCommand {
 // RunWithProgress implements ProgressiveRunnable.RunWithProgress.
 // It executes the OS command while providing real-time progress updates.
 func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
-	// Report that we're starting with our command label as the path
-	reporter.Report(progress.Event{
-		CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
-		Type:        progress.EventStarted,
-		Message:     fmt.Sprintf("Starting %s", c.GetLabel()),
-		Timestamp:   time.Now(),
-	})
+	// Report that we're starting
+	ReportCommandStarted(reporter, c.GetLabel())
 
 	logCh := make(chan string, defaultProgressiveLogChannelBufferSize) // Buffered channel for log messages
 	defer close(logCh)                                                 // Ensure the channel is closed when done
@@ -73,31 +68,10 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 	// Execute the original command
 	results := c.Run(ctx)
 
-	// Report completion based on results
-	if len(results) > 0 {
-		if results.HasError() {
-			reporter.Report(progress.Event{
-				CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
-				Type:        progress.EventFailed,
-				Message:     fmt.Sprintf("Command failed: %s", c.GetLabel()),
-				Timestamp:   time.Now(),
-				Data: progress.EventData{
-					ExitCode: results[0].ExitCode,
-					Error:    results[0].Error,
-				},
-			})
-		} else {
-			reporter.Report(progress.Event{
-				CommandPath: []string{c.GetLabel()}, // Use our label as the relative path
-				Type:        progress.EventCompleted,
-				Message:     fmt.Sprintf("Command completed: %s", c.GetLabel()),
-				Timestamp:   time.Now(),
-				Data: progress.EventData{
-					ExitCode: results[0].ExitCode,
-				},
-			})
-		}
-	}
+	// Report completion based on results using helper
+	ReportExecutionComplete(reporter, c.GetLabel(), results,
+		fmt.Sprintf("Command completed: %s", c.GetLabel()),
+		fmt.Sprintf("Command failed: %s", c.GetLabel()))
 
 	return results
 }

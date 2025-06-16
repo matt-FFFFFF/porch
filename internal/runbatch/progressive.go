@@ -150,3 +150,74 @@ func RunRunnableWithProgress(
 
 	return results
 }
+
+// ProgressReportingHelpers - Shared progress reporting functions
+// These helpers consolidate common patterns across progressive implementations.
+
+// ReportBatchStarted reports that a batch operation has started.
+func ReportBatchStarted(reporter progress.Reporter, label, batchType string) {
+	reporter.Report(progress.Event{
+		CommandPath: []string{label},
+		Type:        progress.EventStarted,
+		Message:     fmt.Sprintf("Starting %s batch", batchType),
+		Timestamp:   time.Now(),
+	})
+}
+
+// ReportCommandStarted reports that a command has started.
+func ReportCommandStarted(reporter progress.Reporter, label string) {
+	reporter.Report(progress.Event{
+		CommandPath: []string{label},
+		Type:        progress.EventStarted,
+		Message:     fmt.Sprintf("Starting %s", label),
+		Timestamp:   time.Now(),
+	})
+}
+
+// ReportExecutionComplete reports command/batch completion based on results.
+// It handles both success and failure cases with appropriate event data.
+func ReportExecutionComplete(reporter progress.Reporter, label string, results Results, successMsg, failureMsg string) {
+	commandPath := []string{label}
+
+	if results.HasError() {
+		exitCode := -1
+		err := ErrResultChildrenHasError
+
+		if len(results) > 0 {
+			exitCode = results[0].ExitCode
+			err = results[0].Error
+		}
+
+		reporter.Report(progress.Event{
+			CommandPath: commandPath,
+			Type:        progress.EventFailed,
+			Message:     failureMsg,
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: exitCode,
+				Error:    err,
+			},
+		})
+	} else {
+		var exitCode int
+		if len(results) > 0 {
+			exitCode = results[0].ExitCode
+		}
+
+		reporter.Report(progress.Event{
+			CommandPath: commandPath,
+			Type:        progress.EventCompleted,
+			Message:     successMsg,
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: exitCode,
+			},
+		})
+	}
+}
+
+// CreateChildReporterForBatch creates a child reporter for batch operations.
+// This consolidates the common pattern of creating child reporters with batch labels.
+func CreateChildReporterForBatch(parent progress.Reporter, batchLabel string) progress.Reporter {
+	return NewChildReporter(parent, []string{batchLabel})
+}

@@ -17,19 +17,11 @@ var _ ProgressiveRunnable = (*ParallelBatch)(nil)
 // RunWithProgress implements ProgressiveRunnable for ParallelBatch.
 // It reuses the original execution logic but adds progress reporting for child commands.
 func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
-	// Our command path is just our label - the reporter will handle prefixing
-	commandPath := []string{b.Label}
-
 	// Report that this batch is starting
-	reporter.Report(progress.Event{
-		CommandPath: commandPath,
-		Type:        progress.EventStarted,
-		Message:     "Starting parallel batch",
-		Timestamp:   time.Now(),
-	})
+	ReportBatchStarted(reporter, b.Label, "parallel")
 
 	// Create a child reporter for commands under this batch
-	childReporter := NewChildReporter(reporter, []string{b.Label})
+	childReporter := CreateChildReporterForBatch(reporter, b.Label)
 
 	// Create progressive versions of child commands for reporting
 	progressiveCommands := wrapAsProgressive(b.Commands)
@@ -38,28 +30,9 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.R
 	results := b.executeWithProgressReporting(ctx, childReporter, progressiveCommands)
 
 	// Report completion based on results
-	if results.HasError() {
-		reporter.Report(progress.Event{
-			CommandPath: commandPath,
-			Type:        progress.EventFailed,
-			Message:     "Parallel batch failed",
-			Timestamp:   time.Now(),
-			Data: progress.EventData{
-				ExitCode: -1,
-				Error:    ErrResultChildrenHasError,
-			},
-		})
-	} else {
-		reporter.Report(progress.Event{
-			CommandPath: commandPath,
-			Type:        progress.EventCompleted,
-			Message:     "Parallel batch completed successfully",
-			Timestamp:   time.Now(),
-			Data: progress.EventData{
-				ExitCode: 0,
-			},
-		})
-	}
+	ReportExecutionComplete(reporter, b.Label, results,
+		"Parallel batch completed successfully",
+		"Parallel batch failed")
 
 	return results
 }

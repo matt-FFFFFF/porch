@@ -5,6 +5,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -28,6 +29,7 @@ func (m *Model) Init() tea.Cmd {
 		tea.EnterAltScreen,
 		tea.EnableMouseCellMotion, // Enable mouse support
 		m.startTicker(),           // Start the regular update ticker
+		m.listenForSignals(),      // Start listening for signals
 	)
 }
 
@@ -36,6 +38,15 @@ func (m *Model) startTicker() tea.Cmd {
 	return tea.Tick(tuiUpdateInterval, func(_ time.Time) tea.Msg {
 		return TickMsg{}
 	})
+}
+
+// listenForSignals creates a command that listens for OS signals.
+func (m *Model) listenForSignals() tea.Cmd {
+	return func() tea.Msg {
+		// Block waiting for a signal
+		signal := <-m.signalChan
+		return SignalReceivedMsg{Signal: signal}
+	}
 }
 
 // Update implements bubbletea.Model.Update.
@@ -82,6 +93,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// This keeps the UI responsive and updates things like elapsed time
 		nextTick := m.startTicker()
 		return m, tea.Batch(cmd, nextTick)
+
+	case SignalReceivedMsg:
+		// Handle signals received
+		return m.handleSignal(msg.Signal)
 	}
 
 	return m, nil
@@ -100,18 +115,37 @@ type CommandCompletedMsg struct {
 // TickMsg is sent on a regular interval to update time-dependent UI elements.
 type TickMsg struct{}
 
+// SignalReceivedMsg indicates that a signal was received.
+type SignalReceivedMsg struct {
+	Signal os.Signal
+}
+
 // handleKeyPress processes keyboard input.
 func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	switch msg.String() {
-	case "q", "ctrl+c":
+	case "ctrl+c":
+		// Send a real interrupt signal to the current process
+		// This ensures both the main process watchdog and TUI receive the signal
+		process, err := os.FindProcess(os.Getpid())
+		if err != nil {
+			break
+		}
+
+		_ = process.Signal(os.Interrupt)
+
+		return m, nil
+
+	case "q":
 		m.quitting = true
 		return m, tea.Quit
+
 	case "r":
 		// Refresh view
 		return m, nil
+
 	case "[":
 		// Move split left (decrease left column width by 5%)
 		m.columnSplitRatio -= 0.05
@@ -120,6 +154,7 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 
 		return m, nil
+
 	case "]":
 		// Move split right (increase left column width by 5%)
 		m.columnSplitRatio += 0.05
@@ -132,6 +167,27 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// All other keys (scrolling) are handled by viewport
 	return m, nil
+}
+
+// handleSignal processes a received signal and updates the model state.
+func (m *Model) handleSignal(signal os.Signal) (tea.Model, tea.Cmd) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	// Update signal state
+	now := time.Now()
+	if !m.signalReceived {
+		m.signalTime = &now
+	}
+
+	m.signalReceived = true
+	m.signalCount++
+	m.lastSignal = signal
+
+	// Continue listening for more signals
+	nextSignalCmd := m.listenForSignals()
+
+	return m, nextSignalCmd
 }
 
 // View implements bubbletea.Model.View.
@@ -177,6 +233,18 @@ func (m *Model) View() string {
 	title := m.styles.Title.Render("🏗️  Porch Command Orchestration")
 	view.WriteString(title)
 	view.WriteString("\n")
+
+	// Signal status message (if any signals received)
+	switch m.signalReceived {
+	case true:
+		signalMsg := fmt.Sprintf("⚠️  Signal received: %s (count: %d, last: %s)",
+			m.lastSignal.String(),
+			m.signalCount,
+			m.signalTime.Format("15:04:05"))
+		styledSignalMsg := m.styles.Failed.AlignHorizontal(lipgloss.Left).Render(signalMsg)
+		view.WriteString(styledSignalMsg)
+		view.WriteString("\n")
+	}
 
 	// Viewport with border
 	viewportContent := m.viewport.View()

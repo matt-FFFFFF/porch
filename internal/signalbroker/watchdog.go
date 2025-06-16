@@ -14,8 +14,13 @@ import (
 // Watch monitors the signal channel and handles signals.
 // It will cancel the context on the second signal of a given type that received.
 func Watch(ctx context.Context, sigCh chan os.Signal, cancel context.CancelFunc) {
+	ctxlog.Logger(ctx).Debug("Signal watchdog started")
+
 	sigMap := make(map[os.Signal]struct{})
+
 	for sig := range sigCh {
+		ctxlog.Logger(ctx).Info(fmt.Sprintf("WATCHDOG: Received signal %s", sig.String()))
+
 		if _, ok := sigMap[sig]; ok {
 			ctxlog.Logger(ctx).Warn(
 				fmt.Sprintf("Received second signal of type %s, forcefully terminating", sig.String()))
@@ -33,4 +38,6 @@ func Watch(ctx context.Context, sigCh chan os.Signal, cancel context.CancelFunc)
 
 		sigMap[sig] = struct{}{}
 	}
+
+	ctxlog.Logger(ctx).Debug("Signal watchdog stopped")
 }

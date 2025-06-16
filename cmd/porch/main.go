@@ -70,7 +70,18 @@ func main() {
 
 	ctx = context.WithValue(ctx, commands.FactoryContextKey{}, factory)
 
-	_ = rootCmd.Run(ctx, os.Args) // Err is handled by cli framework
+	err := rootCmd.Run(ctx, os.Args) // Err is handled by cli framework
+
+	// Check if the context was cancelled (e.g., due to signals)
+	if ctx.Err() != nil {
+		ctxlog.Logger(ctx).Error("command terminated due to cancellation", "error", ctx.Err())
+		os.Exit(1)
+	}
+
+	if err != nil {
+		ctxlog.Logger(ctx).Error("command execution failed", "error", err)
+		os.Exit(1)
+	}
 
 	ctxlog.Logger(ctx).Info("command completed successfully")
 }

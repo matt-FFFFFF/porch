@@ -203,7 +203,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 
 		res, execErr = runner.Run(tuiCtx, topRunnable)
 
-		buf.WriteTo(cmd.Writer) // Write any buffered log output to the command writer
+		buf.WriteTo(cmd.Writer) //nolint:errcheck // Write any buffered log output to the command writer
 
 		if execErr != nil {
 			logger.Error(fmt.Sprintf("TUI execution error: %s", execErr.Error()), "error", execErr.Error())

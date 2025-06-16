@@ -213,6 +213,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				}
 
 				msg := sb.String()
+
 				if logCh != nil && lastLine != lastLogSent {
 					logger.Debug("sending last log message to log channel", "message", lastLine)
 					logCh <- lastLine      // Send the status message to the log channel

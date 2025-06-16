@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/matt-FFFFFF/porch/internal/progress"
@@ -37,6 +38,10 @@ const (
 	minViewportWidth = 40                     // Minimum width for the TUI viewport
 	ellipsis         = "..."                  // Used for truncating long text
 	teaTickInterval  = 100 * time.Millisecond // Interval for periodic updates
+
+	// Default viewport dimensions
+	defaultViewportWidth  = 80 // Default viewport width
+	defaultViewportHeight = 24 // Default viewport height
 )
 
 // String returns a string representation of the command status.
@@ -144,9 +149,8 @@ type Model struct {
 	results   runbatch.Results // Store final results
 	mutex     sync.RWMutex
 
-	// Scrolling support
-	scrollOffset int // Number of lines scrolled from top
-	totalLines   int // Total number of lines in the rendered content
+	// Viewport for content scrolling
+	viewport viewport.Model
 
 	// Status tracking
 	startTime time.Time // When the execution started
@@ -210,6 +214,7 @@ func NewModel(ctx context.Context) *Model {
 		ctx:       ctx,
 		rootNode:  NewCommandNode([]string{}, "Root"),
 		nodeMap:   make(map[string]*CommandNode),
+		viewport:  viewport.New(defaultViewportWidth, defaultViewportHeight), // Default size, will be updated on window resize
 		styles:    NewStyles(),
 		startTime: time.Now(),
 	}
@@ -222,37 +227,18 @@ func (m *Model) SetReporter(reporter progress.Reporter) {
 	m.reporter = reporter
 }
 
-// getViewportHeight returns the available height for content display.
-func (m *Model) getViewportHeight() int {
+// updateViewportSize updates the viewport dimensions when the window is resized.
+func (m *Model) updateViewportSize() {
 	// Reserve space for title (3 lines), completion message (2 lines), status bar (1 line), and help text (2 lines)
 	reservedLines := 8
-	if m.height <= reservedLines {
-		return 1 // Minimum viewport height
+
+	viewportHeight := m.height - reservedLines
+	if viewportHeight < 1 {
+		viewportHeight = 1 // Minimum viewport height
 	}
 
-	return m.height - reservedLines
-}
-
-// calculateMaxScrollOffset returns the maximum scroll offset based on content height.
-func (m *Model) calculateMaxScrollOffset() int {
-	viewportHeight := m.getViewportHeight()
-	if m.totalLines <= viewportHeight {
-		return 0 // No scrolling needed
-	}
-
-	return m.totalLines - viewportHeight
-}
-
-// resetScrollIfNeeded resets scroll position if content shrinks.
-func (m *Model) resetScrollIfNeeded() {
-	maxScroll := m.calculateMaxScrollOffset()
-	if m.scrollOffset > maxScroll {
-		m.scrollOffset = maxScroll
-	}
-
-	if m.scrollOffset < 0 {
-		m.scrollOffset = 0
-	}
+	m.viewport.Width = m.width
+	m.viewport.Height = viewportHeight
 }
 
 // pathToString converts a command path to a string key.

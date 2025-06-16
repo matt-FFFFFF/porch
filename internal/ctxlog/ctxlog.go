@@ -77,6 +77,7 @@ func NewForTUI(ctx context.Context, w io.Writer) context.Context {
 		WithDestinationWriter(w),
 		WithAutoColour(),
 	))
+
 	return context.WithValue(ctx, loggerKey{}, tuiLogger)
 }
 

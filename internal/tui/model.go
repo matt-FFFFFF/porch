@@ -16,6 +16,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/matt-FFFFFF/porch/internal/signalbroker"
@@ -45,6 +46,7 @@ const (
 	defaultViewportWidth    = 80  // Default viewport width
 	defaultViewportHeight   = 24  // Default viewport height
 	defaultColumnSplitRatio = 0.6 // Default split ratio for left column (60% left, 40% right)
+	statusBarPadding        = 2   // Padding for status bar (left + right)
 )
 
 // String returns a string representation of the command status.
@@ -129,6 +131,14 @@ func (cn *CommandNode) UpdateError(err string) {
 	defer cn.mutex.Unlock()
 
 	cn.ErrorMsg = err
+}
+
+// UpdateErrorMsg safely updates the error message without changing the status.
+func (cn *CommandNode) UpdateErrorMsg(msg string) {
+	cn.mutex.Lock()
+	defer cn.mutex.Unlock()
+
+	cn.ErrorMsg = msg
 }
 
 // GetDisplayInfo safely retrieves display information.
@@ -217,8 +227,7 @@ func NewStyles() *Styles {
 		StatusBar: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("15")).
 			Background(lipgloss.Color("8")).
-			Bold(true).
-			Padding(0, 1),
+			Bold(true),
 		Border: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("8")),
@@ -255,6 +264,9 @@ func (m *Model) updateViewportSize() {
 	// Reserve space for title (3 lines), completion message (2 lines),
 	// status bar (1 line), help text (2 lines), and border (2 lines).
 	reservedLines := 10
+	if m.completed {
+		reservedLines++
+	}
 
 	viewportHeight := m.height - reservedLines
 	if viewportHeight < 1 {
@@ -486,7 +498,20 @@ func (m *Model) formatDuration(d time.Duration) string {
 
 // renderStatusBar creates the status bar with fixed columns for running, completed, execution time, and memory usage.
 func (m *Model) renderStatusBar() string {
-	completed, running, _, _ := m.getCommandStats()
+	t := table.New().
+		Width(m.width - statusBarPadding).
+		BorderStyle(m.styles.StatusBar).
+		BorderTop(true).
+		BorderBottom(true).
+		BorderLeft(true).
+		BorderRight(true).
+		BorderColumn(true).
+		BorderRow(false).
+		StyleFunc(func(_, _ int) lipgloss.Style {
+			return m.styles.StatusBar
+		})
+
+	completed, running, pending, failed := m.getCommandStats()
 
 	// Calculate runtime
 	runtime := time.Since(m.startTime)
@@ -495,31 +520,21 @@ func (m *Model) renderStatusBar() string {
 	// Get memory usage
 	memoryStr := m.getMemoryUsage()
 
-	// Calculate column width (use viewport width to match bordered content)
-	availableWidth := m.viewport.Width
-	if availableWidth < minViewportWidth {
-		availableWidth = minViewportWidth
-	}
-
-	// Account for column separators (3 separators = 3 characters)
-	contentWidth := availableWidth - 3 //nolint:mnd
-	colWidth := contentWidth / 4       //nolint:mnd
-
 	// Create the four columns with equal width
-	runningCol := m.formatColumn(fmt.Sprintf("Running: %d", running), colWidth)
-	completedCol := m.formatColumn(fmt.Sprintf("Completed: %d", completed), colWidth)
-	runtimeCol := m.formatColumn(fmt.Sprintf("Runtime: %s", runtimeStr), colWidth)
-	memoryCol := m.formatColumn(fmt.Sprintf("Memory: %s", memoryStr), colWidth)
+	runningCol := fmt.Sprintf("⚡ %d", running)
+	completedCol := fmt.Sprintf("✅ %d", completed)
+	pendingCol := fmt.Sprintf("⏳ %d", pending)
+	failedCol := fmt.Sprintf("❌ %d", failed)
+	runtimeCol := fmt.Sprintf("Runtime: %s", runtimeStr)
+	memoryCol := fmt.Sprintf("Memory: %s", memoryStr)
 
-	// Combine columns with separators
-	statusLine := fmt.Sprintf("%s│%s│%s│%s",
-		runningCol, completedCol, runtimeCol, memoryCol)
+	t.Row(runningCol, completedCol, pendingCol, failedCol, runtimeCol, memoryCol)
 
-	return m.styles.StatusBar.Render(statusLine)
+	return t.Render()
 }
 
 // formatColumn formats a string to fit within the specified column width.
-func (m *Model) formatColumn(text string, width int) string {
+func formatColumn(text string, width int) string {
 	if width < 1 {
 		return ""
 	}
@@ -533,12 +548,7 @@ func (m *Model) formatColumn(text string, width int) string {
 		return text[:width]
 	}
 
-	// Center the text within the column
-	padding := width - len(text)
-	leftPad := padding / 2 //nolint:mnd
-	rightPad := padding - leftPad
-
-	return strings.Repeat(" ", leftPad) + text + strings.Repeat(" ", rightPad)
+	return text
 }
 
 // updateErrorsFromResults updates command node error messages using the final results
@@ -568,12 +578,17 @@ func (m *Model) updateNodeErrorsFromResults(basePath []string, results runbatch.
 
 		// Find the corresponding node
 		pathKey := pathToString(commandPath)
-		if node, exists := m.nodeMap[pathKey]; exists {
+		if node, exists := m.nodeMap[pathKey]; exists { //nolint:nestif
 			// Update error message if this result has a specific error
 			if result.Error != nil && result.Status == runbatch.ResultStatusError {
 				// Only update if we have a more specific error than the generic one
 				if !errors.Is(result.Error, runbatch.ErrResultChildrenHasError) {
 					node.UpdateError(result.Error.Error())
+				}
+
+				if node.ErrorMsg == "" {
+					firstErrLine := strings.Split(string(result.StdErr), "\n")[0]
+					node.UpdateErrorMsg(firstErrLine)
 				}
 			}
 		}

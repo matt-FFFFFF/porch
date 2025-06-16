@@ -208,21 +208,6 @@ func (m *Model) View() string {
 	// Command tree
 	m.renderCommandTree(&content, m.rootNode, "", true)
 
-	// Show completion status if commands are done
-	if m.completed {
-		content.WriteString("\n")
-
-		if m.results != nil && m.results.HasError() {
-			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors")
-			content.WriteString(completionMsg)
-		} else {
-			completionMsg := m.styles.Success.Render("✅ Execution completed successfully")
-			content.WriteString(completionMsg)
-		}
-
-		content.WriteString("\n")
-	}
-
 	// Set viewport content
 	m.viewport.SetContent(content.String())
 
@@ -230,6 +215,7 @@ func (m *Model) View() string {
 	var view strings.Builder
 
 	// Title
+	// Show completion status if commands are done
 	title := m.styles.Title.Render("🏗️  Porch Command Orchestration")
 	view.WriteString(title)
 	view.WriteString("\n")
@@ -251,9 +237,23 @@ func (m *Model) View() string {
 	borderedViewport := m.styles.Border.Render(viewportContent)
 	view.WriteString(borderedViewport)
 
+	if m.completed {
+		view.WriteString("\n")
+
+		if m.results != nil && m.results.HasError() {
+			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors, press 'q' to see details")
+			view.WriteString(completionMsg)
+		} else {
+			completionMsg := m.styles.Success.Render("✅ Execution completed successfully")
+			view.WriteString(completionMsg)
+		}
+
+		view.WriteString("\n")
+	}
+
 	// Footer with status bar and help
 	if m.height > minStatusBarAvailableHeight {
-		view.WriteString("\n\n")
+		view.WriteString("\n")
 
 		// Status bar
 		statusBar := m.renderStatusBar()
@@ -368,6 +368,9 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		styledName = m.styles.Pending.Render(name)
 	}
 
+	leftWidth := int(float64(m.viewport.Width) * m.columnSplitRatio)
+	rightWidth := int(float64(m.viewport.Width) * (1.0 - m.columnSplitRatio))
+
 	// Build the left column (command info)
 	treePrefix := m.styles.TreeBranch.Render(prefix + connector)
 	leftColumn := fmt.Sprintf("%s%s %s", treePrefix, statusIcon, styledName)
@@ -379,15 +382,8 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 			elapsed = endTime.Sub(*startTime)
 		}
 
-		leftColumn += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(commandDurationRounding)))
-	}
-
-	// Build the right column (output or error)
-	var rightColumn string
-	if errorMsg != "" && status == StatusFailed {
-		rightColumn = m.styles.Error.Render(fmt.Sprintf("Error: %s", errorMsg))
-	} else if output != "" && status == StatusRunning {
-		rightColumn = m.styles.Output.Render(output)
+		durStr := "(" + elapsed.Round(commandDurationRounding).String() + ")"
+		leftColumn += m.styles.Output.Render(durStr)
 	}
 
 	// Create a single-row table for this command with consistent alignment
@@ -403,17 +399,33 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		StyleFunc(func(_, col int) lipgloss.Style {
 			// Column 0: Command tree (dynamic width based on split ratio)
 			if col == 0 {
-				leftWidth := int(float64(m.viewport.Width) * m.columnSplitRatio)
 				return lipgloss.NewStyle().Width(leftWidth)
 			}
-			// Column 1: Output (remaining width)
-			rightWidth := int(float64(m.viewport.Width) * (1.0 - m.columnSplitRatio))
 
 			return lipgloss.NewStyle().Width(rightWidth)
 		})
 
+		// Build the right column (output or error)
+	var rightColumn string
+
+	switch status {
+	case StatusFailed:
+		if errorMsg != "" {
+			rightColumn = m.styles.Error.Render(
+				formatColumn(fmt.Sprintf("Error: %s", errorMsg), rightWidth),
+			)
+		}
+	case StatusRunning:
+		rightColumn = m.styles.Output.Render(
+			formatColumn(output, rightWidth),
+		)
+	}
+
 	// Add the row to the table
-	t.Row(leftColumn, rightColumn)
+	t.Row(
+		leftColumn,
+		rightColumn,
+	)
 
 	// Render the table and add to buffer
 	rendered := t.Render()

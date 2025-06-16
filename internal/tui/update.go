@@ -18,6 +18,8 @@ import (
 const (
 	minStatusBarAvailableHeight = 10
 	commandDurationRounding     = 100 * time.Millisecond // Round durations to 100ms
+	leftColMinWith              = 0.2
+	leftColMaxWith              = 0.8
 )
 
 // Init implements bubbletea.Model.Init.
@@ -96,16 +98,18 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "[":
 		// Move split left (decrease left column width by 5%)
 		m.columnSplitRatio -= 0.05
-		if m.columnSplitRatio < 0.2 { // Minimum 20% for left column
-			m.columnSplitRatio = 0.2
+		if m.columnSplitRatio < leftColMinWith { // Minimum 20% for left column
+			m.columnSplitRatio = leftColMinWith
 		}
+
 		return m, nil
 	case "]":
 		// Move split right (increase left column width by 5%)
 		m.columnSplitRatio += 0.05
-		if m.columnSplitRatio > 0.8 { // Maximum 80% for left column
-			m.columnSplitRatio = 0.8
+		if m.columnSplitRatio > leftColMaxWith { // Maximum 80% for left column
+			m.columnSplitRatio = leftColMaxWith
 		}
+
 		return m, nil
 	}
 
@@ -124,6 +128,9 @@ func (m *Model) View() string {
 
 	// Build content for the viewport
 	var content strings.Builder
+
+	// Add column headers
+	m.renderColumnHeaders(&content)
 
 	// Command tree
 	m.renderCommandTree(&content, m.rootNode, "", true)
@@ -169,9 +176,10 @@ func (m *Model) View() string {
 		view.WriteString("\n")
 
 		// Help text
-		helpText := "↑/↓ or j/k to scroll, PgUp/PgDn for pages, Home/End to jump, [/] to adjust column split, 'q' to quit, 'r' to refresh"
+		helpText := "↑/↓ or j/k to scroll, PgUp/PgDn for pages, Home/End to jump, " +
+			"[/] to adjust column split, 'q' to quit, 'r' to refresh"
 		if m.completed {
-			helpText = "↑/↓ or j/k to scroll, '['/']' to adjust column split, 'q' to quit and return to terminal"
+			helpText = "↑/↓ or j/k to scroll, [/] to adjust column split, 'q' to quit and return to terminal"
 		}
 
 		help := m.styles.Help.Render(helpText)
@@ -179,6 +187,32 @@ func (m *Model) View() string {
 	}
 
 	return view.String()
+}
+
+// renderColumnHeaders renders the column headers for Command and Output columns.
+func (m *Model) renderColumnHeaders(b *strings.Builder) {
+	// Create header row manually for better control
+	leftWidth := int(float64(m.viewport.Width) * m.columnSplitRatio)
+	rightWidth := int(float64(m.viewport.Width) * (1.0 - m.columnSplitRatio))
+
+	// Adjust for the column separator (1 character)
+	leftWidth--
+
+	// Create header content with consistent styling - ensure single line height
+	headerStyle := m.styles.Title.Bold(true).Align(lipgloss.Left).Height(1).Margin(0).Padding(0)
+	leftHeader := headerStyle.Width(leftWidth).Render("Command")
+	rightHeader := headerStyle.Width(rightWidth).Render("Output Sample / Error")
+
+	// Render header row with column separator
+	b.WriteString(leftHeader)
+	b.WriteString("  ") // Account for the column separator
+	b.WriteString(rightHeader)
+	b.WriteString("\n")
+
+	// Create horizontal border line
+	border := strings.Repeat("─", m.viewport.Width)
+	b.WriteString(border)
+	b.WriteString("\n")
 }
 
 // renderCommandTree recursively renders the command tree.
@@ -228,6 +262,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 
 	// Status icon and styling
 	var statusIcon string
+
 	var styledName string
 
 	switch status {
@@ -258,6 +293,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		if endTime != nil {
 			elapsed = endTime.Sub(*startTime)
 		}
+
 		leftColumn += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(commandDurationRounding)))
 	}
 
@@ -277,9 +313,9 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		BorderBottom(false).
 		BorderLeft(false).
 		BorderRight(false).
-		BorderColumn(false).
+		BorderColumn(true). // Enable column border to show the split
 		BorderRow(false).
-		StyleFunc(func(row, col int) lipgloss.Style {
+		StyleFunc(func(_, col int) lipgloss.Style {
 			// Column 0: Command tree (dynamic width based on split ratio)
 			if col == 0 {
 				leftWidth := int(float64(m.viewport.Width) * m.columnSplitRatio)
@@ -287,6 +323,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 			}
 			// Column 1: Output (remaining width)
 			rightWidth := int(float64(m.viewport.Width) * (1.0 - m.columnSplitRatio))
+
 			return lipgloss.NewStyle().Width(rightWidth)
 		})
 

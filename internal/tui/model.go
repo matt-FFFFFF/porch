@@ -40,8 +40,9 @@ const (
 	teaTickInterval  = 100 * time.Millisecond // Interval for periodic updates
 
 	// Default viewport dimensions.
-	defaultViewportWidth  = 80 // Default viewport width
-	defaultViewportHeight = 24 // Default viewport height
+	defaultViewportWidth    = 80  // Default viewport width
+	defaultViewportHeight   = 24  // Default viewport height
+	defaultColumnSplitRatio = 0.6 // Default split ratio for left column (60% left, 40% right)
 )
 
 // String returns a string representation of the command status.
@@ -224,7 +225,7 @@ func NewModel(ctx context.Context) *Model {
 		viewport: viewport.New(
 			defaultViewportWidth,
 			defaultViewportHeight), // Default size, will be updated on window resize
-		columnSplitRatio: 0.6, // Default 60% for left column, 40% for right
+		columnSplitRatio: defaultColumnSplitRatio, // Default 60% for left column, 40% for right
 		styles:           NewStyles(),
 		startTime:        time.Now(),
 	}

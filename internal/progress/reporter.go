@@ -46,8 +46,7 @@ func (cr *ChannelReporter) Report(event Event) {
 		// Event sent successfully
 	case <-cr.ctx.Done():
 		// Reporter is closed, drop the event
-	default:
-		// Channel is full, drop the event to avoid blocking
+	default: // Channel is full, drop the event to avoid blocking
 	}
 }
 

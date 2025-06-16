@@ -82,23 +82,24 @@ commands:
 
 ### Progress Event System
 
-```
-Commands → ProgressReporter → ProgressEvents → TUI Display
+```text
+Commands → Reporter → Events → TUI Display
 ```
 
 1. **Commands**: Execute while emitting progress events
-2. **ProgressReporter**: Thread-safe event routing
-3. **ProgressEvents**: Structured event data (started, progress, output, completed, failed)
+2. **Reporter**: Thread-safe event routing
+3. **Events**: Structured event data (started, progress, output, completed, failed)
 4. **TUI Display**: Real-time tree view with bubbletea framework
 
 ### Key Components
 
 #### Progress Events (`internal/progress/`)
 
-- `ProgressEvent`: Core event structure with command path, type, and data
-- `ProgressReporter`: Interface for sending events
+- `Event`: Core event structure with command path, type, and data
+- `Reporter`: Interface for sending events
 - `ChannelReporter`: Channel-based implementation for TUI
 - `NullReporter`: No-op implementation for standard mode
+- `TransparentReporter`: Pass-through for existing commands
 
 #### TUI System (`internal/tui/`)
 
@@ -133,12 +134,6 @@ go test ./internal/runbatch/...
 
 ## Examples
 
-### Simple Command
-
-```bash
-./porch run -f examples/simple-tui-test.yaml --tui
-```
-
 ### Complex Workflow
 
 ```bash
@@ -156,16 +151,6 @@ go test ./internal/runbatch/...
 - CLI integration with TUI flag
 - Thread-safe progress reporting
 - Comprehensive test coverage
-
-### 🚧 Future Enhancements
-
-- **Real-time output streaming**: Currently shows output after command completion
-- **Terminal resize handling**: Automatic layout adjustment
-- **Advanced keyboard navigation**: Scrolling, expanding/collapsing nodes
-- **Output buffering**: Handle large command outputs efficiently
-- **Progress bars**: Visual progress indicators for long-running commands
-- **Command filtering**: Hide/show specific command types
-- **Export functionality**: Save TUI session logs
 
 ## Technical Details
 

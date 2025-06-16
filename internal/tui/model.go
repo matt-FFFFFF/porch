@@ -155,6 +155,9 @@ type Model struct {
 	// Status tracking
 	startTime time.Time // When the execution started
 
+	// UI configuration
+	columnSplitRatio float64 // Ratio for left column (0.0-1.0), default 0.6
+
 	// Style definitions
 	styles *Styles
 }
@@ -221,8 +224,9 @@ func NewModel(ctx context.Context) *Model {
 		viewport: viewport.New(
 			defaultViewportWidth,
 			defaultViewportHeight), // Default size, will be updated on window resize
-		styles:    NewStyles(),
-		startTime: time.Now(),
+		columnSplitRatio: 0.6, // Default 60% for left column, 40% for right
+		styles:           NewStyles(),
+		startTime:        time.Now(),
 	}
 }
 

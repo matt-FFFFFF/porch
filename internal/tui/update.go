@@ -9,6 +9,8 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
@@ -91,6 +93,20 @@ func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "r":
 		// Refresh view
 		return m, nil
+	case "[":
+		// Move split left (decrease left column width by 5%)
+		m.columnSplitRatio -= 0.05
+		if m.columnSplitRatio < 0.2 { // Minimum 20% for left column
+			m.columnSplitRatio = 0.2
+		}
+		return m, nil
+	case "]":
+		// Move split right (increase left column width by 5%)
+		m.columnSplitRatio += 0.05
+		if m.columnSplitRatio > 0.8 { // Maximum 80% for left column
+			m.columnSplitRatio = 0.8
+		}
+		return m, nil
 	}
 
 	// All other keys (scrolling) are handled by viewport
@@ -153,9 +169,9 @@ func (m *Model) View() string {
 		view.WriteString("\n")
 
 		// Help text
-		helpText := "↑/↓ or j/k to scroll, PgUp/PgDn for pages, Home/End to jump, 'q' to quit, 'r' to refresh"
+		helpText := "↑/↓ or j/k to scroll, PgUp/PgDn for pages, Home/End to jump, [/] to adjust column split, 'q' to quit, 'r' to refresh"
 		if m.completed {
-			helpText = "↑/↓ or j/k to scroll, 'q' to quit and return to terminal"
+			helpText = "↑/↓ or j/k to scroll, '['/']' to adjust column split, 'q' to quit and return to terminal"
 		}
 
 		help := m.styles.Help.Render(helpText)
@@ -198,7 +214,7 @@ func (m *Model) renderCommandTree(b *strings.Builder, node *CommandNode, prefix 
 	}
 }
 
-// renderCommandNode renders a single command node with inline output display.
+// renderCommandNode renders a single command node using a table for consistent alignment.
 func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix string, isLast bool) {
 	status, name, output, errorMsg, startTime, endTime := node.GetDisplayInfo()
 
@@ -212,7 +228,6 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 
 	// Status icon and styling
 	var statusIcon string
-
 	var styledName string
 
 	switch status {
@@ -233,9 +248,9 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		styledName = m.styles.Pending.Render(name)
 	}
 
-	// Build the left side (command info)
+	// Build the left column (command info)
 	treePrefix := m.styles.TreeBranch.Render(prefix + connector)
-	leftSide := fmt.Sprintf("%s %s", statusIcon, styledName)
+	leftColumn := fmt.Sprintf("%s%s %s", treePrefix, statusIcon, styledName)
 
 	// Add timing information if available
 	if startTime != nil {
@@ -243,57 +258,43 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		if endTime != nil {
 			elapsed = endTime.Sub(*startTime)
 		}
-
-		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(commandDurationRounding)))
+		leftColumn += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(commandDurationRounding)))
 	}
 
-	// Build the right side (output or error)
-	var rightSide string
+	// Build the right column (output or error)
+	var rightColumn string
 	if errorMsg != "" && status == StatusFailed {
-		rightSide = m.styles.Error.Render(fmt.Sprintf("Error: %s", errorMsg))
+		rightColumn = m.styles.Error.Render(fmt.Sprintf("Error: %s", errorMsg))
 	} else if output != "" && status == StatusRunning {
-		rightSide = m.styles.Output.Render(output)
+		rightColumn = m.styles.Output.Render(output)
 	}
 
-	// Calculate available width for layout (account for border padding)
-	availableWidth := m.viewport.Width - len(treePrefix) - 2 //nolint:mnd // Account for prefix and some padding
-	if availableWidth < minViewportWidth {
-		availableWidth = minViewportWidth
-	}
+	// Create a single-row table for this command with consistent alignment
+	t := table.New().
+		Width(m.viewport.Width).
+		BorderStyle(m.styles.TreeBranch).
+		BorderTop(false).
+		BorderBottom(false).
+		BorderLeft(false).
+		BorderRight(false).
+		BorderColumn(false).
+		BorderRow(false).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			// Column 0: Command tree (dynamic width based on split ratio)
+			if col == 0 {
+				leftWidth := int(float64(m.viewport.Width) * m.columnSplitRatio)
+				return lipgloss.NewStyle().Width(leftWidth)
+			}
+			// Column 1: Output (remaining width)
+			rightWidth := int(float64(m.viewport.Width) * (1.0 - m.columnSplitRatio))
+			return lipgloss.NewStyle().Width(rightWidth)
+		})
 
-	// Split available width: 50% for left (command), 50% for right (output)
-	// This gives more space to the output and reduces truncation
-	leftWidth := availableWidth / 2 //nolint:mnd
-	rightWidth := availableWidth - leftWidth
+	// Add the row to the table
+	t.Row(leftColumn, rightColumn)
 
-	// Truncate left side if too long
-	if len(leftSide) > leftWidth {
-		if leftWidth > len(ellipsis) {
-			leftSide = leftSide[:leftWidth-len(ellipsis)] + ellipsis
-		} else {
-			leftSide = leftSide[:leftWidth]
-		}
-	}
-
-	// Truncate right side if too long
-	if len(rightSide) > rightWidth {
-		if rightWidth > len(ellipsis) {
-			rightSide = rightSide[:rightWidth-len(ellipsis)] + ellipsis
-		} else {
-			rightSide = rightSide[:rightWidth]
-		}
-	}
-
-	// Pad left side to align right side
-	paddedLeftSide := leftSide + strings.Repeat(" ", leftWidth-len(leftSide))
-
-	// Build the complete line
-	b.WriteString(treePrefix)
-	b.WriteString(paddedLeftSide)
-
-	if rightSide != "" {
-		b.WriteString(rightSide)
-	}
-
+	// Render the table and add to buffer
+	rendered := t.Render()
+	b.WriteString(rendered)
 	b.WriteString("\n")
 }

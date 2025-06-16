@@ -285,7 +285,11 @@ func (m *Model) getOrCreateNode(path []string, name string) *CommandNode {
 		if parent, exists := m.nodeMap[parentKey]; exists {
 			parent.Children = append(parent.Children, node)
 		}
-	} else if len(path) == 1 {
+
+		return node
+	}
+
+	if len(path) == 1 {
 		// Add to root
 		m.rootNode.Children = append(m.rootNode.Children, node)
 	}

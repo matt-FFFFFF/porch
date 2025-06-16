@@ -16,6 +16,7 @@
 - Complex nested if statements should be avoided. Use switch statements or early returns instead.
 - Do not use `else` after an `if` statement, ever.
   - Use early returns to simplify control flow and improve readability.
+  - Use `continue` and `break` statements to control loops.
   - Use `switch` statements for multiple conditions instead of nested `if` statements.
 - All exported functions and types should have comments that explain their purpose.
 - Keep the happy path left aligned, and use indentation for error handling or complex logic.

@@ -37,16 +37,12 @@ func reportCommandExecution(reporter progress.Reporter, cmd Runnable, results Re
 	commandPath := []string{cmd.GetLabel()}
 
 	if results.HasError() {
-		var exitCode int
-
-		var err error
+		exitCode := -1
+		err := ErrResultChildrenHasError
 
 		if len(results) > 0 {
 			exitCode = results[0].ExitCode
 			err = results[0].Error
-		} else {
-			exitCode = -1
-			err = ErrResultChildrenHasError
 		}
 
 		reporter.Report(progress.Event{
@@ -59,22 +55,24 @@ func reportCommandExecution(reporter progress.Reporter, cmd Runnable, results Re
 				Error:    err,
 			},
 		})
-	} else {
-		var exitCode int
-		if len(results) > 0 {
-			exitCode = results[0].ExitCode
-		}
 
-		reporter.Report(progress.Event{
-			CommandPath: commandPath,
-			Type:        progress.EventCompleted,
-			Message:     fmt.Sprintf("Command completed successfully: %s", cmd.GetLabel()),
-			Timestamp:   time.Now(),
-			Data: progress.EventData{
-				ExitCode: exitCode,
-			},
-		})
+		return
 	}
+
+	var exitCode int
+	if len(results) > 0 {
+		exitCode = results[0].ExitCode
+	}
+
+	reporter.Report(progress.Event{
+		CommandPath: commandPath,
+		Type:        progress.EventCompleted,
+		Message:     fmt.Sprintf("Command completed successfully: %s", cmd.GetLabel()),
+		Timestamp:   time.Now(),
+		Data: progress.EventData{
+			ExitCode: exitCode,
+		},
+	})
 }
 
 // wrapAsProgressive converts regular commands to progressive commands where possible.
@@ -87,15 +85,15 @@ func wrapAsProgressive(commands []Runnable) []Runnable {
 		if progressive, ok := cmd.(ProgressiveRunnable); ok {
 			// Already progressive, use as-is
 			progressiveCommands[i] = progressive
-		} else {
-			// Wrap non-progressive commands
-			if osCmd, ok := cmd.(*OSCommand); ok {
-				progressiveCommands[i] = NewProgressiveOSCommand(osCmd)
-			} else {
-				// For other command types, use original
-				progressiveCommands[i] = cmd
-			}
+			continue
 		}
+		// Wrap non-progressive commands
+		if osCmd, ok := cmd.(*OSCommand); ok {
+			progressiveCommands[i] = NewProgressiveOSCommand(osCmd)
+			continue
+		}
+		// For other command types, use original
+		progressiveCommands[i] = cmd
 	}
 
 	return progressiveCommands
@@ -136,17 +134,19 @@ func RunRunnableWithProgress(
 				Error:    ErrResultChildrenHasError,
 			},
 		})
-	} else {
-		reporter.Report(progress.Event{
-			CommandPath: commandPath,
-			Type:        progress.EventCompleted,
-			Message:     "Command completed successfully",
-			Timestamp:   time.Now(),
-			Data: progress.EventData{
-				ExitCode: 0,
-			},
-		})
+
+		return results
 	}
+
+	reporter.Report(progress.Event{
+		CommandPath: commandPath,
+		Type:        progress.EventCompleted,
+		Message:     "Command completed successfully",
+		Timestamp:   time.Now(),
+		Data: progress.EventData{
+			ExitCode: 0,
+		},
+	})
 
 	return results
 }
@@ -198,22 +198,24 @@ func ReportExecutionComplete(reporter progress.Reporter, label string, results R
 				Error:    err,
 			},
 		})
-	} else {
-		var exitCode int
-		if len(results) > 0 {
-			exitCode = results[0].ExitCode
-		}
 
-		reporter.Report(progress.Event{
-			CommandPath: commandPath,
-			Type:        progress.EventCompleted,
-			Message:     successMsg,
-			Timestamp:   time.Now(),
-			Data: progress.EventData{
-				ExitCode: exitCode,
-			},
-		})
+		return
 	}
+
+	var exitCode int
+	if len(results) > 0 {
+		exitCode = results[0].ExitCode
+	}
+
+	reporter.Report(progress.Event{
+		CommandPath: commandPath,
+		Type:        progress.EventCompleted,
+		Message:     successMsg,
+		Timestamp:   time.Now(),
+		Data: progress.EventData{
+			ExitCode: exitCode,
+		},
+	})
 }
 
 // CreateChildReporterForBatch creates a child reporter for batch operations.

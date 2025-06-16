@@ -108,13 +108,14 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 	// Handle different execution modes with progressive execution
 	var run Runnable
 
-	if f.Mode == ForEachParallel {
+	switch f.Mode {
+	case ForEachParallel:
 		base.Label = f.Label + " (parallel)"
 		run = &ParallelBatch{
 			BaseCommand: base,
 			Commands:    foreachCommands,
 		}
-	} else {
+	case ForEachSerial:
 		base.Label = f.Label + " (serial)"
 		run = &SerialBatch{
 			BaseCommand: base,

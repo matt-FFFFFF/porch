@@ -26,13 +26,14 @@ func NewChildReporter(parent progress.Reporter, prefix []string) *ChildReporter 
 func (cr *ChildReporter) Report(event progress.Event) {
 	// If the event has a non-empty command path, it represents the relative path
 	// from our context. We need to prepend our prefix to create the full path.
-	if len(event.CommandPath) > 0 {
+	switch n := len(event.CommandPath); {
+	case n > 0:
 		// Create new slice to avoid modifying the original event
-		fullPath := make([]string, 0, len(cr.prefix)+len(event.CommandPath))
+		fullPath := make([]string, 0, len(cr.prefix)+n)
 		fullPath = append(fullPath, cr.prefix...)
 		fullPath = append(fullPath, event.CommandPath...)
 		event.CommandPath = fullPath
-	} else {
+	default:
 		// If event has no path, use our prefix
 		event.CommandPath = cr.prefix
 	}

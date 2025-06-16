@@ -104,11 +104,8 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 	tuiDone := make(chan error, 1)
 
 	go func() {
-		if _, err := r.program.Run(); err != nil {
-			tuiDone <- err
-		} else {
-			tuiDone <- nil
-		}
+		_, err := r.program.Run()
+		tuiDone <- err
 	}()
 
 	// Wait for either the command to complete or context cancellation

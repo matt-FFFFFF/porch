@@ -69,12 +69,14 @@ func (lt *LastLineTeeReader) processNewData(data string) {
 		// Data ended with newline, so last element is empty
 		lt.lastLine = lines[len(lines)-2]
 		lt.partialBuilder.Reset()
-	} else {
-		// Data didn't end with newline, so last element is partial
-		lt.lastLine = lines[len(lines)-2]
-		lt.partialBuilder.Reset()
-		lt.partialBuilder.WriteString(lines[len(lines)-1])
+
+		return
 	}
+
+	// Data didn't end with newline, so last element is partial
+	lt.lastLine = lines[len(lines)-2]
+	lt.partialBuilder.Reset()
+	lt.partialBuilder.WriteString(lines[len(lines)-1])
 }
 
 // GetLastLine returns the last complete line that was read.

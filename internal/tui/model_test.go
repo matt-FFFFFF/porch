@@ -211,3 +211,68 @@ func TestPathToString(t *testing.T) {
 		})
 	}
 }
+
+func Test_formatColumn(t *testing.T) {
+	tests := []struct {
+		name     string
+		text     string
+		width    int
+		expected string
+	}{
+		{
+			name:     "empty text, positive width",
+			text:     "",
+			width:    5,
+			expected: "",
+		},
+		{
+			name:     "text fits exactly",
+			text:     "abc",
+			width:    3,
+			expected: "abc",
+		},
+		{
+			name:     "text shorter than width, odd padding",
+			text:     "hi",
+			width:    5,
+			expected: "hi",
+		},
+		{
+			name:     "text shorter than width, even padding",
+			text:     "ok",
+			width:    4,
+			expected: "ok",
+		},
+		{
+			name:     "text longer than width, truncates with ellipsis",
+			text:     "longtext",
+			width:    6,
+			expected: "lon...",
+		},
+		{
+			name:     "text longer than width, width less than ellipsis",
+			text:     "longtext",
+			width:    2,
+			expected: "lo",
+		},
+		{
+			name:     "width is zero",
+			text:     "abc",
+			width:    0,
+			expected: "",
+		},
+		{
+			name:     "width is negative",
+			text:     "abc",
+			width:    -1,
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatColumn(tt.text, tt.width)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}

@@ -27,7 +27,15 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
 		tea.EnableMouseCellMotion, // Enable mouse support
+		m.startTicker(),           // Start the regular update ticker
 	)
+}
+
+// startTicker creates a command that sends TickMsg on a regular interval.
+func (m *Model) startTicker() tea.Cmd {
+	return tea.Tick(tuiUpdateInterval, func(_ time.Time) tea.Msg {
+		return TickMsg{}
+	})
 }
 
 // Update implements bubbletea.Model.Update.
@@ -68,6 +76,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.QuitMsg:
 		m.quitting = true
 		return m, tea.Quit
+
+	case TickMsg:
+		// Handle regular ticker updates for time-dependent content
+		// This keeps the UI responsive and updates things like elapsed time
+		nextTick := m.startTicker()
+		return m, tea.Batch(cmd, nextTick)
 	}
 
 	return m, nil
@@ -82,6 +96,9 @@ type ProgressEventMsg struct {
 type CommandCompletedMsg struct {
 	Results runbatch.Results
 }
+
+// TickMsg is sent on a regular interval to update time-dependent UI elements.
+type TickMsg struct{}
 
 // handleKeyPress processes keyboard input.
 func (m *Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {

@@ -35,9 +35,10 @@ const (
 )
 
 const (
-	minViewportWidth = 40                     // Minimum width for the TUI viewport
-	ellipsis         = "..."                  // Used for truncating long text
-	teaTickInterval  = 100 * time.Millisecond // Interval for periodic updates
+	minViewportWidth  = 40                     // Minimum width for the TUI viewport
+	ellipsis          = "..."                  // Used for truncating long text
+	teaTickInterval   = 100 * time.Millisecond // Interval for periodic updates
+	tuiUpdateInterval = 1 * time.Second        // Interval for regular TUI updates (elapsed time, etc.)
 
 	// Default viewport dimensions.
 	defaultViewportWidth    = 80  // Default viewport width

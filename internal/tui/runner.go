@@ -57,7 +57,7 @@ func (tr *Reporter) Close() {
 // NewRunner creates a new TUI runner.
 func NewRunner(ctx context.Context) *Runner {
 	model := NewModel(ctx)
-	program := tea.NewProgram(model, tea.WithAltScreen())
+	program := tea.NewProgram(model, tea.WithAltScreen(), tea.WithoutSignalHandler())
 	reporter := NewTUIReporter(program)
 
 	model.SetReporter(reporter)

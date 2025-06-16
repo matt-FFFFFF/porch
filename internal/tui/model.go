@@ -18,6 +18,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/signalbroker"
 )
 
 // CommandStatus represents the current state of a command in the TUI.
@@ -162,6 +163,13 @@ type Model struct {
 
 	// Style definitions
 	styles *Styles
+
+	// Signal handling state
+	signalReceived bool           // Whether a signal has been received
+	signalTime     *time.Time     // When the first signal was received
+	signalCount    int            // Number of signals received
+	lastSignal     os.Signal      // The most recent signal received
+	signalChan     chan os.Signal // Signal channel from signalbroker
 }
 
 // Styles contains all the styling for the TUI.
@@ -219,7 +227,7 @@ func NewStyles() *Styles {
 
 // NewModel creates a new TUI model.
 func NewModel(ctx context.Context) *Model {
-	return &Model{
+	model := &Model{
 		ctx:      ctx,
 		rootNode: NewCommandNode([]string{}, "Root"),
 		nodeMap:  make(map[string]*CommandNode),
@@ -229,7 +237,10 @@ func NewModel(ctx context.Context) *Model {
 		columnSplitRatio: defaultColumnSplitRatio, // Default 60% for left column, 40% for right
 		styles:           NewStyles(),
 		startTime:        time.Now(),
+		signalChan:       signalbroker.New(ctx),
 	}
+
+	return model
 }
 
 // SetReporter sets the progress reporter for the model.

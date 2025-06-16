@@ -13,6 +13,7 @@ import (
 
 const (
 	defaultProgressiveLogChannelBufferSize = 10 // Size of the log channel buffer
+	defaultProgressiveLogUpdateInterval    = 500 * time.Millisecond
 )
 
 // ProgressiveOSCommand extends OSCommand with progress reporting capabilities.
@@ -42,7 +43,7 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 	logCh := make(chan string, defaultProgressiveLogChannelBufferSize) // Buffered channel for log messages
 	defer close(logCh)                                                 // Ensure the channel is closed when done
 	ctx = context.WithValue(ctx, ProgressiveLogChannelKey{}, (chan<- string)(logCh))
-	ctx = context.WithValue(ctx, ProgressiveLogUpdateInterval{}, 500*time.Millisecond) // Update every 500ms
+	ctx = context.WithValue(ctx, ProgressiveLogUpdateInterval{}, defaultProgressiveLogUpdateInterval) // Update every 500ms
 
 	// This goroutine reads from the log channel and reports updates
 	go func() {

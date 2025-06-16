@@ -39,7 +39,7 @@ const (
 	ellipsis         = "..."                  // Used for truncating long text
 	teaTickInterval  = 100 * time.Millisecond // Interval for periodic updates
 
-	// Default viewport dimensions
+	// Default viewport dimensions.
 	defaultViewportWidth  = 80 // Default viewport width
 	defaultViewportHeight = 24 // Default viewport height
 )
@@ -171,6 +171,7 @@ type Styles struct {
 	Help       lipgloss.Style
 	TreeBranch lipgloss.Style
 	StatusBar  lipgloss.Style
+	Border     lipgloss.Style
 }
 
 // NewStyles creates the default styling for the TUI.
@@ -205,16 +206,21 @@ func NewStyles() *Styles {
 			Background(lipgloss.Color("8")).
 			Bold(true).
 			Padding(0, 1),
+		Border: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("8")),
 	}
 }
 
 // NewModel creates a new TUI model.
 func NewModel(ctx context.Context) *Model {
 	return &Model{
-		ctx:       ctx,
-		rootNode:  NewCommandNode([]string{}, "Root"),
-		nodeMap:   make(map[string]*CommandNode),
-		viewport:  viewport.New(defaultViewportWidth, defaultViewportHeight), // Default size, will be updated on window resize
+		ctx:      ctx,
+		rootNode: NewCommandNode([]string{}, "Root"),
+		nodeMap:  make(map[string]*CommandNode),
+		viewport: viewport.New(
+			defaultViewportWidth,
+			defaultViewportHeight), // Default size, will be updated on window resize
 		styles:    NewStyles(),
 		startTime: time.Now(),
 	}
@@ -229,15 +235,17 @@ func (m *Model) SetReporter(reporter progress.Reporter) {
 
 // updateViewportSize updates the viewport dimensions when the window is resized.
 func (m *Model) updateViewportSize() {
-	// Reserve space for title (3 lines), completion message (2 lines), status bar (1 line), and help text (2 lines)
-	reservedLines := 8
+	// Reserve space for title (3 lines), completion message (2 lines),
+	// status bar (1 line), help text (2 lines), and border (2 lines).
+	reservedLines := 10
 
 	viewportHeight := m.height - reservedLines
 	if viewportHeight < 1 {
 		viewportHeight = 1 // Minimum viewport height
 	}
 
-	m.viewport.Width = m.width
+	// Account for border space (2 characters on each side for rounded border)
+	m.viewport.Width = m.width - 4 // nolint:mnd
 	m.viewport.Height = viewportHeight
 }
 
@@ -327,18 +335,10 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 	case progress.EventStarted:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusRunning)
-		// Trigger immediate UI update when a command starts
-		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
-			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
-		})
 
 	case progress.EventCompleted:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusSuccess)
-		// Trigger immediate UI update on completion
-		return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
-			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
-		})
 
 	case progress.EventFailed:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
@@ -358,7 +358,6 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 	case progress.EventSkipped:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusPending) // Keep as pending for skipped commands
-		// No command needed for skipped events
 	}
 
 	// Trigger immediate UI update on failure
@@ -475,8 +474,8 @@ func (m *Model) renderStatusBar() string {
 	// Get memory usage
 	memoryStr := m.getMemoryUsage()
 
-	// Calculate column width (divide available width by 4 columns, accounting for borders)
-	availableWidth := m.width
+	// Calculate column width (use viewport width to match bordered content)
+	availableWidth := m.viewport.Width
 	if availableWidth < minViewportWidth {
 		availableWidth = minViewportWidth
 	}

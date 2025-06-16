@@ -15,6 +15,7 @@ import (
 
 const (
 	minStatusBarAvailableHeight = 10
+	commandDurationRounding     = 100 * time.Millisecond // Round durations to 100ms
 )
 
 // Init implements bubbletea.Model.Init.
@@ -135,10 +136,12 @@ func (m *Model) View() string {
 	// Title
 	title := m.styles.Title.Render("🏗️  Porch Command Orchestration")
 	view.WriteString(title)
-	view.WriteString("\n\n")
+	view.WriteString("\n")
 
-	// Viewport with scrollable content
-	view.WriteString(m.viewport.View())
+	// Viewport with border
+	viewportContent := m.viewport.View()
+	borderedViewport := m.styles.Border.Render(viewportContent)
+	view.WriteString(borderedViewport)
 
 	// Footer with status bar and help
 	if m.height > minStatusBarAvailableHeight {
@@ -241,7 +244,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 			elapsed = endTime.Sub(*startTime)
 		}
 
-		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(100*time.Millisecond)))
+		leftSide += m.styles.Output.Render(fmt.Sprintf(" (%v)", elapsed.Round(commandDurationRounding)))
 	}
 
 	// Build the right side (output or error)
@@ -252,8 +255,8 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 		rightSide = m.styles.Output.Render(output)
 	}
 
-	// Calculate available width for layout
-	availableWidth := m.width - len(treePrefix) - 2 //nolint:mnd // Account for prefix and some padding
+	// Calculate available width for layout (account for border padding)
+	availableWidth := m.viewport.Width - len(treePrefix) - 2 //nolint:mnd // Account for prefix and some padding
 	if availableWidth < minViewportWidth {
 		availableWidth = minViewportWidth
 	}

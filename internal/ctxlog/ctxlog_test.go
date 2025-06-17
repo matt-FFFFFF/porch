@@ -190,16 +190,13 @@ func TestLogLevelFromEnv(t *testing.T) {
 		exec = exec[:len(exec)-len(ext)]
 	}
 
-	exec = strings.ToUpper(exec)
-	envName := strings.ToUpper(exec + "_LOG_LEVEL")
-
 	// Save original environment value
-	originalValue := os.Getenv(envName)
+	originalValue := os.Getenv(porchLogLevelEnvVar)
 	defer func() {
 		if originalValue != "" {
-			os.Setenv(envName, originalValue)
+			os.Setenv(porchLogLevelEnvVar, originalValue)
 		} else {
-			os.Unsetenv(envName)
+			os.Unsetenv(porchLogLevelEnvVar)
 		}
 	}()
 
@@ -244,15 +241,15 @@ func TestLogLevelFromEnv(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set the environment variable
 			if tt.envValue != "" {
-				os.Setenv(envName, tt.envValue)
+				os.Setenv(porchLogLevelEnvVar, tt.envValue)
 			} else {
-				os.Unsetenv(envName)
+				os.Unsetenv(porchLogLevelEnvVar)
 			}
 
 			// Test the function
 			level := logLevelFromEnv()
 			if level != tt.expectedLevel {
-				t.Errorf("logLevelFromEnv() = %v, want %v (env var %s=%s)", level, tt.expectedLevel, envName, tt.envValue)
+				t.Errorf("logLevelFromEnv() = %v, want %v (env var %s=%s)", level, tt.expectedLevel, porchLogLevelEnvVar, tt.envValue)
 			}
 		})
 	}

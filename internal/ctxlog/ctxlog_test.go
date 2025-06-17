@@ -8,9 +8,10 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {
@@ -177,19 +178,6 @@ func TestLoggingFunctions(t *testing.T) {
 }
 
 func TestLogLevelFromEnv(t *testing.T) {
-	// Get the actual executable name to build the proper environment variable
-	exec, err := os.Executable()
-	if err != nil {
-		t.Fatalf("Failed to get executable: %v", err)
-	}
-
-	exec = filepath.Base(exec)
-	ext := filepath.Ext(exec)
-
-	if ext == ".exe" {
-		exec = exec[:len(exec)-len(ext)]
-	}
-
 	// Save original environment value
 	originalValue := os.Getenv(porchLogLevelEnvVar)
 	defer func() {
@@ -248,9 +236,7 @@ func TestLogLevelFromEnv(t *testing.T) {
 
 			// Test the function
 			level := logLevelFromEnv()
-			if level != tt.expectedLevel {
-				t.Errorf("logLevelFromEnv() = %v, want %v (env var %s=%s)", level, tt.expectedLevel, porchLogLevelEnvVar, tt.envValue)
-			}
+			assert.Equal(t, tt.expectedLevel, level, "logLevelFromEnv() should return the expected log level")
 		})
 	}
 }
@@ -268,15 +254,15 @@ func TestDefaultLogger(t *testing.T) {
 	LevelVar.Set(slog.LevelDebug)
 
 	// Test basic functionality
-	if !DefaultLogger.Enabled(context.Background(), slog.LevelInfo) {
-		t.Error("DefaultLogger should be enabled for INFO level when LevelVar is set to DEBUG")
-	}
+	assert.True(t,
+		DefaultLogger.Enabled(context.Background(),
+			slog.LevelInfo),
+		"DefaultLogger should be enabled for INFO",
+	)
 }
 
 func TestJSONLogger(t *testing.T) {
-	if JSONLogger == nil {
-		t.Error("JSONLogger should not be nil")
-	}
+	assert.NotNil(t, JSONLogger, "JSONLogger should not be nil")
 
 	// Save original level and restore at end
 	originalLevel := LevelVar.Level()
@@ -286,24 +272,22 @@ func TestJSONLogger(t *testing.T) {
 	LevelVar.Set(slog.LevelDebug)
 
 	// Test that JSONLogger works
-	if !JSONLogger.Enabled(context.Background(), slog.LevelInfo) {
-		t.Error("JSONLogger should be enabled for INFO level when LevelVar is set to DEBUG")
-	}
+	assert.True(
+		t,
+		JSONLogger.Enabled(context.Background(), slog.LevelInfo),
+		"JSONLogger should be enabled for INFO level when LevelVar is set to DEBUG",
+	)
 }
 
 func TestLevelVar(t *testing.T) {
-	if LevelVar == nil {
-		t.Error("LevelVar should not be nil")
-	}
+	assert.NotNil(t, LevelVar, "LevelVar should not be nil")
 
 	// Test that we can get and set the level
 	originalLevel := LevelVar.Level()
 
 	LevelVar.Set(slog.LevelDebug)
 
-	if LevelVar.Level() != slog.LevelDebug {
-		t.Error("LevelVar.Set() should update the level")
-	}
+	assert.Equal(t, slog.LevelDebug, LevelVar.Level(), "LevelVar.Set() should update the level")
 
 	// Restore original level
 	LevelVar.Set(originalLevel)
@@ -325,7 +309,5 @@ func TestLoggerKey(t *testing.T) {
 	key1 := loggerKey{}
 	key2 := loggerKey{}
 
-	if key1 != key2 {
-		t.Error("loggerKey instances should be equal")
-	}
+	assert.Equal(t, key1, key2, "loggerKey instances should be equal")
 }

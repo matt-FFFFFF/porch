@@ -71,7 +71,7 @@
                 {
                   "type": "object",
                   "title": "Foreachdirectory Command",
-                  "description": "Executes commands in each directory found by traversing the filesystem.",
+                  "description": "Executes commands in each directory found by traversing the filesystem.\nDirectories are found based on the specified depth and whether hidden directories are included.\nCommands are executed in parallel or serially based on the specified mode,\nand the working directory for each command can be set relative to the item being processed.\n\nSet \"working_directory_strategy: \\\"item_relative\\\"\" to run commands in the directory of each item.\n\nAdditionally, an environment variable named \"ITEM\" is set to the current item being processed.",
                   "properties": {
                     "type": {
                       "default": "foreachdirectory",
@@ -229,7 +229,7 @@
                 {
                   "type": "object",
                   "title": "Pwsh Command",
-                  "description": "Executes a pwsh script with configurable success and skip exit codes",
+                  "description": "Executes a pwsh script with configurable success and skip exit codes. Supply only one of `script_file` or `script`.",
                   "properties": {
                     "type": {
                       "default": "pwsh",
@@ -356,6 +356,114 @@
         "anyOf": [
           {
             "type": "object",
+            "title": "Shell Command",
+            "description": "Executes a shell command with configurable success and skip exit codes",
+            "properties": {
+              "type": {
+                "default": "shell",
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "shell"
+                ],
+                "type": "string"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "command_line": {
+                "description": "The command to execute, can be a path or a command name",
+                "type": "string"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "skip_exit_codes": {
+                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
+                "type": "array"
+              },
+              "success_exit_codes": {
+                "description": "Exit codes that indicate success, defaults to 0",
+                "type": "array"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "command_line"
+            ]
+          },
+          {
+            "type": "object",
+            "title": "Pwsh Command",
+            "description": "Executes a pwsh script with configurable success and skip exit codes. Supply only one of `script_file` or `script`.",
+            "properties": {
+              "type": {
+                "default": "pwsh",
+                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
+                "enum": [
+                  "pwsh"
+                ],
+                "type": "string"
+              },
+              "name": {
+                "description": "Descriptive name for the command",
+                "type": "string"
+              },
+              "env": {
+                "description": "Environment variables to set for the command",
+                "type": "object"
+              },
+              "runs_on_condition": {
+                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
+                "type": "string"
+              },
+              "runs_on_exit_codes": {
+                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
+                "type": "array"
+              },
+              "script": {
+                "description": "The PowerShell script to execute, defined in-line",
+                "type": "string"
+              },
+              "script_file": {
+                "description": "The path to the .ps1 file to execute",
+                "type": "string"
+              },
+              "skip_exit_codes": {
+                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
+                "type": "array"
+              },
+              "success_exit_codes": {
+                "description": "Exit codes that indicate success, defaults to 0",
+                "type": "array"
+              },
+              "working_directory": {
+                "description": "Directory in which the command should be executed",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "script_file"
+            ]
+          },
+          {
+            "type": "object",
             "title": "Serial Command",
             "description": "Executes a list of commands sequentially (one after another)",
             "properties": {
@@ -451,7 +559,7 @@
           {
             "type": "object",
             "title": "Foreachdirectory Command",
-            "description": "Executes commands in each directory found by traversing the filesystem.",
+            "description": "Executes commands in each directory found by traversing the filesystem.\nDirectories are found based on the specified depth and whether hidden directories are included.\nCommands are executed in parallel or serially based on the specified mode,\nand the working directory for each command can be set relative to the item being processed.\n\nSet \"working_directory_strategy: \\\"item_relative\\\"\" to run commands in the directory of each item.\n\nAdditionally, an environment variable named \"ITEM\" is set to the current item being processed.",
             "properties": {
               "type": {
                 "default": "foreachdirectory",
@@ -553,114 +661,6 @@
               "type",
               "name"
             ]
-          },
-          {
-            "type": "object",
-            "title": "Shell Command",
-            "description": "Executes a shell command with configurable success and skip exit codes",
-            "properties": {
-              "type": {
-                "default": "shell",
-                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
-                "enum": [
-                  "shell"
-                ],
-                "type": "string"
-              },
-              "name": {
-                "description": "Descriptive name for the command",
-                "type": "string"
-              },
-              "command_line": {
-                "description": "The command to execute, can be a path or a command name",
-                "type": "string"
-              },
-              "env": {
-                "description": "Environment variables to set for the command",
-                "type": "object"
-              },
-              "runs_on_condition": {
-                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
-                "type": "string"
-              },
-              "runs_on_exit_codes": {
-                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
-                "type": "array"
-              },
-              "skip_exit_codes": {
-                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
-                "type": "array"
-              },
-              "success_exit_codes": {
-                "description": "Exit codes that indicate success, defaults to 0",
-                "type": "array"
-              },
-              "working_directory": {
-                "description": "Directory in which the command should be executed",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "name",
-              "command_line"
-            ]
-          },
-          {
-            "type": "object",
-            "title": "Pwsh Command",
-            "description": "Executes a pwsh script with configurable success and skip exit codes",
-            "properties": {
-              "type": {
-                "default": "pwsh",
-                "description": "The type of command (e.g., 'shell', 'serial', 'parallel', 'foreachdirectory')",
-                "enum": [
-                  "pwsh"
-                ],
-                "type": "string"
-              },
-              "name": {
-                "description": "Descriptive name for the command",
-                "type": "string"
-              },
-              "env": {
-                "description": "Environment variables to set for the command",
-                "type": "object"
-              },
-              "runs_on_condition": {
-                "description": "Condition that determines when this command runs: 'success', 'error', 'always', or 'exit-codes'",
-                "type": "string"
-              },
-              "runs_on_exit_codes": {
-                "description": "Specific exit codes that trigger execution (used with runs_on_condition: exit-codes)",
-                "type": "array"
-              },
-              "script": {
-                "description": "The PowerShell script to execute, defined in-line",
-                "type": "string"
-              },
-              "script_file": {
-                "description": "The path to the .ps1 file to execute",
-                "type": "string"
-              },
-              "skip_exit_codes": {
-                "description": "Exit codes that indicate skip remaining tasks, defaults to empty",
-                "type": "array"
-              },
-              "success_exit_codes": {
-                "description": "Exit codes that indicate success, defaults to 0",
-                "type": "array"
-              },
-              "working_directory": {
-                "description": "Directory in which the command should be executed",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "name",
-              "script_file"
-            ]
           }
         ]
       },
@@ -670,4 +670,4 @@
   "required": [
     "commands"
   ]
-}
+}[17:53:11.606] INFO: command completed successfully 

@@ -237,19 +237,23 @@ func (m *Model) View() string {
 	borderedViewport := m.styles.Border.Render(viewportContent)
 	view.WriteString(borderedViewport)
 
-	if m.completed {
-		view.WriteString("\n")
+	view.WriteString("\n")
 
-		if m.results != nil && m.results.HasError() {
-			completionMsg := m.styles.Failed.Render("⚠️  Execution completed with errors, press 'q' to see details")
-			view.WriteString(completionMsg)
-		} else {
-			completionMsg := m.styles.Success.Render("✅ Execution completed successfully")
-			view.WriteString(completionMsg)
-		}
+	var completionMsg string
 
-		view.WriteString("\n")
+	switch {
+	case m.completed && m.results != nil && m.results.HasError():
+		completionMsg = m.styles.Failed.Render("⚠️  Execution completed with errors, press 'q' to see full details")
+	case m.completed && m.results != nil && !m.results.HasError():
+		completionMsg = m.styles.Success.Render("✅  Execution completed successfully")
+	case !m.completed:
+		completionMsg = m.styles.Pending.Render("⏳  Execution in progress, please wait...")
+	default:
+		completionMsg = m.styles.Pending.Render("⏳  Please wait...")
 	}
+
+	view.WriteString(completionMsg)
+	view.WriteString("\n")
 
 	// Footer with status bar and help
 	if m.height > minStatusBarAvailableHeight {
@@ -295,7 +299,12 @@ func (m *Model) renderColumnHeaders(b *strings.Builder) {
 	b.WriteString("\n")
 
 	// Create horizontal border line
-	border := strings.Repeat("─", m.viewport.Width)
+	borderWidth := m.viewport.Width
+	if borderWidth <= 0 {
+		borderWidth = 1 // Minimum border width to prevent panic
+	}
+
+	border := strings.Repeat("─", borderWidth)
 	b.WriteString(border)
 	b.WriteString("\n")
 }
@@ -405,20 +414,22 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 			return lipgloss.NewStyle().Width(rightWidth)
 		})
 
-		// Build the right column (output or error)
+	// Build the right column (output or error)
 	var rightColumn string
 
-	switch status {
-	case StatusFailed:
-		if errorMsg != "" {
+	if errorMsg != "" && status == StatusFailed {
+		rightColumn = m.styles.Error.Render(fmt.Sprintf("Error: %s", errorMsg))
+	} else {
+		switch status {
+		case StatusFailed:
 			rightColumn = m.styles.Error.Render(
-				formatColumn(fmt.Sprintf("Error: %s", errorMsg), rightWidth),
+				formatColumn(output, rightWidth),
+			)
+		case StatusRunning:
+			rightColumn = m.styles.Output.Render(
+				formatColumn(output, rightWidth),
 			)
 		}
-	case StatusRunning:
-		rightColumn = m.styles.Output.Render(
-			formatColumn(output, rightWidth),
-		)
 	}
 
 	// Add the row to the table

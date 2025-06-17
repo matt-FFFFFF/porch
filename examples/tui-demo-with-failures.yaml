@@ -1,0 +1,77 @@
+name: TUI Demo
+description: Demo workflow to showcase the real-time TUI features
+commands:
+  - type: serial
+    name: Build Pipeline
+    commands:
+      - type: shell
+        name: Environment Setup
+        command_line: |
+          echo "Setting up build environment..."
+          sleep 1
+          echo "Environment ready ✓"
+
+      - type: parallel
+        name: Quality Checks
+        commands:
+          - type: serial
+            name: Code Quality
+            commands:
+              - type: shell
+                name: Linting
+                command_line: |
+                  echo "Running linter..."
+                  sleep 2
+                  echo "Linting passed ✓"
+
+              - type: shell
+                name: Code Formatting
+                command_line: |
+                  echo "Checking code format..."
+                  sleep 1
+                  echo "Format check passed ✓"
+
+          - type: serial
+            name: Security Checks
+            commands:
+              - type: shell
+                name: Vulnerability Scan
+                command_line: |
+                  echo "Scanning for vulnerabilities..."
+                  sleep 3
+                  echo "No vulnerabilities found ✓"
+
+              - type: shell
+                name: License Check
+                command_line: |
+                  echo "Checking licenses..."
+                  sleep 1
+                  echo "All licenses valid ✓"
+
+          - type: shell
+            name: Unit Tests
+            command_line: |
+              echo "Running unit tests..."
+              for i in {1..5}; do
+                echo "Test $i: PASS"
+                sleep 0.5
+              done
+              echo "All tests passed ✓"
+
+      - type: shell
+        name: Build Artifacts
+        command_line: |
+          echo "Building application..."
+          sleep 2
+          echo "Build failed 😞" 1>&2
+          exit 1
+
+      - type: shell
+        name: Package & Deploy
+        command_line: |
+          echo "Creating deployment package..."
+          sleep 1
+          echo "Package created ✓"
+          echo "Deploying to staging..."
+          sleep 2
+          echo "Deployment completed ✓"

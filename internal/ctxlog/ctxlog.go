@@ -8,8 +8,10 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
-	"strings"
+)
+
+const (
+	porchLogLevelEnvVar = "PORCH_LOG_LEVEL"
 )
 
 type loggerKey struct{}
@@ -112,19 +114,8 @@ func Error(ctx context.Context, msg string, args ...any) {
 }
 
 func logLevelFromEnv() slog.Level {
-	exec, _ := os.Executable()
-	exec = filepath.Base(exec)
-	ext := filepath.Ext(exec)
-
-	if ext == ".exe" {
-		exec = exec[:len(exec)-len(ext)]
-	}
-
-	exec = strings.ToUpper(exec)
-	envName := strings.ToUpper(exec + "_LOG_LEVEL")
-
 	// Check the environment variable for the log level
-	levelStr := os.Getenv(envName)
+	levelStr := os.Getenv(porchLogLevelEnvVar)
 	switch levelStr {
 	case "DEBUG":
 		return slog.LevelDebug

@@ -69,7 +69,7 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 	results := c.Run(ctx)
 
 	// Report completion based on results using helper
-	ReportExecutionComplete(reporter, c.GetLabel(), results,
+	ReportExecutionComplete(ctx, reporter, c.GetLabel(), results,
 		fmt.Sprintf("Command completed: %s", c.GetLabel()),
 		fmt.Sprintf("Command failed: %s", c.GetLabel()))
 

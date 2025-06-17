@@ -262,11 +262,8 @@ func (m *Model) SetReporter(reporter progress.Reporter) {
 // updateViewportSize updates the viewport dimensions when the window is resized.
 func (m *Model) updateViewportSize() {
 	// Reserve space for title (3 lines), completion message (2 lines),
-	// status bar (1 line), help text (2 lines), and border (2 lines).
-	reservedLines := 10
-	if m.completed {
-		reservedLines++
-	}
+	// status bar (1 line), completion message (1 line) help text (2 lines), and border (2 lines).
+	reservedLines := 11
 
 	viewportHeight := m.height - reservedLines
 	if viewportHeight < 1 {
@@ -275,6 +272,10 @@ func (m *Model) updateViewportSize() {
 
 	// Account for border space (2 characters on each side for rounded border)
 	m.viewport.Width = m.width - 4 // nolint:mnd
+	if m.viewport.Width <= 0 {
+		m.viewport.Width = minViewportWidth // Ensure minimum viewport width
+	}
+
 	m.viewport.Height = viewportHeight
 }
 
@@ -377,7 +378,12 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusFailed)
 
-		if event.Data.Error != nil {
+		// Set error message from either stderr output or error message
+		if event.Data.OutputLine != "" {
+			// Prefer stderr output line if available
+			node.UpdateError(event.Data.OutputLine)
+		} else if event.Data.Error != nil {
+			// Fall back to error message if no stderr output
 			node.UpdateError(event.Data.Error.Error())
 		}
 
@@ -578,17 +584,12 @@ func (m *Model) updateNodeErrorsFromResults(basePath []string, results runbatch.
 
 		// Find the corresponding node
 		pathKey := pathToString(commandPath)
-		if node, exists := m.nodeMap[pathKey]; exists { //nolint:nestif
+		if node, exists := m.nodeMap[pathKey]; exists {
 			// Update error message if this result has a specific error
 			if result.Error != nil && result.Status == runbatch.ResultStatusError {
 				// Only update if we have a more specific error than the generic one
 				if !errors.Is(result.Error, runbatch.ErrResultChildrenHasError) {
 					node.UpdateError(result.Error.Error())
-				}
-
-				if node.ErrorMsg == "" {
-					firstErrLine := strings.Split(string(result.StdErr), "\n")[0]
-					node.UpdateErrorMsg(firstErrLine)
 				}
 			}
 		}

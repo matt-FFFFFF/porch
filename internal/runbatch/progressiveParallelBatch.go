@@ -30,7 +30,7 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.R
 	results := b.executeWithProgressReporting(ctx, childReporter, progressiveCommands)
 
 	// Report completion based on results
-	ReportExecutionComplete(reporter, b.Label, results,
+	ReportExecutionComplete(ctx, reporter, b.Label, results,
 		"Parallel batch completed successfully",
 		"Parallel batch failed")
 

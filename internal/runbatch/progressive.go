@@ -6,8 +6,10 @@ package runbatch
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
@@ -176,17 +178,35 @@ func ReportCommandStarted(reporter progress.Reporter, label string) {
 
 // ReportExecutionComplete reports command/batch completion based on results.
 // It handles both success and failure cases with appropriate event data.
-func ReportExecutionComplete(reporter progress.Reporter, label string, results Results, successMsg, failureMsg string) {
+func ReportExecutionComplete(
+	ctx context.Context,
+	reporter progress.Reporter,
+	label string, results Results,
+	successMsg, failureMsg string) {
+	logger := ctxlog.Logger(ctx)
 	commandPath := []string{label}
 
 	if results.HasError() {
 		exitCode := -1
 		err := ErrResultChildrenHasError
 
+		outputline := ""
+
 		if len(results) > 0 {
 			exitCode = results[0].ExitCode
 			err = results[0].Error
+			firstErrLine, _, _ := strings.Cut(string(results[0].StdErr), "\n")
+
+			if firstErrLine != "" {
+				outputline = firstErrLine
+			}
 		}
+
+		logger.Debug("ReportExecutionComplete: Reporting failed command",
+			"label", label,
+			"commandPath", commandPath,
+			"exitCode", exitCode,
+			"resultsLength", len(results))
 
 		reporter.Report(progress.Event{
 			CommandPath: commandPath,
@@ -194,8 +214,10 @@ func ReportExecutionComplete(reporter progress.Reporter, label string, results R
 			Message:     failureMsg,
 			Timestamp:   time.Now(),
 			Data: progress.EventData{
-				ExitCode: exitCode,
-				Error:    err,
+				ExitCode:   exitCode,
+				Error:      err,
+				IsStderr:   true,
+				OutputLine: outputline,
 			},
 		})
 

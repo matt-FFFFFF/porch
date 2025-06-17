@@ -26,7 +26,7 @@ func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Rep
 	results := b.executeWithProgressReporting(ctx, childReporter)
 
 	// Report completion based on results
-	ReportExecutionComplete(reporter, b.Label, results,
+	ReportExecutionComplete(ctx, reporter, b.Label, results,
 		"Serial batch completed successfully",
 		"Serial batch failed")
 

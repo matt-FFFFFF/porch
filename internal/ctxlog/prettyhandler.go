@@ -49,12 +49,30 @@ func (h *PrettyHandler) Enabled(ctx context.Context, level slog.Level) bool {
 
 // WithAttrs creates a new handler with the given attributes.
 func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &PrettyHandler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m, writer: h.writer, colour: h.colour}
+	return &PrettyHandler{
+		h:                h.h.WithAttrs(attrs),
+		b:                h.b,
+		r:                h.r,
+		m:                h.m,
+		writer:           h.writer,
+		colour:           h.colour,
+		jf:               h.jf,
+		outputEmptyAttrs: h.outputEmptyAttrs,
+	}
 }
 
 // WithGroup creates a new handler with the given group name.
 func (h *PrettyHandler) WithGroup(name string) slog.Handler {
-	return &PrettyHandler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m, writer: h.writer, colour: h.colour}
+	return &PrettyHandler{
+		h:                h.h.WithGroup(name),
+		b:                h.b,
+		r:                h.r,
+		m:                h.m,
+		writer:           h.writer,
+		colour:           h.colour,
+		jf:               h.jf,
+		outputEmptyAttrs: h.outputEmptyAttrs,
+	}
 }
 
 func (h *PrettyHandler) computeAttrs(

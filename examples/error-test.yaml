@@ -1,0 +1,30 @@
+name: Error Test Demo
+description: Demo workflow to test error display in TUI
+commands:
+  - type: serial
+    name: Error Tests
+    commands:
+      - type: shell
+        name: Success Command
+        command_line: |
+          echo "This command will succeed"
+          echo "Success output"
+
+      - type: shell
+        name: Failing Command
+        command_line: |
+          echo "This will go to stdout"
+          echo "This error goes to stderr" >&2
+          exit 1
+
+      - type: shell
+        name: Another Failing Command
+        command_line: |
+          echo "Before error"
+          nonexistent_command_that_will_fail
+          echo "After error"
+
+      - type: shell
+        name: Final Success
+        command_line: |
+          echo "Final command succeeds"

@@ -46,6 +46,9 @@ flow control, parallel processing, and comprehensive error handling.`,
 		"Matt White (matt-FFFFFF)",
 	},
 	EnableShellCompletion: true,
+	Action: func(_ context.Context, _ *cli.Command) error {
+		return nil
+	},
 }
 
 func main() {

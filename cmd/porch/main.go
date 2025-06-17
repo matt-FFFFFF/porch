@@ -85,6 +85,4 @@ func main() {
 		ctxlog.Logger(ctx).Error("command execution failed", "error", err)
 		os.Exit(1)
 	}
-
-	ctxlog.Logger(ctx).Info("command completed successfully")
 }

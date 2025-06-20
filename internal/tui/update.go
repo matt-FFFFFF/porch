@@ -372,6 +372,9 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 	case StatusFailed:
 		statusIcon = "❌"
 		styledName = m.styles.Failed.Render(name)
+	case StatusSkipped:
+		statusIcon = "⏩"
+		styledName = m.styles.Skipped.Render(name)
 	default:
 		statusIcon = "❓"
 		styledName = m.styles.Pending.Render(name)
@@ -391,7 +394,7 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 			elapsed = endTime.Sub(*startTime)
 		}
 
-		durStr := "(" + elapsed.Round(commandDurationRounding).String() + ")"
+		durStr := " (" + elapsed.Round(commandDurationRounding).String() + ")"
 		leftColumn += m.styles.Output.Render(durStr)
 	}
 
@@ -417,19 +420,19 @@ func (m *Model) renderCommandNode(b *strings.Builder, node *CommandNode, prefix 
 	// Build the right column (output or error)
 	var rightColumn string
 
-	if errorMsg != "" && status == StatusFailed {
-		rightColumn = m.styles.Error.Render(fmt.Sprintf("Error: %s", errorMsg))
-	} else {
-		switch status {
-		case StatusFailed:
-			rightColumn = m.styles.Error.Render(
-				formatColumn(output, rightWidth),
-			)
-		case StatusRunning:
-			rightColumn = m.styles.Output.Render(
-				formatColumn(output, rightWidth),
-			)
-		}
+	switch status {
+	case StatusFailed:
+		rightColumn = m.styles.Error.Render(
+			formatColumn(errorMsg, rightWidth),
+		)
+	case StatusSkipped:
+		rightColumn = m.styles.Skipped.Render(
+			formatColumn(errorMsg, rightWidth),
+		)
+	case StatusRunning:
+		rightColumn = m.styles.Output.Render(
+			formatColumn(output, rightWidth),
+		)
 	}
 
 	// Add the row to the table

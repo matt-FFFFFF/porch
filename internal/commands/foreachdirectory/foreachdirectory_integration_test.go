@@ -5,6 +5,7 @@ package foreachdirectory
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
@@ -128,4 +129,42 @@ commands:
 			require.Empty(t, tc.expected, "All expected items should have been processed")
 		})
 	}
+}
+
+func TestForEachDirectorySkipNotExist(t *testing.T) {
+	yamlPayload := `type: "foreachdirectory"
+name: "For Each Directory"
+working_directory: "./does-not-exist"
+mode: serial
+depth: 1
+skip_on_not_exist: true
+include_hidden: false
+commands:
+  - type: "shell"
+    name: "echo item var"
+    command_line: "echo $ITEM"
+`
+	commander := &Commander{}
+	f := commandregistry.New(
+		serialcommand.Register,
+		parallelcommand.Register,
+		shellcommand.Register,
+		copycwdtotemp.Register,
+		Register,
+	)
+
+	runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload))
+	require.NoError(t, err)
+	require.NotNil(t, runnable)
+	forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
+	require.True(t, ok, "Expected ForEachCommand, got %T", runnable)
+	assert.Equal(t, forEachCommand.ItemsSkipOnErrors[0], os.ErrNotExist, "Expected skip error to be os.ErrNotExist")
+
+	results := runnable.Run(t.Context())
+	require.NotNil(t, results)
+	require.Len(t, results, 1, "Expected 1 result for foreach command")
+	assert.Equal(t, "For Each Directory", results[0].Label)
+	assert.Equal(t, runbatch.ResultStatusSkipped, results[0].Status,
+		"Expected result to be skipped due to non-existent working directory",
+	)
 }

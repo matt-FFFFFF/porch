@@ -34,6 +34,8 @@ const (
 	StatusSuccess
 	// StatusFailed indicates the command failed.
 	StatusFailed
+	// StatusSkipped indicates the command was skipped.
+	StatusSkipped
 )
 
 const (
@@ -188,6 +190,7 @@ type Styles struct {
 	Pending    lipgloss.Style
 	Running    lipgloss.Style
 	Success    lipgloss.Style
+	Skipped    lipgloss.Style
 	Failed     lipgloss.Style
 	Output     lipgloss.Style
 	Error      lipgloss.Style
@@ -211,6 +214,9 @@ func NewStyles() *Styles {
 			Bold(true),
 		Success: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("10")),
+		Skipped: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("14")).
+			Italic(true),
 		Failed: lipgloss.NewStyle().
 			Foreground(lipgloss.Color("9")),
 		Output: lipgloss.NewStyle().
@@ -396,10 +402,23 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 
 	case progress.EventSkipped:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
-		node.UpdateStatus(StatusPending) // Keep as pending for skipped commands
+		node.UpdateStatus(StatusSkipped)
+
+		if event.Data.OutputLine != "" {
+			node.UpdateOutput(event.Data.OutputLine)
+		}
+
+		// Set error message from either stderr output or error message (for skip reasons)
+		if event.Data.OutputLine != "" {
+			// Prefer stderr output line if available
+			node.UpdateError(event.Data.OutputLine)
+		} else if event.Data.Error != nil {
+			// Fall back to error message if no stderr output
+			node.UpdateError(event.Data.Error.Error())
+		}
 	}
 
-	// Trigger immediate UI update on failure
+	// Trigger immediate UI update
 	return tea.Tick(teaTickInterval, func(_ time.Time) tea.Msg {
 		return tea.WindowSizeMsg{Width: m.width, Height: m.height}
 	})
@@ -586,7 +605,7 @@ func (m *Model) updateNodeErrorsFromResults(basePath []string, results runbatch.
 		pathKey := pathToString(commandPath)
 		if node, exists := m.nodeMap[pathKey]; exists {
 			// Update error message if this result has a specific error
-			if result.Error != nil && result.Status == runbatch.ResultStatusError {
+			if result.Error != nil && (result.Status == runbatch.ResultStatusError) {
 				// Only update if we have a more specific error than the generic one
 				if !errors.Is(result.Error, runbatch.ErrResultChildrenHasError) {
 					node.UpdateError(result.Error.Error())

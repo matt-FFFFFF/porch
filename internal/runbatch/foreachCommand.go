@@ -116,6 +116,9 @@ type ForEachCommand struct {
 	Mode ForEachMode
 	// CwdStrategy is for modifying the current working directory for each item
 	CwdStrategy ForEachCwdStrategy
+	// ItemsSkipOnErrors is a list of errors that will not cause the foreach items provider to fail.
+	// Must be a list of errors that can be used with errors.Is.
+	ItemsSkipOnErrors []error
 }
 
 // ParseForEachMode converts a string to a ForEachMode.
@@ -143,6 +146,15 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 	// Get the items to iterate over
 	items, err := f.ItemsProvider(ctx, f.Cwd)
 	if err != nil {
+		for _, skipErr := range f.ItemsSkipOnErrors {
+			// If the error is in the skip list, treat it as a skipped result.
+			if errors.Is(err, skipErr) {
+				result.Status = ResultStatusSkipped
+				return Results{result}
+			}
+		}
+
+		// If the error is not in the skip list, return an error result.
 		return Results{{
 			Label:    f.Label,
 			ExitCode: -1,

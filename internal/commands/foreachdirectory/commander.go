@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
@@ -66,11 +67,17 @@ func (c *Commander) Create(
 		return nil, fmt.Errorf("failed to parse working directory strategy: %q %w", def.WorkingDirectoryStrategy, err)
 	}
 
+	ItemsSkipOnErrors := []error{}
+	if def.SkipOnNotExist {
+		ItemsSkipOnErrors = append(ItemsSkipOnErrors, os.ErrNotExist)
+	}
+
 	forEachCommand := &runbatch.ForEachCommand{
-		BaseCommand:   base,
-		ItemsProvider: foreachproviders.ListDirectoriesDepth(def.Depth, foreachproviders.IncludeHidden(def.IncludeHidden)),
-		Mode:          mode,
-		CwdStrategy:   strat,
+		BaseCommand:       base,
+		ItemsProvider:     foreachproviders.ListDirectoriesDepth(def.Depth, foreachproviders.IncludeHidden(def.IncludeHidden)),
+		Mode:              mode,
+		CwdStrategy:       strat,
+		ItemsSkipOnErrors: ItemsSkipOnErrors,
 	}
 
 	// Determine which commands to use

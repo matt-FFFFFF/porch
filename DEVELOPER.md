@@ -1,4 +1,3 @@
-
 # Developer Guide for Porch
 
 ## Extending Porch

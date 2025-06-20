@@ -1,0 +1,46 @@
+name: "For Each Directory Example"
+description: "Example showing nested serial and parallel commands"
+commands:
+  - type: "foreachdirectory"
+    name: "For Each Directory OK"
+    working_directory: "./cmd"
+    mode: "parallel"
+    working_directory_strategy: "item_relative"
+    depth: 1
+    commands:
+      - type: "shell"
+        name: "echo pwd"
+        command_line: "echo $(pwd)"
+      - type: "shell"
+        name: skip test
+        command_line: "exit 2"
+        skip_exit_codes:
+          - 2
+      - type: "shell"
+        name: should not run
+        command_line: "echo should not run"
+
+  - type: "foreachdirectory"
+    name: "For Each Directory Does Not Exist"
+    working_directory: "./does-not-exist"
+    skip_on_not_exist: true
+    mode: "parallel"
+    working_directory_strategy: "item_relative"
+    depth: 1
+    commands:
+      - type: "shell"
+        name: "echo pwd"
+        command_line: "echo $(pwd)"
+
+  - type: "foreachdirectory"
+    name: "For Each Directory Does Not Exist Fail"
+    working_directory: "./does-not-exist"
+    runs_on_condition: always
+    skip_on_not_exist: false
+    mode: "parallel"
+    working_directory_strategy: "item_relative"
+    depth: 1
+    commands:
+      - type: "shell"
+        name: "echo pwd"
+        command_line: "echo $(pwd)"

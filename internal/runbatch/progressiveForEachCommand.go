@@ -5,9 +5,11 @@ package runbatch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"path/filepath"
+	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
@@ -42,10 +44,41 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 	// Get the items to iterate over
 	items, err := f.ItemsProvider(ctx, f.Cwd)
 	if err != nil {
-		result.Error = err
-		result.ExitCode = -1
-		result.Status = ResultStatusError
+		for _, skipErr := range f.ItemsSkipOnErrors {
+			// If the error is in the skip list, treat it as a skipped result.
+			if errors.Is(err, skipErr) {
+				result.Status = ResultStatusSkipped
+				result.Error = ErrSkipIntentional
+				reporter.Report(progress.Event{
+					CommandPath: []string{f.Label},
+					Type:        progress.EventSkipped,
+					Message:     result.Error.Error(),
+					Timestamp:   time.Now(),
+					Data: progress.EventData{
+						ExitCode:   result.ExitCode,
+						Error:      result.Error,
+						OutputLine: fmt.Sprintf("%v: %v", ErrSkipIntentional, err),
+					},
+				})
+				return Results{result}
+			}
+		}
 
+		// If the error is not in the skip list, return an error result.
+		result.Error = fmt.Errorf("%w: %v", ErrItemsProviderFailed, err)
+		result.Status = ResultStatusError
+		result.ExitCode = -1
+
+		reporter.Report(progress.Event{
+			CommandPath: []string{f.Label},
+			Type:        progress.EventFailed,
+			Message:     result.Error.Error(),
+			Timestamp:   time.Now(),
+			Data: progress.EventData{
+				ExitCode: result.ExitCode,
+				Error:    result.Error,
+			},
+		})
 		return Results{result}
 	}
 

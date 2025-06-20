@@ -32,6 +32,8 @@ type Definition struct {
 	Commands []any `yaml:"commands,omitempty" docdesc:"List of commands to execute in each directory"`
 	// CommandGroup is a reference to a named command group
 	CommandGroup string `yaml:"command_group,omitempty" docdesc:"Reference to a named command group"`
+	// SkipOnNotExist specifies whether to skip directories that do not exist.
+	SkipOnNotExist bool `yaml:"skip_on_not_exist" docdesc:"Whether to skip directories that do not exist"`
 }
 
 // Validate ensures that commands and command_group are not both specified,

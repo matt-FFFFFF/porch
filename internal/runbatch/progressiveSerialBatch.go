@@ -65,6 +65,9 @@ OuterLoop:
 					Type:        progress.EventSkipped,
 					Message:     "Command skipped intentionally",
 					Timestamp:   time.Now(),
+					Data: progress.EventData{
+						Error: ErrSkipIntentional,
+					},
 				})
 
 				results = append(results, &Result{
@@ -81,6 +84,9 @@ OuterLoop:
 					Type:        progress.EventSkipped,
 					Message:     "Command skipped due to previous error",
 					Timestamp:   time.Now(),
+					Data: progress.EventData{
+						Error: ErrSkipOnError,
+					},
 				})
 
 				results = append(results, &Result{

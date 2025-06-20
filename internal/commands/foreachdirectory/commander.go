@@ -67,9 +67,9 @@ func (c *Commander) Create(
 		return nil, fmt.Errorf("failed to parse working directory strategy: %q %w", def.WorkingDirectoryStrategy, err)
 	}
 
-	ItemsSkipOnErrors := []error{}
+	itemsSkipOnErrors := []error{}
 	if def.SkipOnNotExist {
-		ItemsSkipOnErrors = append(ItemsSkipOnErrors, os.ErrNotExist)
+		itemsSkipOnErrors = append(itemsSkipOnErrors, os.ErrNotExist)
 	}
 
 	forEachCommand := &runbatch.ForEachCommand{
@@ -79,7 +79,7 @@ func (c *Commander) Create(
 		),
 		Mode:              mode,
 		CwdStrategy:       strat,
-		ItemsSkipOnErrors: ItemsSkipOnErrors,
+		ItemsSkipOnErrors: itemsSkipOnErrors,
 	}
 
 	// Determine which commands to use

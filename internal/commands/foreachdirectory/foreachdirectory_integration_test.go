@@ -158,11 +158,13 @@ commands:
 	require.NotNil(t, runnable)
 	forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
 	require.True(t, ok, "Expected ForEachCommand, got %T", runnable)
-	assert.True(t, forEachCommand.ItemsSkipOnErrors[0] == os.ErrNotExist, "Expected skip error to be os.ErrNotExist")
+	assert.Equal(t, forEachCommand.ItemsSkipOnErrors[0], os.ErrNotExist, "Expected skip error to be os.ErrNotExist")
 
 	results := runnable.Run(t.Context())
 	require.NotNil(t, results)
 	require.Len(t, results, 1, "Expected 1 result for foreach command")
 	assert.Equal(t, "For Each Directory", results[0].Label)
-	assert.Equal(t, runbatch.ResultStatusSkipped, results[0].Status, "Expected result to be skipped due to non-existent working directory")
+	assert.Equal(t, runbatch.ResultStatusSkipped, results[0].Status,
+		"Expected result to be skipped due to non-existent working directory",
+	)
 }

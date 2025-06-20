@@ -403,6 +403,7 @@ func (m *Model) processProgressEvent(event progress.Event) tea.Cmd {
 	case progress.EventSkipped:
 		node := m.getOrCreateNode(event.CommandPath, commandName)
 		node.UpdateStatus(StatusSkipped)
+
 		if event.Data.OutputLine != "" {
 			node.UpdateOutput(event.Data.OutputLine)
 		}

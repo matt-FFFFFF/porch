@@ -60,6 +60,7 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 						OutputLine: fmt.Sprintf("%v: %v", ErrSkipIntentional, err),
 					},
 				})
+
 				return Results{result}
 			}
 		}
@@ -79,6 +80,7 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 				Error:    result.Error,
 			},
 		})
+
 		return Results{result}
 	}
 

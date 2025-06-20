@@ -73,8 +73,10 @@ func (c *Commander) Create(
 	}
 
 	forEachCommand := &runbatch.ForEachCommand{
-		BaseCommand:       base,
-		ItemsProvider:     foreachproviders.ListDirectoriesDepth(def.Depth, foreachproviders.IncludeHidden(def.IncludeHidden)),
+		BaseCommand: base,
+		ItemsProvider: foreachproviders.ListDirectoriesDepth(
+			def.Depth, foreachproviders.IncludeHidden(def.IncludeHidden),
+		),
 		Mode:              mode,
 		CwdStrategy:       strat,
 		ItemsSkipOnErrors: ItemsSkipOnErrors,
@@ -156,6 +158,7 @@ func (c *Commander) GetExampleDefinition() interface{} {
 		Depth:                    2, //nolint:mnd
 		IncludeHidden:            false,
 		WorkingDirectoryStrategy: "item_relative",
+		SkipOnNotExist:           false,
 		Commands: []any{
 			map[string]any{
 				"type":         "shellcommand",

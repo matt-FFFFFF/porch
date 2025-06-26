@@ -16,7 +16,7 @@ func EnterDebugMode(config PorchConfig) {
 	}()
 
 	line.SetCtrlCAborts(true)
-	fmt.Println("Entering debuging mode, press `quit` or `exit` or Ctrl+C to quit.")
+	fmt.Println("Entering debugging mode, press `quit` or `exit` or Ctrl+C to quit.")
 
 	for {
 		if input, err := line.Prompt("debug> "); err == nil {

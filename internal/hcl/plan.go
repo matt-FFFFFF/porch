@@ -13,7 +13,7 @@ func RunPorchPlan(c *PorchConfig) (*PorchPlan, error) {
 
 	plan := newPlan(c)
 	for _, rb := range golden.Blocks[*WorkflowBlock](c) {
-		plan.addCommand(rb)
+		plan.addWorkflow(rb)
 	}
 
 	return plan, nil
@@ -31,7 +31,7 @@ type PorchPlan struct {
 	mu        sync.Mutex
 }
 
-func (p *PorchPlan) addCommand(c *WorkflowBlock) {
+func (p *PorchPlan) addWorkflow(c *WorkflowBlock) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.Workflows = append(p.Workflows, c)

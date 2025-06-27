@@ -83,17 +83,18 @@ func (c *BaseCommand) SetCwd(cwd string, overwrite bool) {
 		return
 	}
 
-	// If the existing cwd is relative (or empty), resolve it against the new cwd
-	if c.Cwd == "" || !filepath.IsAbs(c.Cwd) {
-		if c.Cwd == "" {
-			c.Cwd = cwd
-			return
-		} else {
-			// Only join paths if the existing cwd is not the same as the new cwd
-			// This prevents duplicate path issues when the same relative path is set multiple times
-			if c.Cwd != cwd {
-				c.Cwd = filepath.Join(cwd, c.Cwd)
-			}
+	// If the new cwd is absolute, set it directly
+	if c.Cwd == "" {
+		c.Cwd = cwd
+		return
+	}
+
+	// If the existing cwd is relative, resolve it against the new cwd
+	if !filepath.IsAbs(c.Cwd) {
+		// Only join paths if the existing cwd is not the same as the new cwd
+		// This prevents duplicate path issues when the same relative path is set multiple times
+		if c.Cwd != cwd {
+			c.Cwd = filepath.Join(cwd, c.Cwd)
 		}
 
 		return

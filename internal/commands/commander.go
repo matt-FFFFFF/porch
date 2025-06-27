@@ -18,7 +18,7 @@ type FactoryContextKey struct{}
 type Commander interface {
 	// Create creates a runnable command from the provided payload.
 	// The payload is the YAML command in bytes.
-	Create(ctx context.Context, registry CommanderFactory, payload []byte) (runbatch.Runnable, error)
+	Create(ctx context.Context, registry CommanderFactory, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error)
 }
 
 // CommanderFactory is an interface for creating a Commander.
@@ -28,7 +28,7 @@ type CommanderFactory interface {
 	Get(commandType string) (Commander, bool)
 	// CreateRunnableFromYAML creates a runnable from the provided YAML payload.
 	// This method is tasked with determining the command type from the payload.
-	CreateRunnableFromYAML(ctx context.Context, payload []byte) (runbatch.Runnable, error)
+	CreateRunnableFromYAML(ctx context.Context, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error)
 	// Register registers a Commander for a specific command type.
 	Register(cmdtype string, commander Commander) error
 	// Iter returns an iterator over all registered command types.

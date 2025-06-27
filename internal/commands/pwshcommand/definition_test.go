@@ -4,9 +4,11 @@
 package pwshcommand
 
 import (
+	"context"
 	"testing"
 
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -134,8 +136,15 @@ func TestDefinition_Validate(t *testing.T) {
 			assert.NotNil(t, tt.definition)
 			assert.Equal(t, "pwsh", tt.definition.Type)
 
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "parent-batch",
+					Cwd:   "/",
+				},
+			}
+
 			// Test ToBaseCommand if it exists
-			baseCmd, err := tt.definition.ToBaseCommand()
+			baseCmd, err := tt.definition.ToBaseCommand(context.Background(), parent)
 			if tt.expectError {
 				require.Error(t, err)
 

@@ -32,7 +32,12 @@ func NewCommander() *Commander {
 }
 
 // Create creates a new runnable command and implements the commands.Commander interface.
-func (c *Commander) Create(_ context.Context, _ commands.CommanderFactory, payload []byte) (runbatch.Runnable, error) {
+func (c *Commander) Create(
+	ctx context.Context,
+	_ commands.CommanderFactory,
+	payload []byte,
+	parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
@@ -42,7 +47,7 @@ func (c *Commander) Create(_ context.Context, _ commands.CommanderFactory, paylo
 		def.WorkingDirectory = "."
 	}
 
-	base, err := def.ToBaseCommand()
+	base, err := def.ToBaseCommand(ctx, parent)
 	if err != nil {
 		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}

@@ -50,7 +50,25 @@ func (b *ParallelBatch) executeWithProgressReporting(
 	for _, cmd := range progressiveCommands {
 		wg.Add(1)
 		cmd.InheritEnv(b.Env)
-		cmd.SetCwd(b.Cwd, CwdPolicyPreserveAbsolute)
+		if err := cmd.SetCwd(b.Cwd); err != nil {
+			// Report error setting cwd
+			reporter.Report(progress.Event{
+				CommandPath: []string{cmd.GetLabel()},
+				Type:        progress.EventFailed,
+				Message:     "Error setting working directory",
+				Timestamp:   time.Now(),
+				Data: progress.EventData{
+					Error: err,
+				},
+			})
+
+			children = append(children, &Result{
+				Label:  cmd.GetLabel(),
+				Status: ResultStatusError,
+				Error:  err,
+			})
+			continue
+		}
 
 		go func(c Runnable) {
 			defer wg.Done()

@@ -5,21 +5,14 @@ package runbatch
 
 import (
 	"errors"
+	"fmt"
 	"maps"
 	"path/filepath"
 	"slices"
 )
 
-// CwdUpdatePolicy defines how the working directory should be updated.
-type CwdUpdatePolicy int
-
-const (
-	// CwdPolicyOverwrite replaces the current cwd entirely (equivalent to overwrite=true)
-	CwdPolicyOverwrite CwdUpdatePolicy = iota
-	// CwdPolicyAppendIfRelative joins the new cwd with existing relative paths, overwrites absolute paths
-	CwdPolicyAppendIfRelative
-	// CwdPolicyPreserveAbsolute keeps absolute paths unchanged, updates relative paths
-	CwdPolicyPreserveAbsolute
+var (
+	ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
 )
 
 // BaseCommand is a struct that implements the Runnable interface.
@@ -81,52 +74,37 @@ func (c *BaseCommand) SetParent(parent Runnable) {
 	c.parent = parent
 }
 
-// SetCwd sets the working directory for the command using an explicit update policy.
-// If policy is CwdPolicyOverwrite, it replaces the current Cwd entirely.
-// If policy is CwdPolicyAppendIfRelative, it joins the new cwd with existing relative paths, overwriting absolute paths.
-// If policy is CwdPolicyPreserveAbsolute, it keeps absolute paths unchanged and updates relative paths.
-func (c *BaseCommand) SetCwd(cwd string, policy CwdUpdatePolicy) {
+// GetCwd returns the current working directory for the command.
+func (c *BaseCommand) GetCwd() string {
+	return c.Cwd
+}
+
+// SetCwd sets the working directory for the command.
+// All commands MUST have an absolute cwd at all times.
+// This method requires the current cwd to be absolute and will error otherwise.
+func (c *BaseCommand) SetCwd(cwd string) error {
 	if cwd == "" {
-		return
+		return nil
 	}
 
-	switch policy {
-	case CwdPolicyOverwrite:
-		// Always replace the current cwd, regardless of its current state
-		c.Cwd = cwd
-
-	case CwdPolicyAppendIfRelative:
-		// If existing cwd is empty, set it directly
-		if c.Cwd == "" {
-			c.Cwd = cwd
-			return
-		}
-
-		// If existing cwd is relative, resolve it against the new cwd
-		if !filepath.IsAbs(c.Cwd) {
-			c.Cwd = filepath.Join(cwd, c.Cwd)
-			return
-		}
-		// If existing cwd is absolute, replace it with the new one
-		c.Cwd = cwd
-		return
-
-	case CwdPolicyPreserveAbsolute:
-		// If existing cwd is absolute, don't change it
-		if filepath.IsAbs(c.Cwd) {
-			return
-		}
-
-		// If existing cwd is empty, set it directly
-		if c.Cwd == "" {
-			c.Cwd = cwd
-			return
-		}
-
-		// If existing cwd is relative, resolve it against the new cwd
-		// Always join them to ensure proper path resolution
-		c.Cwd = filepath.Join(cwd, c.Cwd)
+	// Current working directory must be absolute
+	if !filepath.IsAbs(c.Cwd) {
+		return fmt.Errorf("%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd)
 	}
+
+	if filepath.IsAbs(cwd) {
+		if filepath.Clean(cwd) == filepath.Clean(c.GetParent().GetCwd()) && c.Cwd != "" {
+			// If the new cwd is the same as the parent's cwd, we should prefer this command's cwd
+			return nil
+		}
+		// If the new cwd is absolute, we can set it directly
+		c.Cwd = cwd
+		return nil
+	}
+
+	// If the new cwd is relative, resolve it against the current absolute cwd
+	c.Cwd = filepath.Join(c.Cwd, cwd)
+	return nil
 }
 
 // InheritEnv sets additional environment variables for the command.

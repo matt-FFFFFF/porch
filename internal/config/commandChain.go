@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
@@ -20,6 +21,8 @@ var (
 	ErrNoCommands = errors.New("no commands specified")
 	// ErrConfigurationTimeout is returned when configuration building times out.
 	ErrConfigurationTimeout = errors.New("configuration building timed out")
+	// ErrConfigBuild is returned when there is an error building the configuration.
+	ErrConfigBuild = errors.New("error building configuration")
 )
 
 // Definition represents the root configuration structure.
@@ -59,11 +62,16 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 	}
 
 	runnables := make([]runbatch.Runnable, 0, len(def.Commands))
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, errors.Join(ErrConfigBuild, err)
+	}
 
 	// Wrap in a serial batch with the definition's metadata
 	topLevelCommand := &runbatch.SerialBatch{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: def.Name,
+			Cwd:   pwd,
 		},
 	}
 
@@ -81,7 +89,7 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 			return nil, fmt.Errorf("failed to marshal command %d: %w", i, err)
 		}
 
-		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML)
+		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML, topLevelCommand)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)

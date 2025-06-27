@@ -12,10 +12,12 @@ type Runnable interface {
 	// Run executes the command or batch and returns the results.
 	// It should handle context cancellation and passing signals to any spawned process.
 	Run(context.Context) Results
+	// GetCwd returns the current working directory for the command or batch.
+	GetCwd() string
 	// SetCwd sets the working directory for the command or batch.
 	// It should be called before Run() to ensure the command or batch runs in the correct directory.
 	// The policy parameter defines how the working directory should be updated.
-	SetCwd(string, CwdUpdatePolicy)
+	SetCwd(string) error
 	// InheritEnv sets the environment variables for the command or batch.
 	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)

@@ -6,6 +6,7 @@ package foreachdirectory
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
@@ -99,7 +100,9 @@ commands:
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
 			require.True(t, ok, "Expected ForEachCommand, got %T", runnable)
 			assert.Equal(t, "For Each Directory", forEachCommand.Label)
-			assert.Equal(t, "testdata/foreachdir", forEachCommand.Cwd)
+			pwd, _ := os.Getwd()
+			relPath, _ := filepath.Rel(pwd, forEachCommand.Cwd)
+			assert.Equal(t, "testdata/foreachdir", relPath)
 			require.Equalf(
 				t,
 				tc.mode,

@@ -56,7 +56,25 @@ OuterLoop:
 		default:
 			// Inherit env and cwd from the batch if not already set
 			cmd.InheritEnv(b.Env)
-			cmd.SetCwd(b.Cwd, CwdPolicyPreserveAbsolute)
+			if err := cmd.SetCwd(b.Cwd); err != nil {
+				// Report error setting cwd
+				reporter.Report(progress.Event{
+					CommandPath: []string{cmd.GetLabel()},
+					Type:        progress.EventFailed,
+					Message:     "Error setting working directory",
+					Timestamp:   time.Now(),
+					Data: progress.EventData{
+						Error: err,
+					},
+				})
+
+				results = append(results, &Result{
+					Label:  cmd.GetLabel(),
+					Status: ResultStatusError,
+					Error:  err,
+				})
+				continue OuterLoop
+			}
 
 			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
@@ -126,7 +144,25 @@ OuterLoop:
 			if newCwd != "" && i < len(progressiveCommands)-1 {
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(progressiveCommands[i+1:]) {
-					rb.SetCwd(newCwd, CwdPolicyOverwrite)
+					if err := rb.SetCwd(newCwd); err != nil {
+						// Report error setting cwd for the next command
+						reporter.Report(progress.Event{
+							CommandPath: []string{rb.GetLabel()},
+							Type:        progress.EventFailed,
+							Message:     "Error setting working directory for next command",
+							Timestamp:   time.Now(),
+							Data: progress.EventData{
+								Error: err,
+							},
+						})
+
+						results = append(results, &Result{
+							Label:  rb.GetLabel(),
+							Status: ResultStatusError,
+							Error:  err,
+						})
+						continue OuterLoop
+					}
 				}
 			}
 

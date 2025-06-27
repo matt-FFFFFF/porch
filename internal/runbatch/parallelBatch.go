@@ -27,7 +27,13 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		cmd.InheritEnv(b.Env)
 		// Use the current working directory from the parallel batch, which may have been
 		// updated by predecessor commands in the serial execution chain.
-		cmd.SetCwd(b.Cwd, CwdPolicyPreserveAbsolute)
+		if err := cmd.SetCwd(b.Cwd); err != nil {
+			return Results{&Result{
+				Label:  cmd.GetLabel(),
+				Status: ResultStatusError,
+				Error:  err,
+			}}
+		}
 	}
 
 	for _, cmd := range b.Commands {

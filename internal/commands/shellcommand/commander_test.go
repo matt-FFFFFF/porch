@@ -45,7 +45,14 @@ name: "Simple Test"
 command_line: "echo hello"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -61,7 +68,14 @@ type: shell
 command_line: "ls"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -82,7 +96,14 @@ env:
   ANOTHER_VAR: "another_value"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -106,7 +127,13 @@ command_line: "false"
 runs_on_condition: "error"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -123,7 +150,14 @@ command_line: "echo always"
 runs_on_condition: "always"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -144,7 +178,14 @@ invalid: yaml: content
   - malformed
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 	})
@@ -156,7 +197,14 @@ name: "Empty Command"
 command_line: ""
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "command not found")
@@ -168,7 +216,14 @@ type: shell
 name: "Missing Command"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "command not found")
@@ -182,7 +237,14 @@ command_line: "echo test"
 runs_on_condition: "invalid_condition"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "unknown RunCondition")
@@ -231,7 +293,14 @@ command_line: "echo test"
 environment: {}
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -246,7 +315,14 @@ type: shell
 command_line: "  echo test  "
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -262,7 +338,14 @@ type: shell
 command_line: "dir"
 `)
 
-			runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "Parent Command",
+					Cwd:   "/parent",
+				},
+			}
+
+			runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 			require.NoError(t, err)
 			require.NotNil(t, runnable)
 
@@ -337,7 +420,14 @@ command_line: "echo test"
 runs_on_condition: "` + tc.condition + `"
 `)
 
-				runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+				parent := &runbatch.SerialBatch{
+					BaseCommand: &runbatch.BaseCommand{
+						Label: "Parent Command",
+						Cwd:   "/parent",
+					},
+				}
+
+				runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 				require.NoError(t, err)
 				require.NotNil(t, runnable)
 
@@ -361,7 +451,14 @@ env:
   VAR4: "value_with_special_chars_!@#$%"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -386,7 +483,14 @@ runs_on_condition: "exit-codes"
 runs_on_exit_codes: [0, 1, 2, 255]
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 

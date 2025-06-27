@@ -117,31 +117,33 @@ func TestParallelBatch_InheritsCwdFromSerialPredecessors(t *testing.T) {
 	testDir := filepath.Join(tempDir, "test")
 	require.NoError(t, os.MkdirAll(testDir, 0o755))
 
-	// Create a parallel batch that has been updated with a new cwd (simulating what SerialBatch does)
-	parallelBatch := &ParallelBatch{
+	pb := &ParallelBatch{
 		BaseCommand: &BaseCommand{
 			Label: "parallel-batch",
 			Cwd:   testDir, // This simulates the cwd being updated by SerialBatch
 		},
-		Commands: []Runnable{
-			&MockCommand{
-				BaseCommand: &BaseCommand{
-					Label: "cmd1",
-					Cwd:   "", // Empty cwd should inherit from parallel batch
-				},
+	}
+	// Create a parallel batch that has been updated with a new cwd (simulating what SerialBatch does)
+	pb.Commands = []Runnable{
+		&MockCommand{
+			BaseCommand: &BaseCommand{
+				Label:  "cmd1",
+				Cwd:    tempDir, // Commands should start with absolute paths (as resolved at creation)
+				parent: pb,      // Set parent to ensure proper context
 			},
-			&MockCommand{
-				BaseCommand: &BaseCommand{
-					Label: "cmd2",
-					Cwd:   "./relative", // Existing relative path should be preserved
-				},
+		},
+		&MockCommand{
+			BaseCommand: &BaseCommand{
+				Label:  "cmd2",
+				Cwd:    filepath.Join(tempDir, "relative"), // Relative paths should already be resolved to absolute
+				parent: pb,                                 // Set parent to ensure proper context
 			},
 		},
 	}
 
 	// Run the parallel batch
 	ctx := context.Background()
-	results := parallelBatch.Run(ctx)
+	results := pb.Run(ctx)
 
 	// Verify results
 	assert.NotNil(t, results)
@@ -149,12 +151,12 @@ func TestParallelBatch_InheritsCwdFromSerialPredecessors(t *testing.T) {
 	assert.Equal(t, ResultStatusSuccess, results[0].Status)
 
 	// Check that the parallel batch commands received the correct cwd after SetCwd was called
-	cmd1 := parallelBatch.Commands[0].(*MockCommand)
-	assert.Equal(t, testDir, cmd1.Cwd) // Empty cwd should inherit from parallel batch
+	cmd1 := pb.Commands[0].(*MockCommand)
+	assert.Equal(t, tempDir, cmd1.Cwd) // Command cwd should prefer the testDir
 
-	cmd2 := parallelBatch.Commands[1].(*MockCommand)
-	// With overwrite=false, existing relative cwd should be resolved against batch cwd
-	expectedPath := filepath.Join(testDir, "relative")
+	cmd2 := pb.Commands[1].(*MockCommand)
+	// The relative path was already resolved to absolute, so SetCwd should preserve it
+	expectedPath := filepath.Join(tempDir, "relative")
 	assert.Equal(t, expectedPath, cmd2.Cwd)
 }
 
@@ -169,18 +171,20 @@ func TestParallelBatch_CommandsDoNotInheritCwdFromSiblings(t *testing.T) {
 			Label: "parallel-batch",
 			Cwd:   tempDir,
 		},
-		Commands: []Runnable{
-			&MockCommand{
-				BaseCommand: &BaseCommand{
-					Label: "cmd1",
-					Cwd:   "",
-				},
+	}
+	parallelBatch.Commands = []Runnable{
+		&MockCommand{
+			BaseCommand: &BaseCommand{
+				Label:  "cmd1",
+				Cwd:    tempDir,       // Commands should have absolute paths
+				parent: parallelBatch, // Set parent to ensure proper context
 			},
-			&MockCommand{
-				BaseCommand: &BaseCommand{
-					Label: "cmd2",
-					Cwd:   "",
-				},
+		},
+		&MockCommand{
+			BaseCommand: &BaseCommand{
+				Label:  "cmd2",
+				Cwd:    tempDir,       // Commands should have absolute paths
+				parent: parallelBatch, // Set parent to ensure proper context
 			},
 		},
 	}

@@ -36,13 +36,14 @@ func (c *Commander) Create(
 	ctx context.Context,
 	_ commands.CommanderFactory,
 	payload []byte,
+	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
 	}
 
-	return New(ctx, def)
+	return New(ctx, def, parent)
 }
 
 // GetSchemaFields returns the schema fields for the shellcommand type.

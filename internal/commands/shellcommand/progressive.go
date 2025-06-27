@@ -48,13 +48,14 @@ func (pc *ProgressiveCommander) CreateProgressive(
 	ctx context.Context,
 	_ commands.CommanderFactory,
 	payload []byte,
+	parent runbatch.Runnable,
 ) (runbatch.ProgressiveRunnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
 	}
 
-	base, err := def.ToBaseCommand()
+	base, err := def.ToBaseCommand(ctx, parent)
 	if err != nil {
 		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}

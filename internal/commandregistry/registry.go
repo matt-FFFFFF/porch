@@ -71,7 +71,7 @@ func (r *Registry) Get(commandType string) (commands.Commander, bool) {
 }
 
 // CreateRunnableFromYAML creates a runnable from YAML data using this registry.
-func (r *Registry) CreateRunnableFromYAML(ctx context.Context, yamlData []byte) (runbatch.Runnable, error) {
+func (r *Registry) CreateRunnableFromYAML(ctx context.Context, yamlData []byte, parent runbatch.Runnable) (runbatch.Runnable, error) {
 	// Check for context cancellation
 	select {
 	case <-ctx.Done():
@@ -89,7 +89,7 @@ func (r *Registry) CreateRunnableFromYAML(ctx context.Context, yamlData []byte) 
 		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandType, cmdType.Type)
 	}
 
-	runnable, err := commander.Create(ctx, r, yamlData)
+	runnable, err := commander.Create(ctx, r, yamlData, parent)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s: %v", ErrCommandCreation, cmdType.Type, err)
 	}

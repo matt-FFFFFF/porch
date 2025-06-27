@@ -143,9 +143,16 @@ invalid_yaml: [
 		},
 	}
 
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			runnable, err := commander.Create(ctx, nil, []byte(tc.yaml))
+			runnable, err := commander.Create(ctx, nil, []byte(tc.yaml), parent)
 
 			if tc.expectError {
 				require.Error(t, err)
@@ -230,7 +237,7 @@ func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool
 	return nil, false
 }
 
-func (m *mockCommanderFactory) CreateRunnableFromYAML(ctx context.Context, payload []byte) (runbatch.Runnable, error) {
+func (m *mockCommanderFactory) CreateRunnableFromYAML(ctx context.Context, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error) {
 	// Simple mock implementation
 	return nil, errors.New("not implemented in mock")
 }

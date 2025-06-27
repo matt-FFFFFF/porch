@@ -118,10 +118,15 @@ commands:
 			for _, result := range results {
 				require.Len(t, result.Children, 1, "Expected each directory to have 1 child command")
 				res := result.Children[0]
-				res.StdOut = res.StdOut[:len(res.StdOut)-1] // remove trailing newline
 
-				if _, ok := tc.expected[string(res.StdOut)]; ok {
-					delete(tc.expected, string(res.StdOut))
+				// Safely remove trailing newline if present
+				stdout := string(res.StdOut)
+				if len(stdout) > 0 && stdout[len(stdout)-1] == '\n' {
+					stdout = stdout[:len(stdout)-1]
+				}
+
+				if _, ok := tc.expected[stdout]; ok {
+					delete(tc.expected, stdout)
 					continue
 				}
 			}

@@ -24,9 +24,14 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	resChan := make(chan Results, len(b.Commands))
 
 	for _, cmd := range b.Commands {
-		wg.Add(1)
 		cmd.InheritEnv(b.Env)
+		// Use the current working directory from the parallel batch, which may have been
+		// updated by predecessor commands in the serial execution chain.
 		cmd.SetCwd(b.Cwd, false)
+	}
+
+	for _, cmd := range b.Commands {
+		wg.Add(1)
 
 		go func(c Runnable) {
 			defer wg.Done()

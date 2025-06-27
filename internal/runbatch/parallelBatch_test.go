@@ -6,6 +6,7 @@ package runbatch
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -104,4 +105,112 @@ func TestParallelBatchRun_Parallelism(t *testing.T) {
 	_ = batch.Run(ctx)
 	duration := time.Since(start)
 	assert.Less(t, duration, 180*time.Millisecond, "expected parallel execution to be faster than serial")
+}
+
+func TestParallelBatch_InheritsCwdFromSerialPredecessors(t *testing.T) {
+	t.Parallel()
+
+	// Create a temporary directory for testing
+	tempDir := t.TempDir()
+
+	// Create test directory structure
+	testDir := filepath.Join(tempDir, "test")
+	require.NoError(t, os.MkdirAll(testDir, 0o755))
+
+	// Create a parallel batch that has been updated with a new cwd (simulating what SerialBatch does)
+	parallelBatch := &ParallelBatch{
+		BaseCommand: &BaseCommand{
+			Label: "parallel-batch",
+			Cwd:   testDir, // This simulates the cwd being updated by SerialBatch
+		},
+		Commands: []Runnable{
+			&MockCommand{
+				BaseCommand: &BaseCommand{
+					Label: "cmd1",
+					Cwd:   "", // Empty cwd should inherit from parallel batch
+				},
+			},
+			&MockCommand{
+				BaseCommand: &BaseCommand{
+					Label: "cmd2",
+					Cwd:   "./relative", // Relative path should be resolved against parallel batch cwd
+				},
+			},
+		},
+	}
+
+	// Run the parallel batch
+	ctx := context.Background()
+	results := parallelBatch.Run(ctx)
+
+	// Verify results
+	assert.NotNil(t, results)
+	assert.Len(t, results, 1)
+	assert.Equal(t, ResultStatusSuccess, results[0].Status)
+
+	// Check that the parallel batch commands received the correct cwd after SetCwd was called
+	cmd1 := parallelBatch.Commands[0].(*MockCommand)
+	assert.Equal(t, testDir, cmd1.Cwd)
+
+	cmd2 := parallelBatch.Commands[1].(*MockCommand)
+	assert.Equal(t, filepath.Join(testDir, "relative"), cmd2.Cwd)
+}
+
+func TestParallelBatch_CommandsDoNotInheritCwdFromSiblings(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a parallel batch with commands that might change cwd
+	parallelBatch := &ParallelBatch{
+		BaseCommand: &BaseCommand{
+			Label: "parallel-batch",
+			Cwd:   tempDir,
+		},
+		Commands: []Runnable{
+			&MockCommand{
+				BaseCommand: &BaseCommand{
+					Label: "cmd1",
+					Cwd:   "",
+				},
+			},
+			&MockCommand{
+				BaseCommand: &BaseCommand{
+					Label: "cmd2",
+					Cwd:   "",
+				},
+			},
+		},
+	}
+
+	// Run the parallel batch
+	ctx := context.Background()
+	results := parallelBatch.Run(ctx)
+
+	// Verify results
+	assert.NotNil(t, results)
+	assert.Len(t, results, 1)
+	assert.Equal(t, ResultStatusSuccess, results[0].Status)
+
+	// Both commands should have the same initial cwd, not affected by each other
+	cmd1 := parallelBatch.Commands[0].(*MockCommand)
+	cmd2 := parallelBatch.Commands[1].(*MockCommand)
+
+	assert.Equal(t, tempDir, cmd1.Cwd)
+	assert.Equal(t, tempDir, cmd2.Cwd)
+}
+
+// MockCommand is a test implementation of Runnable.
+type MockCommand struct {
+	*BaseCommand
+}
+
+func (m *MockCommand) Run(ctx context.Context) Results {
+	result := &Result{
+		Label:    m.Label,
+		ExitCode: 0,
+		Status:   ResultStatusSuccess,
+	}
+
+	return Results{result}
 }

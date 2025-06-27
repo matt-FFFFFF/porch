@@ -50,7 +50,7 @@ func (b *ParallelBatch) executeWithProgressReporting(
 	for _, cmd := range progressiveCommands {
 		wg.Add(1)
 		cmd.InheritEnv(b.Env)
-		cmd.SetCwd(b.Cwd, false)
+		cmd.SetCwd(b.Cwd, CwdPolicyPreserveAbsolute)
 
 		go func(c Runnable) {
 			defer wg.Done()

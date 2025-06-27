@@ -10,6 +10,18 @@ import (
 	"slices"
 )
 
+// CwdUpdatePolicy defines how the working directory should be updated.
+type CwdUpdatePolicy int
+
+const (
+	// CwdPolicyOverwrite replaces the current cwd entirely (equivalent to overwrite=true)
+	CwdPolicyOverwrite CwdUpdatePolicy = iota
+	// CwdPolicyAppendIfRelative joins the new cwd with existing relative paths, overwrites absolute paths
+	CwdPolicyAppendIfRelative
+	// CwdPolicyPreserveAbsolute keeps absolute paths unchanged, updates relative paths
+	CwdPolicyPreserveAbsolute
+)
+
 // BaseCommand is a struct that implements the Runnable interface.
 // It should be embedded in other command types to provide common functionality.
 type BaseCommand struct {
@@ -69,39 +81,52 @@ func (c *BaseCommand) SetParent(parent Runnable) {
 	c.parent = parent
 }
 
-// SetCwd sets the working directory for the command.
-// If overwrite is false and Cwd is already set to an absolute path, it will not change the existing Cwd.
-// If cwd is an empty string, it will not change the existing Cwd.
-// Relative paths will be resolved against the new cwd only if the new cwd is different from the existing one.
-func (c *BaseCommand) SetCwd(cwd string, overwrite bool) {
+// SetCwd sets the working directory for the command using an explicit update policy.
+// If policy is CwdPolicyOverwrite, it replaces the current Cwd entirely.
+// If policy is CwdPolicyAppendIfRelative, it joins the new cwd with existing relative paths, overwriting absolute paths.
+// If policy is CwdPolicyPreserveAbsolute, it keeps absolute paths unchanged and updates relative paths.
+func (c *BaseCommand) SetCwd(cwd string, policy CwdUpdatePolicy) {
 	if cwd == "" {
 		return
 	}
 
-	// If we have an existing cwd and it's absolute, only overwrite if explicitly requested
-	if !overwrite && c.Cwd != "" && filepath.IsAbs(c.Cwd) {
-		return
-	}
-
-	// If the new cwd is absolute, set it directly
-	if c.Cwd == "" {
+	switch policy {
+	case CwdPolicyOverwrite:
+		// Always replace the current cwd, regardless of its current state
 		c.Cwd = cwd
-		return
-	}
 
-	// If the existing cwd is relative, resolve it against the new cwd
-	if !filepath.IsAbs(c.Cwd) {
-		// Only join paths if the existing cwd is not the same as the new cwd
-		// This prevents duplicate path issues when the same relative path is set multiple times
-		if c.Cwd != cwd {
-			c.Cwd = filepath.Join(cwd, c.Cwd)
+	case CwdPolicyAppendIfRelative:
+		// If existing cwd is empty, set it directly
+		if c.Cwd == "" {
+			c.Cwd = cwd
+			return
 		}
 
+		// If existing cwd is relative, resolve it against the new cwd
+		if !filepath.IsAbs(c.Cwd) {
+			c.Cwd = filepath.Join(cwd, c.Cwd)
+			return
+		}
+		// If existing cwd is absolute, replace it with the new one
+		c.Cwd = cwd
 		return
-	}
 
-	// If we get here, existing cwd is absolute and overwrite is true
-	c.Cwd = cwd
+	case CwdPolicyPreserveAbsolute:
+		// If existing cwd is absolute, don't change it
+		if filepath.IsAbs(c.Cwd) {
+			return
+		}
+
+		// If existing cwd is empty, set it directly
+		if c.Cwd == "" {
+			c.Cwd = cwd
+			return
+		}
+
+		// If existing cwd is relative, resolve it against the new cwd
+		// Always join them to ensure proper path resolution
+		c.Cwd = filepath.Join(cwd, c.Cwd)
+	}
 }
 
 // InheritEnv sets additional environment variables for the command.

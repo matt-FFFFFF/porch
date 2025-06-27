@@ -91,7 +91,13 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 				Cwd:   tt.initialCwd,
 			}
 
-			cmd.SetCwd(tt.newCwd, tt.overwrite)
+			var policy CwdUpdatePolicy
+			if tt.overwrite {
+				policy = CwdPolicyAppendIfRelative
+			} else {
+				policy = CwdPolicyPreserveAbsolute
+			}
+			cmd.SetCwd(tt.newCwd, policy)
 
 			assert.Equal(t, tt.expectedCwd, cmd.Cwd, tt.description)
 		})
@@ -111,7 +117,7 @@ func TestBaseCommand_SetCwd_CopyCwdToTempScenario(t *testing.T) {
 
 	// 2. copycwdtotemp runs and sets new working directory (with overwrite=true)
 	tempDir := "/tmp/porch_abc123"
-	cmd.SetCwd(tempDir, true)
+	cmd.SetCwd(tempDir, CwdPolicyAppendIfRelative)
 
 	// 3. The working directory should now be the temp directory + the relative path
 	expectedCwd := "/tmp/porch_abc123/internal"

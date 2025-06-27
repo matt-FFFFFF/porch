@@ -14,8 +14,8 @@ type Runnable interface {
 	Run(context.Context) Results
 	// SetCwd sets the working directory for the command or batch.
 	// It should be called before Run() to ensure the command or batch runs in the correct directory.
-	// The boolean parameter indicates whether to overwrite the current working directory if it is set.
-	SetCwd(string, bool)
+	// The policy parameter defines how the working directory should be updated.
+	SetCwd(string, CwdUpdatePolicy)
 	// InheritEnv sets the environment variables for the command or batch.
 	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)

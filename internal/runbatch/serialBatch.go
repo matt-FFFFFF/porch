@@ -35,7 +35,7 @@ OuterLoop:
 		default:
 			// Inherit env and cwd from the batch if not already set
 			cmd.InheritEnv(b.Env)
-			cmd.SetCwd(b.Cwd, false)
+			cmd.SetCwd(b.Cwd, CwdPolicyPreserveAbsolute)
 
 			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
@@ -65,7 +65,7 @@ OuterLoop:
 			if newCwd != "" && i < len(b.Commands)-1 {
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
-					rb.SetCwd(newCwd, true)
+					rb.SetCwd(newCwd, CwdPolicyOverwrite)
 				}
 			}
 

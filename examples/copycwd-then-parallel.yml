@@ -2,7 +2,7 @@ name: "Copy CWD then Parallel Execution"
 description: "Example showing copying current working directory and then running commands in parallel"
 commands:
   - type: "parallel"
-    name: test ced propagation
+    name: test cwd propagation
     working_directory: "./cmd"
     commands:
       - type: "shell"

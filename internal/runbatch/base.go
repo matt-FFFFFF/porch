@@ -70,18 +70,36 @@ func (c *BaseCommand) SetParent(parent Runnable) {
 }
 
 // SetCwd sets the working directory for the command.
-// If overwrite is false and Cwd is already set, it will not change the existing Cwd.
+// If overwrite is false and Cwd is already set to an absolute path, it will not change the existing Cwd.
 // If cwd is an empty string, it will not change the existing Cwd.
+// Relative paths will be resolved against the new cwd only if the new cwd is different from the existing one.
 func (c *BaseCommand) SetCwd(cwd string, overwrite bool) {
-	if cwd == "" || (!overwrite && c.Cwd != "") {
+	if cwd == "" {
 		return
 	}
 
-	if !filepath.IsAbs(c.Cwd) {
-		c.Cwd = filepath.Join(cwd, c.Cwd)
+	// If we have an existing cwd and it's absolute, only overwrite if explicitly requested
+	if !overwrite && c.Cwd != "" && filepath.IsAbs(c.Cwd) {
 		return
 	}
 
+	// If the existing cwd is relative (or empty), resolve it against the new cwd
+	if c.Cwd == "" || !filepath.IsAbs(c.Cwd) {
+		if c.Cwd == "" {
+			c.Cwd = cwd
+			return
+		} else {
+			// Only join paths if the existing cwd is not the same as the new cwd
+			// This prevents duplicate path issues when the same relative path is set multiple times
+			if c.Cwd != cwd {
+				c.Cwd = filepath.Join(cwd, c.Cwd)
+			}
+		}
+
+		return
+	}
+
+	// If we get here, existing cwd is absolute and overwrite is true
 	c.Cwd = cwd
 }
 

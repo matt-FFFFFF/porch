@@ -153,8 +153,9 @@ func TestParallelBatch_InheritsCwdFromSerialPredecessors(t *testing.T) {
 	assert.Equal(t, testDir, cmd1.Cwd) // Empty cwd should inherit from parallel batch
 
 	cmd2 := parallelBatch.Commands[1].(*MockCommand)
-	// With overwrite=false, existing relative cwd should be preserved
-	assert.Equal(t, "./relative", cmd2.Cwd)
+	// With overwrite=false, existing relative cwd should be resolved against batch cwd
+	expectedPath := filepath.Join(testDir, "relative")
+	assert.Equal(t, expectedPath, cmd2.Cwd)
 }
 
 func TestParallelBatch_CommandsDoNotInheritCwdFromSiblings(t *testing.T) {

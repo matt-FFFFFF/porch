@@ -25,6 +25,9 @@ commands:
           - type: "shell"
             name: "echo pwd"
             command_line: "echo $(pwd)"
+          - type: "shell"
+            name: "echo item"
+            command_line: "echo $ITEM"
 
       - type: shell
         name: pwd

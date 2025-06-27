@@ -5,6 +5,7 @@ package runbatch
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/progress"
@@ -124,8 +125,8 @@ OuterLoop:
 
 			if newCwd != "" && i < len(progressiveCommands)-1 {
 				// set the newCwd for the remaining commands in the batch
-				for j := i + 1; j < len(progressiveCommands); j++ {
-					progressiveCommands[j].SetCwd(newCwd, true)
+				for rb := range slices.Values(progressiveCommands[i+1:]) {
+					rb.SetCwd(newCwd, true)
 				}
 			}
 

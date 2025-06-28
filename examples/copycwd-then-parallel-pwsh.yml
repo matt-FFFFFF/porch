@@ -1,0 +1,43 @@
+name: "Copy CWD then Parallel Execution"
+description: "Example showing copying current working directory and then running commands in parallel"
+commands:
+  - type: "parallel"
+    name: test cwd propagation
+    working_directory: "./cmd"
+    commands:
+      - type: "pwsh"
+        name: "should be in cmd"
+        script: "pwd"
+
+  - type: "copycwdtotemp"
+    name: "Copy to Temp"
+
+  - type: parallel
+    name: "Run Commands in Parallel"
+    commands:
+      - type: "foreachdirectory"
+        name: "For Each directory in cmd"
+        working_directory: "./cmd"
+        mode: "parallel"
+        working_directory_strategy: "item_relative"
+        depth: 1
+        commands:
+          - type: "pwsh"
+            name: "echo pwd"
+            script: "pwd"
+          - type: "pwsh"
+            name: "echo item"
+            script: "Write-Output $env:ITEM"
+
+      - type: pwsh
+        name: Should be in temp dir
+        script: "pwd"
+
+      - type: pwsh
+        name: should be in temp/cmd
+        script: "pwd"
+        working_directory: "./cmd"
+
+  - type: pwsh
+    name: pwd
+    script: "pwd"

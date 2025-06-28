@@ -104,7 +104,11 @@ func (c *BaseCommand) SetCwd(cwd string) error {
 	if filepath.IsAbs(cwd) {
 		// If the new cwd is absolute, we can set it directly
 		// using the relative path if it exists.
-		c.Cwd = filepath.Join(cwd, c.GetParent().GetCwdRel(), c.CwdRel)
+		parent := c.GetParent()
+		if parent == nil {
+			return fmt.Errorf("%w: parent command is not set, cannot determine relative working directory", ErrSetCwd)
+		}
+		c.Cwd = filepath.Join(cwd, parent.GetCwdRel(), c.CwdRel)
 		return nil
 	}
 

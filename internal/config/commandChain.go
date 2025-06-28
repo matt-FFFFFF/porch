@@ -62,6 +62,7 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 	}
 
 	runnables := make([]runbatch.Runnable, 0, len(def.Commands))
+
 	pwd, err := os.Getwd()
 	if err != nil {
 		return nil, errors.Join(ErrConfigBuild, err)

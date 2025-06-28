@@ -47,7 +47,9 @@ func NewErrCommandCreate(cmdName string) error {
 
 // ToBaseCommand converts the BaseDefinition to a runbatch.BaseCommand.
 // It resolves the working directory against the parent's cwd if available in context.
-func (d *BaseDefinition) ToBaseCommand(ctx context.Context, parent runbatch.Runnable) (*runbatch.BaseCommand, error) {
+func (d *BaseDefinition) ToBaseCommand(
+	_ context.Context, parent runbatch.Runnable,
+) (*runbatch.BaseCommand, error) {
 	if d.RunsOnCondition == "" {
 		d.RunsOnCondition = runbatch.RunOnSuccess.String()
 	}
@@ -90,6 +92,7 @@ func (d *BaseDefinition) ToBaseCommand(ctx context.Context, parent runbatch.Runn
 
 	// Otherwise, resolve it relative to the parent's cwd
 	joined := filepath.Join(parent.GetCwd(), defWd)
+
 	joined, err = filepath.Abs(joined)
 	if err != nil {
 		return nil, errors.Join(ErrPath, err)

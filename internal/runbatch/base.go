@@ -13,7 +13,9 @@ import (
 )
 
 var (
-	ErrSetCwd          = errors.New("failed to set working directory, please check the path and permissions")
+	// ErrSetCwd is returned when setting the working directory fails.
+	ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
+	// ErrPathNotAbsolute is returned when a command's working directory is not absolute.
 	ErrPathNotAbsolute = errors.New("path must be absolute, all commands must have absolute cwd")
 )
 
@@ -40,7 +42,9 @@ type PreviousCommandStatus struct {
 }
 
 // NewBaseCommand creates a new BaseCommand with the specified parameters.
-func NewBaseCommand(label, cwd, relPath string, runsOn RunCondition, runOnExitCodes []int, env map[string]string) *BaseCommand {
+func NewBaseCommand(
+	label, cwd, relPath string, runsOn RunCondition, runOnExitCodes []int, env map[string]string,
+) *BaseCommand {
 	if runOnExitCodes == nil {
 		runOnExitCodes = []int{0} // Default to running on success (exit code 0)
 	}
@@ -98,7 +102,9 @@ func (c *BaseCommand) SetCwd(cwd string) error {
 
 	// Current working directory must be absolute
 	if !filepath.IsAbs(c.Cwd) {
-		return fmt.Errorf("%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd)
+		return fmt.Errorf(
+			"%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd,
+		)
 	}
 
 	if filepath.IsAbs(cwd) {
@@ -110,6 +116,7 @@ func (c *BaseCommand) SetCwd(cwd string) error {
 
 	// If the new cwd is relative, resolve it against the current absolute cwd
 	c.Cwd = filepath.Join(c.Cwd, cwd)
+
 	return nil
 }
 

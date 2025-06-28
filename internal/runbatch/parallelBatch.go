@@ -74,10 +74,12 @@ func (b *ParallelBatch) SetCwd(cwd string) error {
 	if err := b.BaseCommand.SetCwd(cwd); err != nil {
 		return err //nolint:err113,wrapcheck
 	}
+
 	for _, cmd := range b.Commands {
 		if err := cmd.SetCwd(cwd); err != nil {
 			return err //nolint:err113,wrapcheck
 		}
 	}
+
 	return nil
 }

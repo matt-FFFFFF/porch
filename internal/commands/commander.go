@@ -18,7 +18,9 @@ type FactoryContextKey struct{}
 type Commander interface {
 	// Create creates a runnable command from the provided payload.
 	// The payload is the YAML command in bytes.
-	Create(ctx context.Context, registry CommanderFactory, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error)
+	Create(
+		ctx context.Context, registry CommanderFactory, payload []byte, parent runbatch.Runnable,
+	) (runbatch.Runnable, error)
 }
 
 // CommanderFactory is an interface for creating a Commander.

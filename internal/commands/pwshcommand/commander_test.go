@@ -237,7 +237,9 @@ func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool
 	return nil, false
 }
 
-func (m *mockCommanderFactory) CreateRunnableFromYAML(ctx context.Context, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error) {
+func (m *mockCommanderFactory) CreateRunnableFromYAML(
+	ctx context.Context, payload []byte, parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
 	// Simple mock implementation
 	return nil, errors.New("not implemented in mock")
 }

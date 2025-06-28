@@ -83,14 +83,16 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 
 			if tt.expectError {
 				require.Error(t, err)
+
 				if tt.errorIsValue != nil {
 					require.ErrorIs(t, err, tt.errorIsValue)
 				}
+
 				return
 			}
+
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedCwd, cmd.Cwd)
-
 		})
 	}
 }

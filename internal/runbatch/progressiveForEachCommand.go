@@ -144,7 +144,14 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 
 		switch f.CwdStrategy {
 		case CwdStrategyItemRelative:
-			serialBatch.SetCwd(item)
+			if err := serialBatch.SetCwd(item); err != nil {
+				return Results{{
+					Label:    f.Label,
+					ExitCode: -1,
+					Error:    fmt.Errorf("%w: %v", ErrSetCwd, err),
+					Status:   ResultStatusError,
+				}}
+			}
 		}
 
 		foreachCommands[i] = serialBatch

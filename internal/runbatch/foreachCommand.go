@@ -214,7 +214,14 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 		switch f.CwdStrategy {
 		case CwdStrategyItemRelative:
-			serialBatch.SetCwd(item)
+			if err := serialBatch.SetCwd(item); err != nil {
+				return Results{{
+					Label:    f.Label,
+					ExitCode: -1,
+					Error:    fmt.Errorf("%w: %v", ErrSetCwd, err),
+					Status:   ResultStatusError,
+				}}
+			}
 		}
 
 		foreachCommands[i] = serialBatch
@@ -276,10 +283,12 @@ func (f *ForEachCommand) SetCwd(cwd string) error {
 	if err := f.BaseCommand.SetCwd(cwd); err != nil {
 		return err //nolint:err113,wrapcheck
 	}
+
 	for _, cmd := range f.Commands {
 		if err := cmd.SetCwd(cwd); err != nil {
 			return err //nolint:err113,wrapcheck
 		}
 	}
+
 	return nil
 }

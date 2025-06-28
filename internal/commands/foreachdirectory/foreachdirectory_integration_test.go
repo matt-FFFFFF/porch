@@ -108,6 +108,7 @@ commands:
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
 			require.True(t, ok, "Expected ForEachCommand, got %T", runnable)
 			assert.Equal(t, "For Each Directory", forEachCommand.Label)
+
 			pwd, _ := os.Getwd()
 			relPath, _ := filepath.Rel(pwd, forEachCommand.Cwd)
 			assert.Equal(t, "testdata/foreachdir", relPath)

@@ -114,7 +114,9 @@ func (c *BaseCommand) SetCwd(cwd string) error {
 		if parent == nil {
 			return fmt.Errorf("%w: parent command is not set, cannot determine relative working directory", ErrSetCwd)
 		}
+
 		c.Cwd = filepath.Join(cwd, parent.GetCwdRel(), c.CwdRel)
+
 		return nil
 	}
 

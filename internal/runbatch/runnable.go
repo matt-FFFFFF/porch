@@ -16,7 +16,6 @@ type Runnable interface {
 	GetCwd() string
 	// SetCwd sets the working directory for the command or batch.
 	// It should be called before Run() to ensure the command or batch runs in the correct directory.
-	// The policy parameter defines how the working directory should be updated.
 	SetCwd(string) error
 	// GetCwdRel returns the relative working directory for the command or batch, from the source YAML file.
 	GetCwdRel() string

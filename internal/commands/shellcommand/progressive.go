@@ -19,7 +19,7 @@ func NewProgressive(
 	base *runbatch.BaseCommand,
 	command string,
 	successExitCodes []int,
-	skipExitCodes []int) (*runbatch.ProgressiveOSCommand, error,
+	skipExitCodes []int) (*runbatch.OSCommand, error,
 ) {
 	// Create the underlying OSCommand using the existing function
 	osCmd, err := New(ctx, base, command, successExitCodes, skipExitCodes)
@@ -27,8 +27,7 @@ func NewProgressive(
 		return nil, err
 	}
 
-	// Wrap it in a ProgressiveOSCommand
-	return runbatch.NewProgressiveOSCommand(osCmd), nil
+	return osCmd, nil
 }
 
 // ProgressiveCommander extends Commander with progress reporting capabilities.
@@ -48,13 +47,14 @@ func (pc *ProgressiveCommander) CreateProgressive(
 	ctx context.Context,
 	_ commands.CommanderFactory,
 	payload []byte,
+	parent runbatch.Runnable,
 ) (runbatch.ProgressiveRunnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
 	}
 
-	base, err := def.ToBaseCommand()
+	base, err := def.ToBaseCommand(ctx, parent)
 	if err != nil {
 		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}

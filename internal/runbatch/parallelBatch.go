@@ -7,6 +7,8 @@ import (
 	"context"
 	"slices"
 	"sync"
+
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 )
 
 var _ Runnable = (*ParallelBatch)(nil)
@@ -19,15 +21,21 @@ type ParallelBatch struct {
 
 // Run implements the Runnable interface for ParallelBatch.
 func (b *ParallelBatch) Run(ctx context.Context) Results {
+	label := FullLabel(b)
+	logger := ctxlog.Logger(ctx).
+		With("label", label).
+		With("runnableType", "ParallelBatch")
+
 	children := make(Results, 0, len(b.Commands))
 	wg := &sync.WaitGroup{}
 	resChan := make(chan Results, len(b.Commands))
 
 	for _, cmd := range b.Commands {
 		cmd.InheritEnv(b.Env)
-		// Use the current working directory from the parallel batch, which may have been
-		// updated by predecessor commands in the serial execution chain.
-		cmd.SetCwd(b.Cwd, false)
+
+		logger.Debug("setting environment for child commands",
+			"commandLabel", cmd.GetLabel(),
+			"env", b.Env)
 	}
 
 	for _, cmd := range b.Commands {
@@ -58,4 +66,19 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	}
 
 	return res
+}
+
+// SetCwd sets the current working directory for the batch and all its sub-commands.
+func (b *ParallelBatch) SetCwd(cwd string) error {
+	if err := b.BaseCommand.SetCwd(cwd); err != nil {
+		return err //nolint:err113,wrapcheck
+	}
+
+	for _, cmd := range b.Commands {
+		if err := cmd.SetCwd(cwd); err != nil {
+			return err //nolint:err113,wrapcheck
+		}
+	}
+
+	return nil
 }

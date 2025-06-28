@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -67,6 +68,8 @@ func TestNewErrCommandCreate(t *testing.T) {
 
 // TestBaseDefinition_ToBaseCommand tests the ToBaseCommand method.
 func TestBaseDefinition_ToBaseCommand(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("successful conversion with all fields", func(t *testing.T) {
 		def := &BaseDefinition{
 			Type:             "shell",
@@ -79,8 +82,13 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 				"VAR2": "value2",
 			},
 		}
-
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
 		require.NoError(t, err)
 		require.NotNil(t, baseCmd)
 
@@ -96,13 +104,18 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			Type: "shell",
 			Name: "Minimal Command",
 		}
-
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
 		require.NoError(t, err)
 		require.NotNil(t, baseCmd)
 
 		assert.Equal(t, "Minimal Command", baseCmd.Label)
-		assert.Empty(t, baseCmd.Cwd)
+		assert.Equal(t, "/parent", baseCmd.Cwd)
 		assert.Equal(t, runbatch.RunOnSuccess, baseCmd.RunsOnCondition)
 		assert.Nil(t, baseCmd.RunsOnExitCodes)
 		assert.Nil(t, baseCmd.Env)
@@ -114,8 +127,13 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			Name:            "Default Condition",
 			RunsOnCondition: "",
 		}
-
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
 		require.NoError(t, err)
 		require.NotNil(t, baseCmd)
 
@@ -141,8 +159,13 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 					Name:            "Test",
 					RunsOnCondition: tc.condition,
 				}
-
-				baseCmd, err := def.ToBaseCommand()
+				parent := &runbatch.SerialBatch{
+					BaseCommand: &runbatch.BaseCommand{
+						Label: "Parent Command",
+						Cwd:   "/parent",
+					},
+				}
+				baseCmd, err := def.ToBaseCommand(ctx, parent)
 				require.NoError(t, err)
 				assert.Equal(t, tc.expected, baseCmd.RunsOnCondition)
 			})
@@ -156,7 +179,14 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			RunsOnCondition: "invalid-condition",
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
 		require.Error(t, err)
 		assert.Nil(t, baseCmd)
 		require.ErrorIs(t, err, ErrYamlUnmarshal)
@@ -170,7 +200,14 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			Env:  nil,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
 		require.NoError(t, err)
 		assert.Nil(t, baseCmd.Env)
 	})
@@ -182,7 +219,14 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			Env:  map[string]string{},
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.NotNil(t, baseCmd.Env)
 		assert.Empty(t, baseCmd.Env)
@@ -195,7 +239,14 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			RunsOnExitCodes: nil,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.Nil(t, baseCmd.RunsOnExitCodes)
 	})
@@ -207,7 +258,14 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			RunsOnExitCodes: []int{},
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.NotNil(t, baseCmd.RunsOnExitCodes)
 		assert.Empty(t, baseCmd.RunsOnExitCodes)
@@ -222,7 +280,14 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 			RunsOnExitCodes: exitCodes,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.Equal(t, exitCodes, baseCmd.RunsOnExitCodes)
 	})
@@ -284,6 +349,8 @@ func TestErrYamlUnmarshal(t *testing.T) {
 
 // TestBaseDefinition_EdgeCases tests edge cases and boundary conditions.
 func TestBaseDefinition_EdgeCases(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("very long command name", func(t *testing.T) {
 		longName := make([]byte, 1000)
 		for i := range longName {
@@ -295,7 +362,14 @@ func TestBaseDefinition_EdgeCases(t *testing.T) {
 			Name: string(longName),
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.Equal(t, string(longName), baseCmd.Label)
 	})
@@ -308,7 +382,14 @@ func TestBaseDefinition_EdgeCases(t *testing.T) {
 			WorkingDirectory: specialDir,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.Equal(t, specialDir, baseCmd.Cwd)
 	})
@@ -330,7 +411,14 @@ func TestBaseDefinition_EdgeCases(t *testing.T) {
 			Env:  env,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.Equal(t, env, baseCmd.Env)
 	})
@@ -343,7 +431,14 @@ func TestBaseDefinition_EdgeCases(t *testing.T) {
 			RunsOnExitCodes: exitCodes,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 		assert.Equal(t, exitCodes, baseCmd.RunsOnExitCodes)
 	})
@@ -351,6 +446,8 @@ func TestBaseDefinition_EdgeCases(t *testing.T) {
 
 // TestBaseDefinition_Mutability tests that ToBaseCommand doesn't modify the original.
 func TestBaseDefinition_Mutability(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("ToBaseCommand doesn't modify original definition", func(t *testing.T) {
 		originalEnv := map[string]string{"KEY": "value"}
 		originalExitCodes := []int{0, 1}
@@ -364,7 +461,14 @@ func TestBaseDefinition_Mutability(t *testing.T) {
 			Env:              originalEnv,
 		}
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 
 		// Modify the returned BaseCommand
@@ -389,7 +493,14 @@ func TestBaseDefinition_Mutability(t *testing.T) {
 
 		originalCondition := def.RunsOnCondition
 
-		baseCmd, err := def.ToBaseCommand()
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+		baseCmd, err := def.ToBaseCommand(ctx, parent)
+
 		require.NoError(t, err)
 
 		// The method modifies the original struct's RunsOnCondition field

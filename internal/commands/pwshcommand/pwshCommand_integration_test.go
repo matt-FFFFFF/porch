@@ -14,6 +14,7 @@ import (
 
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -201,8 +202,15 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 				Script: tc.script,
 			}
 
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "parent-batch",
+					Cwd:   t.TempDir(),
+				},
+			}
+
 			// Create the command
-			cmd, err := New(ctx, definition)
+			cmd, err := New(ctx, definition, parent)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -263,7 +271,14 @@ Write-Host "Calculation result: $result"`
 		ScriptFile: scriptFile,
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -335,7 +350,14 @@ func TestPowerShellWithEnvironmentVariables_Integration(t *testing.T) {
 				Script: tc.script,
 			}
 
-			cmd, err := New(ctx, definition)
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "parent-batch",
+					Cwd:   "/",
+				},
+			}
+
+			cmd, err := New(ctx, definition, parent)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -381,7 +403,14 @@ func TestPowerShellWithWorkingDirectory_Integration(t *testing.T) {
 		Script: script,
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -414,7 +443,14 @@ func TestPowerShellTimeout_Integration(t *testing.T) {
 		Script: `Start-Sleep -Seconds 5; Write-Host "This should not appear"`,
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -487,7 +523,14 @@ func TestPowerShellFailure_Integration(t *testing.T) {
 				Script: tc.script,
 			}
 
-			cmd, err := New(ctx, definition)
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "parent-batch",
+					Cwd:   "/",
+				},
+			}
+
+			cmd, err := New(ctx, definition, parent)
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -518,7 +561,14 @@ func TestPowerShellWithSuccessExitCodes_Integration(t *testing.T) {
 		SuccessExitCodes: []int{42, 43},
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -547,7 +597,14 @@ func TestPowerShellLongOutput_Integration(t *testing.T) {
 		Script: script,
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 

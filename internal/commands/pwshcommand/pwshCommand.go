@@ -35,7 +35,7 @@ var (
 )
 
 // New creates a new runbatch.OSCommand for PowerShell scripts.
-func New(_ context.Context, def *Definition) (runbatch.Runnable, error) {
+func New(ctx context.Context, def *Definition, parent runbatch.Runnable) (runbatch.Runnable, error) {
 	// Check for conflicting script definitions first
 	if def.Script != "" && def.ScriptFile != "" {
 		return nil, ErrBothScriptAndScriptFileSpecified
@@ -51,7 +51,7 @@ func New(_ context.Context, def *Definition) (runbatch.Runnable, error) {
 		return nil, errors.Join(ErrCannotFindPwsh, err)
 	}
 
-	base, err := def.ToBaseCommand()
+	base, err := def.ToBaseCommand(ctx, parent)
 	if err != nil {
 		return nil, commands.NewErrCommandCreate(commandType) //nolint:wrapcheck
 	}

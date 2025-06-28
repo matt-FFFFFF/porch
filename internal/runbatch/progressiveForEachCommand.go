@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
@@ -33,6 +34,11 @@ func (f *ForEachCommand) RunWithProgress(ctx context.Context, reporter progress.
 // runWithProgressiveChildren runs the foreach command using the original logic
 // but with progressive reporting for child batches.
 func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporter progress.Reporter) Results {
+	label := FullLabel(f)
+	logger := ctxlog.Logger(ctx).
+		With("label", label).
+		With("runnableType", "progressiveForEachCommand")
+
 	// This is mostly copied from the original Run method, but with progressive execution
 	result := &Result{
 		Label:    f.Label,
@@ -64,6 +70,10 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 				return Results{result}
 			}
 		}
+
+		logger.Debug("items to iterate over",
+			"count", len(items),
+			"items", items)
 
 		// If the error is not in the skip list, return an error result.
 		result.Error = fmt.Errorf("%w: %v", ErrItemsProviderFailed, err)
@@ -105,16 +115,13 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 		switch f.CwdStrategy {
 		case CwdStrategyItemRelative:
 			cwd = filepath.Join(f.Cwd, item)
-		case CwdStrategyItemAbsolute:
-			cwd = item
-		default:
-			cwd = f.Cwd // No modification to cwd
 		}
 
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
 			fmt.Sprintf("[%s]", item),
 			cwd,
+			f.CwdRel,
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
@@ -134,10 +141,25 @@ func (f *ForEachCommand) runWithProgressiveChildren(ctx context.Context, reporte
 		}
 
 		serialBatch.Commands = clonedCommands
+
+		switch f.CwdStrategy {
+		case CwdStrategyItemRelative:
+			if err := serialBatch.SetCwd(item); err != nil {
+				return Results{{
+					Label:    f.Label,
+					ExitCode: -1,
+					Error:    fmt.Errorf("%w: %v", ErrSetCwd, err),
+					Status:   ResultStatusError,
+				}}
+			}
+		}
+
 		foreachCommands[i] = serialBatch
 	}
 
-	base := NewBaseCommand(f.Label, f.Cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env))
+	base := NewBaseCommand(
+		f.Label, f.Cwd, f.CwdRel, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
+	)
 	base.SetParent(f.GetParent())
 
 	// Handle different execution modes with progressive execution

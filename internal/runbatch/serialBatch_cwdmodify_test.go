@@ -64,8 +64,13 @@ func TestSerialBatchCwdPropagation(t *testing.T) {
 	batch := &SerialBatch{
 		BaseCommand: &BaseCommand{
 			Label: "batch_with_cwd_changes",
+			Cwd:   "/",
 		},
 		Commands: []Runnable{cmd1, cmd2, cmd3},
+	}
+
+	for _, cmd := range batch.Commands {
+		cmd.SetParent(batch) // Set parent for proper context
 	}
 
 	// Initial setup - all commands should have the initial path
@@ -124,8 +129,13 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 	batch := &SerialBatch{
 		BaseCommand: &BaseCommand{
 			Label: "batch_with_multiple_cwd_changes",
+			Cwd:   t.TempDir(), // Use a temp dir for the batch
 		},
 		Commands: []Runnable{cmd1, cmd2, cmd3},
+	}
+
+	for _, cmd := range batch.Commands {
+		cmd.SetParent(batch) // Set parent for proper context
 	}
 
 	// Run the batch
@@ -212,6 +222,9 @@ func TestSerialBatchCwdErrorHandling(t *testing.T) {
 		},
 		Commands: []Runnable{errorCmd, cmd3},
 	}
+	for _, cmd := range batch2.Commands {
+		cmd.SetParent(batch2) // Set parent for proper context
+	}
 
 	// Run the batch
 	_ = batch2.Run(context.Background())
@@ -226,7 +239,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 	innerCmd1 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
 			Label: "inner_cmd1",
-			Cwd:   "",
+			Cwd:   "/initial/path", // Commands should have absolute paths
 		},
 		exitCode: 0,
 		status:   ResultStatusSuccess,
@@ -234,7 +247,7 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 	innerCmd2 := &cwdCapturingCmd{
 		BaseCommand: &BaseCommand{
 			Label: "inner_cmd2",
-			Cwd:   "",
+			Cwd:   "/initial/path", // Commands should have absolute paths
 		},
 		exitCode: 0,
 		status:   ResultStatusSuccess,
@@ -243,8 +256,12 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 	innerBatch := &SerialBatch{
 		BaseCommand: &BaseCommand{
 			Label: "inner_batch",
+			Cwd:   "/initial/path",
 		},
 		Commands: []Runnable{innerCmd1, innerCmd2},
+	}
+	for _, cmd := range innerBatch.Commands {
+		cmd.SetParent(innerBatch) // Set parent for proper context
 	}
 
 	// Setup outer batch
@@ -271,6 +288,9 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 			Label: "outer_batch",
 		},
 		Commands: []Runnable{outerCmd1, innerBatch, outerCmd2},
+	}
+	for _, cmd := range outerBatch.Commands {
+		cmd.SetParent(outerBatch) // Set parent for proper context
 	}
 
 	// Run the outer batch

@@ -47,7 +47,14 @@ commands:
     command_line: "echo world"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
+
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -79,8 +86,14 @@ type: serial
 name: "Empty Serial Command"
 commands: []
 `)
+		parent := &runbatch.SerialBatch{
+			BaseCommand: &runbatch.BaseCommand{
+				Label: "Parent Command",
+				Cwd:   "/parent",
+			},
+		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -110,7 +123,10 @@ commands:
     command_line: "echo outer"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Nested Serial Command",
+			Cwd:   t.TempDir(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -134,7 +150,10 @@ commands:
     command_line: "echo test"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Minimal Command",
+			Cwd:   t.TempDir(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -158,7 +177,10 @@ commands: [
   invalid yaml structure
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Test Command",
+			Cwd:   t.TempDir(),
+		})
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		require.ErrorIs(t, err, commands.ErrYamlUnmarshal)
@@ -178,7 +200,7 @@ commands:
     command_line: "echo test"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, nil)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 
@@ -200,7 +222,10 @@ commands:
     some_field: "value"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Test Command",
+			Cwd:   t.TempDir(),
+		})
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create runnable for command 0")
@@ -222,7 +247,10 @@ commands:
 `)
 
 		// First verify this normally works
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Test Command",
+			Cwd:   t.TempDir(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 	})
@@ -242,7 +270,10 @@ func TestCommander_Interface(t *testing.T) {
 type: serial
 name: "Test"
 commands: []
-`))
+`), &runbatch.BaseCommand{
+			Label: "Test Command",
+			Cwd:   t.TempDir(),
+		})
 
 		// Should not panic and should return expected types
 		assert.IsType(t, (*runbatch.SerialBatch)(nil), runnable)
@@ -290,7 +321,10 @@ commands:
     cwd: "."
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Parent",
+			Cwd:   t.TempDir(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -317,10 +351,13 @@ commands:
     name: "Env Command"
     command_line: "env | grep PARENT"
     env:
-      CHILD_VAR: "child_value"
+      CHI§LD_VAR: "child_value"
 `)
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload)
+		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
+			Label: "Parent",
+			Cwd:   t.TempDir(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 

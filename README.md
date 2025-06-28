@@ -420,7 +420,7 @@ For each command, an environment variable called `ITEM` is set to the path of th
 - `mode`: Execution mode (`parallel` or `serial`)
 - `depth`: Directory traversal depth (0 for unlimited, 1 for immediate children only)
 - `include_hidden`: Whether to include hidden directories (`true` or `false`)
-- `working_directory_strategy`: How to set working directory (`none`, `item_relative`, `item_absolute`)
+- `working_directory_strategy`: How to set working directory (`none`, `item_relative`)
 
 **Optional Attributes:**
 
@@ -435,7 +435,6 @@ For each command, an environment variable called `ITEM` is set to the path of th
 
 - `none`: Don't change working directory for child commands
 - `item_relative`: Set working directory relative to the current directory
-- `item_absolute`: **experimental** Set working directory to the absolute path of each found directory
 
 **Example:**
 

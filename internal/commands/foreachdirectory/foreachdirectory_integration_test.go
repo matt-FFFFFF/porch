@@ -6,6 +6,7 @@ package foreachdirectory
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/matt-FFFFFF/porch/internal/commandregistry"
@@ -90,16 +91,27 @@ commands:
 		Register,
 	)
 
+	absCwd, _ := filepath.Abs(".")
+
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "Test Parent",
+					Cwd:   absCwd,
+				},
+			}
 			yamlPayload := fmt.Sprintf(yamlPayloadFmt, tc.mode, tc.includeHidden)
-			runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload))
+			runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload), parent)
 			require.NoError(t, err)
 			require.NotNil(t, runnable)
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
 			require.True(t, ok, "Expected ForEachCommand, got %T", runnable)
 			assert.Equal(t, "For Each Directory", forEachCommand.Label)
-			assert.Equal(t, "testdata/foreachdir", forEachCommand.Cwd)
+
+			pwd, _ := os.Getwd()
+			relPath, _ := filepath.Rel(pwd, forEachCommand.Cwd)
+			assert.Equal(t, "testdata/foreachdir", relPath)
 			require.Equalf(
 				t,
 				tc.mode,
@@ -158,7 +170,14 @@ commands:
 		Register,
 	)
 
-	runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload))
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Test Parent",
+			Cwd:   t.TempDir(),
+		},
+	}
+
+	runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload), parent)
 	require.NoError(t, err)
 	require.NotNil(t, runnable)
 	forEachCommand, ok := runnable.(*runbatch.ForEachCommand)

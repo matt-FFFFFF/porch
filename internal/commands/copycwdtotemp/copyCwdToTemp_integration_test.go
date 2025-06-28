@@ -31,7 +31,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	pwdCommand := &runbatch.OSCommand{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "pwd",
-			Cwd:   "",
+			Cwd:   path,
 		},
 		Path: "/bin/sh",
 		Args: []string{"-c", "pwd"},
@@ -39,7 +39,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	checkFilesCommand := &runbatch.OSCommand{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "checkFiles",
-			Cwd:   "",
+			Cwd:   path,
 		},
 		Path: "/usr/bin/find",
 		Args: []string{"."},
@@ -47,6 +47,7 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	serialCommands := &runbatch.SerialBatch{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "test",
+			Cwd:   path,
 		},
 		Commands: []runbatch.Runnable{
 			copyCommand,
@@ -54,10 +55,15 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 			checkFilesCommand,
 		},
 	}
+
+	for _, cmd := range serialCommands.Commands {
+		cmd.SetParent(serialCommands)
+	}
+
 	results := serialCommands.Run(context.Background())
 	assert.Len(t, results, 1)
-	assert.Equal(t, 0, results[0].ExitCode)
-	require.NoError(t, results[0].Error)
+	assert.Equalf(t, 0, results[0].ExitCode, "Expected exit code 0, got %d", results[0].ExitCode)
+	require.NoErrorf(t, results[0].Error, "Expected no error, got %v", results[0].Error)
 	assert.Len(t, results[0].Children, 3)
 	assert.NotEqual(t, path, string(results[0].Children[1].StdOut))
 

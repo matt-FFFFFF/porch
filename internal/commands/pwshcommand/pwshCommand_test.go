@@ -140,7 +140,14 @@ func TestNew_UnitTests(t *testing.T) {
 				defer cleanup()
 			}
 
-			cmd, err := New(ctx, tc.definition)
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "parent-batch",
+					Cwd:   "/",
+				},
+			}
+
+			cmd, err := New(ctx, tc.definition, parent)
 
 			if tc.expectedError != nil {
 				require.Error(t, err)
@@ -204,7 +211,14 @@ func TestNew_InlineScriptCreatesTemporaryFile(t *testing.T) {
 		Script: script,
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	if err != nil && errors.Is(err, ErrCannotFindPwsh) {
 		t.Skip("pwsh not found in PATH, skipping test")
 		return
@@ -242,7 +256,14 @@ func TestNew_ExecutablePathSelection(t *testing.T) {
 		ScriptFile: "test.ps1",
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 	if err != nil && assert.ErrorIs(t, err, ErrCannotFindPwsh) {
 		t.Skip("pwsh not found in PATH, skipping test")
 		return
@@ -278,7 +299,14 @@ func TestNew_InvalidBaseDefinition(t *testing.T) {
 		ScriptFile: "test.ps1",
 	}
 
-	cmd, err := New(ctx, definition)
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	cmd, err := New(ctx, definition, parent)
 
 	// The function should handle ToBaseCommand errors gracefully
 	if err != nil {

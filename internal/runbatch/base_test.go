@@ -4,96 +4,95 @@
 package runbatch
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBaseCommand_SetCwd(t *testing.T) {
 	tests := []struct {
-		name        string
-		initialCwd  string
-		newCwd      string
-		overwrite   bool
-		expectedCwd string
-		description string
+		name         string
+		initialCwd   string
+		newCwd       string
+		expectedCwd  string
+		expectError  bool
+		errorIsValue error
 	}{
 		{
-			name:        "overwrite_false_with_existing_cwd",
-			initialCwd:  "/existing/path",
-			newCwd:      "/new/path",
-			overwrite:   false,
-			expectedCwd: "/existing/path",
-			description: "should not overwrite existing cwd when overwrite is false",
-		},
-		{
-			name:        "overwrite_false_with_empty_cwd",
-			initialCwd:  "",
-			newCwd:      "/new/path",
-			overwrite:   false,
-			expectedCwd: "/new/path",
-			description: "should set cwd when current cwd is empty, even with overwrite false",
-		},
-		{
-			name:        "overwrite_true_with_absolute_existing_cwd",
-			initialCwd:  "/existing/absolute/path",
-			newCwd:      "/new/path",
-			overwrite:   true,
-			expectedCwd: "/new/path",
-			description: "should overwrite absolute cwd with new absolute path",
-		},
-		{
-			name:        "overwrite_true_with_relative_existing_cwd",
-			initialCwd:  "./relative/path",
-			newCwd:      "/new/base/path",
-			overwrite:   true,
-			expectedCwd: "/new/base/path/relative/path",
-			description: "should join new cwd with existing relative path when overwriting",
-		},
-		{
-			name:        "overwrite_true_with_relative_existing_cwd_complex",
-			initialCwd:  "../internal",
-			newCwd:      "/tmp/porch_temp123",
-			overwrite:   true,
-			expectedCwd: "/tmp/internal",
-			description: "should join new cwd with complex relative path when overwriting (filepath.Join cleans the path)",
-		},
-		{
-			name:        "overwrite_true_with_dot_relative_path",
-			initialCwd:  "./subdir",
-			newCwd:      "/temp/workspace",
-			overwrite:   true,
-			expectedCwd: "/temp/workspace/subdir",
-			description: "should handle dot-relative paths correctly",
-		},
-		{
-			name:        "empty_new_cwd_no_overwrite",
-			initialCwd:  "/existing/path",
+			name:        "empty new cwd should not change current cwd",
+			initialCwd:  "/initial/path",
 			newCwd:      "",
-			overwrite:   false,
-			expectedCwd: "/existing/path",
-			description: "should not change cwd when new cwd is empty",
+			expectedCwd: "/initial/path",
+			expectError: false,
 		},
 		{
-			name:        "empty_new_cwd_with_overwrite",
-			initialCwd:  "/existing/path",
-			newCwd:      "",
-			overwrite:   true,
-			expectedCwd: "/existing/path",
-			description: "should not change cwd when new cwd is empty, even with overwrite",
+			name:        "absolute new cwd should replace current cwd",
+			initialCwd:  "/initial/path",
+			newCwd:      "/new/absolute/path",
+			expectedCwd: "/new/absolute/path",
+			expectError: false,
+		},
+		{
+			name:        "relative new cwd should be joined with current absolute cwd",
+			initialCwd:  "/initial/path",
+			newCwd:      "relative/subdir",
+			expectedCwd: "/initial/path/relative/subdir",
+			expectError: false,
+		},
+		{
+			name:        "relative new cwd with ./ prefix should be joined correctly",
+			initialCwd:  "/initial/path",
+			newCwd:      "./relative/subdir",
+			expectedCwd: "/initial/path/relative/subdir", // filepath.Join cleans the path
+			expectError: false,
+		},
+		{
+			name:         "empty initial cwd should error - no exceptions",
+			initialCwd:   "",
+			newCwd:       "/new/path",
+			expectError:  true,
+			errorIsValue: ErrSetCwd,
+		},
+		{
+			name:         "relative initial cwd should error - all commands must have absolute cwd",
+			initialCwd:   "relative/path",
+			newCwd:       "/new/path",
+			expectError:  true,
+			errorIsValue: ErrSetCwd,
+		},
+		{
+			name:         "empty initial cwd with relative new cwd should error",
+			initialCwd:   "",
+			newCwd:       "relative/path",
+			expectError:  true,
+			errorIsValue: ErrSetCwd,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cmd := &BaseCommand{
-				Label: "test-command",
-				Cwd:   tt.initialCwd,
+				Cwd: tt.initialCwd,
+				parent: &BaseCommand{
+					Cwd: t.TempDir(),
+				},
+			}
+			err := cmd.SetCwd(tt.newCwd)
+
+			if tt.expectError {
+				require.Error(t, err)
+
+				if tt.errorIsValue != nil {
+					require.ErrorIs(t, err, tt.errorIsValue)
+				}
+
+				return
 			}
 
-			cmd.SetCwd(tt.newCwd, tt.overwrite)
-
-			assert.Equal(t, tt.expectedCwd, cmd.Cwd, tt.description)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expectedCwd, cmd.Cwd)
 		})
 	}
 }
@@ -104,19 +103,26 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 func TestBaseCommand_SetCwd_CopyCwdToTempScenario(t *testing.T) {
 	// Simulate the scenario from the bug report:
 	// 1. foreachdirectory command is created with working_directory: "./internal"
+	//    which gets resolved to an absolute path at creation time
+	workingDir, err := filepath.Abs("./internal")
+	require.NoError(t, err)
+
 	cmd := &BaseCommand{
 		Label: "foreachdirectory-cmd",
-		Cwd:   "./internal",
+		Cwd:   workingDir, // Now absolute from creation time
+		parent: &BaseCommand{
+			Cwd: t.TempDir(), // Parent command has a temp directory as its working directory
+		},
 	}
 
-	// 2. copycwdtotemp runs and sets new working directory (with overwrite=true)
+	// 2. copycwdtotemp runs and sets new working directory (absolute path)
 	tempDir := "/tmp/porch_abc123"
-	cmd.SetCwd(tempDir, true)
+	require.NoError(t, cmd.SetCwd(tempDir))
 
-	// 3. The working directory should now be the temp directory + the relative path
-	expectedCwd := "/tmp/porch_abc123/internal"
+	// 3. The working directory should now be the temp directory (absolute path replaces absolute path)
+	expectedCwd := "/tmp/porch_abc123"
 	assert.Equal(t, expectedCwd, cmd.Cwd,
-		"foreachdirectory with relative path should resolve to tempdir/internal after copycwdtotemp")
+		"copycwdtotemp should update the absolute path to the temp directory")
 }
 
 func TestBaseCommand_NewBaseCommand(t *testing.T) {
@@ -176,7 +182,7 @@ func TestBaseCommand_NewBaseCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := NewBaseCommand(tt.label, tt.cwd, tt.runsOn, tt.runOnExitCodes, tt.env)
+			cmd := NewBaseCommand(tt.label, tt.cwd, "", tt.runsOn, tt.runOnExitCodes, tt.env)
 
 			assert.Equal(t, tt.expectedLabel, cmd.Label)
 			assert.Equal(t, tt.expectedCwd, cmd.Cwd)

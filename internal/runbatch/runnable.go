@@ -12,10 +12,13 @@ type Runnable interface {
 	// Run executes the command or batch and returns the results.
 	// It should handle context cancellation and passing signals to any spawned process.
 	Run(context.Context) Results
+	// GetCwd returns the current working directory for the command or batch.
+	GetCwd() string
 	// SetCwd sets the working directory for the command or batch.
 	// It should be called before Run() to ensure the command or batch runs in the correct directory.
-	// The boolean parameter indicates whether to overwrite the current working directory if it is set.
-	SetCwd(string, bool)
+	SetCwd(string) error
+	// GetCwdRel returns the relative working directory for the command or batch, from the source YAML file.
+	GetCwdRel() string
 	// InheritEnv sets the environment variables for the command or batch.
 	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)
@@ -27,4 +30,10 @@ type Runnable interface {
 	SetParent(Runnable)
 	// ShouldRun returns true if the command or batch should be run.
 	ShouldRun(state PreviousCommandStatus) ShouldRunAction
+}
+
+// RunnableWithChildren is an interface for runnables that can have child commands or batches.
+type RunnableWithChildren interface {
+	// GetChildren returns the child commands or batches of this runnable.
+	GetChildren() []Runnable
 }

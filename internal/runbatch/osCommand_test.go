@@ -17,7 +17,7 @@ import (
 
 func TestCommandRun_Success(t *testing.T) {
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("echo test", "", RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
+		BaseCommand: NewBaseCommand("echo test", "", "", RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
 		Path:        "/bin/echo",
 		Args:        []string{"hello"},
 	}
@@ -37,7 +37,7 @@ func TestCommandRun_Success(t *testing.T) {
 
 func TestCommandRun_Failure(t *testing.T) {
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("fail test", "", RunOnSuccess, nil, nil),
+		BaseCommand: NewBaseCommand("fail test", "", "", RunOnSuccess, nil, nil),
 		Path:        "/bin/sh",
 		Args:        []string{"-c", "exit 1"},
 	}
@@ -54,7 +54,7 @@ func TestCommandRun_Failure(t *testing.T) {
 
 func TestCommandRun_NotFound(t *testing.T) {
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("notfound test", "", RunOnSuccess, nil, nil),
+		BaseCommand: NewBaseCommand("notfound test", "", "", RunOnSuccess, nil, nil),
 		Path:        "/not/a/real/command",
 		Args:        []string{""},
 	}
@@ -80,7 +80,7 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 
 	tempDir := t.TempDir()
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("env and cwd test", tempDir, RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
+		BaseCommand: NewBaseCommand("env and cwd test", tempDir, "", RunOnSuccess, nil, map[string]string{"FOO": "BAR"}),
 		Path:        "/bin/sh",
 		Args:        []string{"-c", "echo $FOO; pwd"},
 	}
@@ -100,7 +100,7 @@ func TestCommandRun_EnvAndCwd(t *testing.T) {
 
 func TestCommandRun_ContextCancelled(t *testing.T) {
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("sleep test", "", RunOnSuccess, nil, nil),
+		BaseCommand: NewBaseCommand("sleep test", "", "", RunOnSuccess, nil, nil),
 		Path:        "/bin/sleep",
 		Args:        []string{"10"},
 	}
@@ -120,7 +120,7 @@ func TestCommandRun_ContextCancelled(t *testing.T) {
 
 func TestCommandRun_SigInt(t *testing.T) {
 	cmd := &OSCommand{
-		BaseCommand: NewBaseCommand("sleep test", "", RunOnSuccess, nil, nil),
+		BaseCommand: NewBaseCommand("sleep test", "", "", RunOnSuccess, nil, nil),
 		Path:        "/bin/sleep",
 		Args:        []string{"10"},
 		sigCh:       make(chan os.Signal, 1),

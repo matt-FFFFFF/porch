@@ -6,7 +6,7 @@ commands:
     working_directory: "./cmd"
     commands:
       - type: "shell"
-        name: "echo pwd"
+        name: "should be in cmd"
         command_line: "echo $(pwd)"
 
   - type: "copycwdtotemp"
@@ -16,7 +16,7 @@ commands:
     name: "Run Commands in Parallel"
     commands:
       - type: "foreachdirectory"
-        name: "For Each Directory OK"
+        name: "For Each directory in cmd"
         working_directory: "./cmd"
         mode: "parallel"
         working_directory_strategy: "item_relative"
@@ -30,8 +30,14 @@ commands:
             command_line: "echo $ITEM"
 
       - type: shell
-        name: pwd
+        name: Should be in temp dir
         command_line: "echo $(pwd)"
+
+      - type: shell
+        name: should be in temp/cmd
+        command_line: "echo $(pwd)"
+        working_directory: "./cmd"
+
   - type: shell
     name: pwd
     command_line: "echo $(pwd)"

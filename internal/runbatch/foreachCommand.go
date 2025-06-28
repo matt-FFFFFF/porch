@@ -8,7 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"path/filepath"
+
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 )
 
 var _ Runnable = (*ForEachCommand)(nil)
@@ -23,7 +24,6 @@ const (
 	forEachParallelString  = "parallel"
 	cwdStrategyNoneStr     = "none"
 	cwdStrategyRelativeStr = "item_relative"
-	cwdStrategyAbsoluteStr = "item_absolute"
 	unknownValue           = "unknown"
 )
 
@@ -73,8 +73,6 @@ const (
 	// CwdStrategyItemRelative modifies the cwd to be relative to the item and
 	// the working directory of the foreach command.
 	CwdStrategyItemRelative
-	// CwdStrategyItemAbsolute modifies the cwd to be absolute based on the item.
-	CwdStrategyItemAbsolute
 )
 
 // String implements the Stringer interface for ForEachCwdStrategy.
@@ -84,8 +82,6 @@ func (s ForEachCwdStrategy) String() string {
 		return cwdStrategyNoneStr
 	case CwdStrategyItemRelative:
 		return cwdStrategyRelativeStr
-	case CwdStrategyItemAbsolute:
-		return cwdStrategyAbsoluteStr
 	default:
 		return unknownValue
 	}
@@ -98,8 +94,6 @@ func ParseCwdStrategy(strategy string) (ForEachCwdStrategy, error) {
 		return CwdStrategyNone, nil
 	case cwdStrategyRelativeStr:
 		return CwdStrategyItemRelative, nil
-	case cwdStrategyAbsoluteStr:
-		return CwdStrategyItemAbsolute, nil
 	default:
 		return -1, ErrInvalidCwdStrategy
 	}
@@ -136,6 +130,11 @@ func ParseForEachMode(mode string) (ForEachMode, error) {
 
 // Run implements the Runnable interface for ForEachCommand.
 func (f *ForEachCommand) Run(ctx context.Context) Results {
+	label := FullLabel(f)
+	logger := ctxlog.Logger(ctx).
+		With("label", label).
+		With("runnableType", "ForEachCommand")
+
 	result := &Result{
 		Label:    f.Label,
 		ExitCode: 0,
@@ -163,6 +162,10 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		}}
 	}
 
+	logger.Debug("items to iterate over",
+		"count", len(items),
+		"items", items)
+
 	// Handle empty list
 	if len(items) == 0 {
 		// Not an error, just an empty list - return success
@@ -184,21 +187,11 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 			newEnv = make(map[string]string)
 		}
 
-		var cwd string
-
-		switch f.CwdStrategy {
-		case CwdStrategyItemRelative:
-			cwd = filepath.Join(f.Cwd, item)
-		case CwdStrategyItemAbsolute:
-			cwd = item
-		default:
-			cwd = f.Cwd // No modification to cwd
-		}
-
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
 			fmt.Sprintf("[%s]", item),
-			cwd,
+			f.Cwd,
+			f.CwdRel,
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
@@ -218,10 +211,18 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		}
 
 		serialBatch.Commands = clonedCommands
+
+		switch f.CwdStrategy {
+		case CwdStrategyItemRelative:
+			serialBatch.SetCwd(item)
+		}
+
 		foreachCommands[i] = serialBatch
 	}
 
-	base := NewBaseCommand(f.Label, f.Cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env))
+	base := NewBaseCommand(
+		f.Label, f.Cwd, f.CwdRel, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
+	)
 	base.SetParent(f.GetParent())
 
 	switch f.Mode {
@@ -268,4 +269,17 @@ func NewForEachCommand(
 		Commands:      commands,
 		Mode:          mode,
 	}
+}
+
+// SetCwd sets the current working directory for the batch and all its sub-commands.
+func (f *ForEachCommand) SetCwd(cwd string) error {
+	if err := f.BaseCommand.SetCwd(cwd); err != nil {
+		return err //nolint:err113,wrapcheck
+	}
+	for _, cmd := range f.Commands {
+		if err := cmd.SetCwd(cwd); err != nil {
+			return err //nolint:err113,wrapcheck
+		}
+	}
+	return nil
 }

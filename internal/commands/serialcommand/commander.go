@@ -93,8 +93,6 @@ func (c *Commander) Create(
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
 
-		runnable.SetParent(serialBatch)
-
 		runnables = append(runnables, runnable)
 	}
 

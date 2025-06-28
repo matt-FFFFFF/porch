@@ -243,7 +243,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 				defer tc.cleanupFunc(t, cleanupPath)
 			}
 
-			base := runbatch.NewBaseCommand("integration-test", "", runbatch.RunOnSuccess, nil, nil)
+			base := runbatch.NewBaseCommand("integration-test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 			// Create the command
 			cmd, err := New(ctx, base, tc.command, nil, nil)
@@ -327,7 +327,7 @@ func TestCommandWithEnvironmentVariables_Integration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			base := runbatch.NewBaseCommand("env-test", "", runbatch.RunOnSuccess, nil, tc.env)
+			base := runbatch.NewBaseCommand("env-test", "", "", runbatch.RunOnSuccess, nil, tc.env)
 
 			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)
@@ -373,7 +373,7 @@ func TestCommandWithWorkingDirectory_Integration(t *testing.T) {
 		expectedOutput = testContent
 	}
 
-	base := runbatch.NewBaseCommand("cwd-test", tempDir, runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("cwd-test", tempDir, "", runbatch.RunOnSuccess, nil, nil)
 
 	cmd, err := New(ctx, base, command, nil, nil)
 	require.NoError(t, err)
@@ -400,7 +400,7 @@ func TestCommandTimeout_Integration(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 
-	base := runbatch.NewBaseCommand("timeout-test", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("timeout-test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 	var command string
 	if runtime.GOOS == goOSWindows {
@@ -472,7 +472,7 @@ func TestCommandFailure_Integration(t *testing.T) {
 				}
 			}
 
-			base := runbatch.NewBaseCommand("failure-test", "", runbatch.RunOnSuccess, nil, nil)
+			base := runbatch.NewBaseCommand("failure-test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)

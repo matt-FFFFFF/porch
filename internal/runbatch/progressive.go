@@ -89,11 +89,6 @@ func wrapAsProgressive(commands []Runnable) []Runnable {
 			progressiveCommands[i] = progressive
 			continue
 		}
-		// Wrap non-progressive commands
-		if osCmd, ok := cmd.(*OSCommand); ok {
-			progressiveCommands[i] = NewProgressiveOSCommand(osCmd)
-			continue
-		}
 		// For other command types, use original
 		progressiveCommands[i] = cmd
 	}

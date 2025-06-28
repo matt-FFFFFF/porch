@@ -16,22 +16,9 @@ const (
 	defaultProgressiveLogUpdateInterval    = 500 * time.Millisecond
 )
 
-// ProgressiveOSCommand extends OSCommand with progress reporting capabilities.
-// It implements both Runnable and ProgressiveRunnable interfaces.
-type ProgressiveOSCommand struct {
-	*OSCommand
-}
-
-// NewProgressiveOSCommand creates a new progressive OS command.
-func NewProgressiveOSCommand(osCommand *OSCommand) *ProgressiveOSCommand {
-	return &ProgressiveOSCommand{
-		OSCommand: osCommand,
-	}
-}
-
 // RunWithProgress implements ProgressiveRunnable.RunWithProgress.
 // It executes the OS command while providing real-time progress updates.
-func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
+func (c *OSCommand) RunWithProgress(ctx context.Context, reporter progress.Reporter) Results {
 	// Report that we're starting
 	ReportCommandStarted(reporter, c.GetLabel())
 
@@ -77,5 +64,5 @@ func (c *ProgressiveOSCommand) RunWithProgress(ctx context.Context, reporter pro
 }
 
 // Ensure ProgressiveOSCommand implements both interfaces.
-var _ Runnable = (*ProgressiveOSCommand)(nil)
-var _ ProgressiveRunnable = (*ProgressiveOSCommand)(nil)
+var _ Runnable = (*OSCommand)(nil)
+var _ ProgressiveRunnable = (*OSCommand)(nil)

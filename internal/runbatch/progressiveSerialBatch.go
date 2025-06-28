@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
@@ -36,6 +37,11 @@ func (b *SerialBatch) RunWithProgress(ctx context.Context, reporter progress.Rep
 
 // executeWithProgressReporting executes the batch using the original logic but with progress reporting.
 func (b *SerialBatch) executeWithProgressReporting(ctx context.Context, reporter progress.Reporter) Results {
+	label := FullLabel(b)
+	logger := ctxlog.Logger(ctx).
+		With("label", label).
+		With("runnableType", "progressiveSerialBatch")
+
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""
 
@@ -55,26 +61,11 @@ OuterLoop:
 			break OuterLoop
 		default:
 			// Inherit env and cwd from the batch if not already set
-			cmd.InheritEnv(b.Env)
-			if err := cmd.SetCwd(b.Cwd); err != nil {
-				// Report error setting cwd
-				reporter.Report(progress.Event{
-					CommandPath: []string{cmd.GetLabel()},
-					Type:        progress.EventFailed,
-					Message:     "Error setting working directory",
-					Timestamp:   time.Now(),
-					Data: progress.EventData{
-						Error: err,
-					},
-				})
+			logger.Debug("setting environment for child commands",
+				"commandLabel", cmd.GetLabel(),
+				"env", b.Env)
 
-				results = append(results, &Result{
-					Label:  cmd.GetLabel(),
-					Status: ResultStatusError,
-					Error:  err,
-				})
-				continue OuterLoop
-			}
+			cmd.InheritEnv(b.Env)
 
 			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
@@ -142,6 +133,10 @@ OuterLoop:
 			newCwd = childResults[0].newCwd
 
 			if newCwd != "" && i < len(progressiveCommands)-1 {
+				logger.Debug("newCwd is set, updating working directory for next commands",
+					"newCwd", newCwd,
+				)
+
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(progressiveCommands[i+1:]) {
 					if err := rb.SetCwd(newCwd); err != nil {
@@ -163,6 +158,11 @@ OuterLoop:
 						})
 						continue OuterLoop
 					}
+
+					logger.Debug("newCwd resultant working directory",
+						"commandLabel", rb.GetLabel(),
+						"cwd", rb.GetCwd(),
+					)
 				}
 			}
 

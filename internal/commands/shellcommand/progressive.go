@@ -19,7 +19,7 @@ func NewProgressive(
 	base *runbatch.BaseCommand,
 	command string,
 	successExitCodes []int,
-	skipExitCodes []int) (*runbatch.ProgressiveOSCommand, error,
+	skipExitCodes []int) (*runbatch.OSCommand, error,
 ) {
 	// Create the underlying OSCommand using the existing function
 	osCmd, err := New(ctx, base, command, successExitCodes, skipExitCodes)
@@ -27,8 +27,7 @@ func NewProgressive(
 		return nil, err
 	}
 
-	// Wrap it in a ProgressiveOSCommand
-	return runbatch.NewProgressiveOSCommand(osCmd), nil
+	return osCmd, nil
 }
 
 // ProgressiveCommander extends Commander with progress reporting capabilities.

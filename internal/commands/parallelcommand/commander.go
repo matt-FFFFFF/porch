@@ -92,8 +92,6 @@ func (c *Commander) Create(
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
 
-		runnable.SetParent(parallalBatch)
-
 		runnables = append(runnables, runnable)
 	}
 

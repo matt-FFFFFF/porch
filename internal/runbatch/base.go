@@ -4,6 +4,7 @@
 package runbatch
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -12,14 +13,16 @@ import (
 )
 
 var (
-	ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
+	ErrSetCwd          = errors.New("failed to set working directory, please check the path and permissions")
+	ErrPathNotAbsolute = errors.New("path must be absolute, all commands must have absolute cwd")
 )
 
 // BaseCommand is a struct that implements the Runnable interface.
 // It should be embedded in other command types to provide common functionality.
 type BaseCommand struct {
 	Label           string            // Optional label for the command
-	Cwd             string            // The working directory for the command
+	Cwd             string            // The absolute working directory for the command
+	CwdRel          string            // The relative working directory for the command, from the source YAML file
 	RunsOnCondition RunCondition      // The condition under which the command runs
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command
@@ -37,7 +40,7 @@ type PreviousCommandStatus struct {
 }
 
 // NewBaseCommand creates a new BaseCommand with the specified parameters.
-func NewBaseCommand(label, cwd string, runsOn RunCondition, runOnExitCodes []int, env map[string]string) *BaseCommand {
+func NewBaseCommand(label, cwd, relPath string, runsOn RunCondition, runOnExitCodes []int, env map[string]string) *BaseCommand {
 	if runOnExitCodes == nil {
 		runOnExitCodes = []int{0} // Default to running on success (exit code 0)
 	}
@@ -49,6 +52,7 @@ func NewBaseCommand(label, cwd string, runsOn RunCondition, runOnExitCodes []int
 	return &BaseCommand{
 		Label:           label,
 		Cwd:             cwd,
+		CwdRel:          relPath,
 		RunsOnCondition: runsOn,
 		RunsOnExitCodes: runOnExitCodes,
 		Env:             env,
@@ -79,6 +83,11 @@ func (c *BaseCommand) GetCwd() string {
 	return c.Cwd
 }
 
+// GetCwdRel returns the relative working directory for the command, from the source YAML file.
+func (c *BaseCommand) GetCwdRel() string {
+	return c.CwdRel
+}
+
 // SetCwd sets the working directory for the command.
 // All commands MUST have an absolute cwd at all times.
 // This method requires the current cwd to be absolute and will error otherwise.
@@ -93,12 +102,9 @@ func (c *BaseCommand) SetCwd(cwd string) error {
 	}
 
 	if filepath.IsAbs(cwd) {
-		if filepath.Clean(cwd) == filepath.Clean(c.GetParent().GetCwd()) && c.Cwd != "" {
-			// If the new cwd is the same as the parent's cwd, we should prefer this command's cwd
-			return nil
-		}
 		// If the new cwd is absolute, we can set it directly
-		c.Cwd = cwd
+		// using the relative path if it exists.
+		c.Cwd = filepath.Join(cwd, c.GetParent().GetCwdRel(), c.CwdRel)
 		return nil
 	}
 
@@ -152,4 +158,10 @@ func (c *BaseCommand) ShouldRun(prev PreviousCommandStatus) ShouldRunAction {
 	}
 
 	return ShouldRunActionRun
+}
+
+// Run does nothing, but is required to implement the Runnable interface.
+// It should be overridden by concrete command types to provide actual functionality.
+func (c *BaseCommand) Run(_ context.Context) Results {
+	return nil
 }

@@ -115,7 +115,7 @@ func TestBaseDefinition_ToBaseCommand(t *testing.T) {
 		require.NotNil(t, baseCmd)
 
 		assert.Equal(t, "Minimal Command", baseCmd.Label)
-		assert.Empty(t, baseCmd.Cwd)
+		assert.Equal(t, "/parent", baseCmd.Cwd)
 		assert.Equal(t, runbatch.RunOnSuccess, baseCmd.RunsOnCondition)
 		assert.Nil(t, baseCmd.RunsOnExitCodes)
 		assert.Nil(t, baseCmd.Env)

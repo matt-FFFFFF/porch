@@ -205,7 +205,7 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 			parent := &runbatch.SerialBatch{
 				BaseCommand: &runbatch.BaseCommand{
 					Label: "parent-batch",
-					Cwd:   "/",
+					Cwd:   t.TempDir(),
 				},
 			}
 

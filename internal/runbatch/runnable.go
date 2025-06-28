@@ -18,6 +18,8 @@ type Runnable interface {
 	// It should be called before Run() to ensure the command or batch runs in the correct directory.
 	// The policy parameter defines how the working directory should be updated.
 	SetCwd(string) error
+	// GetCwdRel returns the relative working directory for the command or batch, from the source YAML file.
+	GetCwdRel() string
 	// InheritEnv sets the environment variables for the command or batch.
 	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)
@@ -29,4 +31,10 @@ type Runnable interface {
 	SetParent(Runnable)
 	// ShouldRun returns true if the command or batch should be run.
 	ShouldRun(state PreviousCommandStatus) ShouldRunAction
+}
+
+// RunnableWithChildren is an interface for runnables that can have child commands or batches.
+type RunnableWithChildren interface {
+	// GetChildren returns the child commands or batches of this runnable.
+	GetChildren() []Runnable
 }

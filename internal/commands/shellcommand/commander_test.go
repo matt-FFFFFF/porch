@@ -385,7 +385,7 @@ func TestDefaultShell_WindowsEdgeCases(t *testing.T) {
 // TestNew_ErrorCoverage ensures error paths are covered.
 func TestNew_ErrorCoverage(t *testing.T) {
 	ctx := context.Background()
-	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 	t.Run("empty command returns error", func(t *testing.T) {
 		cmd, err := New(ctx, base, "", nil, nil)

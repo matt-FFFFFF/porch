@@ -68,21 +68,28 @@ func (d *BaseDefinition) ToBaseCommand(ctx context.Context, parent runbatch.Runn
 		Env:             maps.Clone(d.Env),
 	}
 
+	base.SetParent(parent)
+
+	// Make a copy to avoid side effects
+	defWd := filepath.Clean(d.WorkingDirectory)
+
 	// Resolve the working directory against parent cwd if available
-	defCwd := d.WorkingDirectory
-	if defCwd == "" {
+	if defWd == "" {
 		// If no working directory is specified, use the parent's cwd
 		base.Cwd = parent.GetCwd()
 		return base, nil
 	}
 
 	// If it's an absolute path, use it directly
-	if filepath.IsAbs(defCwd) {
-		base.Cwd = defCwd
+	if filepath.IsAbs(defWd) {
+		base.Cwd = defWd
+		return base, nil
 	}
 
+	base.CwdRel = defWd
+
 	// Otherwise, resolve it relative to the parent's cwd
-	joined := filepath.Join(parent.GetCwd(), defCwd)
+	joined := filepath.Join(parent.GetCwd(), defWd)
 	joined, err = filepath.Abs(joined)
 	if err != nil {
 		return nil, errors.Join(ErrPath, err)

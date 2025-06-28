@@ -17,7 +17,7 @@ import (
 func TestNew_Success(t *testing.T) {
 	t.Run("basic command", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "echo hello", nil, nil)
 		require.NoError(t, err)
@@ -35,7 +35,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with spaces", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "echo hello world", nil, nil)
 		require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with double quotes", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, `echo "hello world"`, nil, nil)
 		require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with single quotes", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "echo 'hello world'", nil, nil)
 		require.NoError(t, err)
@@ -80,7 +80,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with pipes", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "echo hello | grep hello", nil, nil)
 		require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with redirection", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "echo hello > output.txt", nil, nil)
 		require.NoError(t, err)
@@ -110,7 +110,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with environment variables", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "echo $HOME", nil, nil)
 		require.NoError(t, err)
@@ -125,7 +125,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("complex command with multiple features", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		complexCmd := `find /tmp -name "*.txt" | grep "test" | head -5 > results.txt && echo "Done"`
 		cmd, err := New(ctx, base, complexCmd, nil, nil)
@@ -141,7 +141,7 @@ func TestNew_Success(t *testing.T) {
 
 	t.Run("command with special characters", func(t *testing.T) {
 		ctx := context.Background()
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 		specialCmd := `echo "Special chars: !@#$%^&*()[]{}|\\;:'\",.<>?/~"`
 		cmd, err := New(ctx, base, specialCmd, nil, nil)
@@ -158,7 +158,7 @@ func TestNew_Success(t *testing.T) {
 
 func TestNew_EmptyCommand(t *testing.T) {
 	ctx := context.Background()
-	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 	cmd, err := New(ctx, base, "", nil, nil)
 	assert.Nil(t, cmd)
@@ -167,7 +167,7 @@ func TestNew_EmptyCommand(t *testing.T) {
 
 func TestNew_WhitespaceOnlyCommand(t *testing.T) {
 	ctx := context.Background()
-	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 	// Test various whitespace-only strings
 	whitespaceCommands := []string{" ", "\t", "\n", "\r", "   ", "\t\n\r   "}
@@ -279,7 +279,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("with custom working directory", func(t *testing.T) {
-		base := runbatch.NewBaseCommand("test", "/tmp", runbatch.RunOnSuccess, nil, nil)
+		base := runbatch.NewBaseCommand("test", "/tmp", "", runbatch.RunOnSuccess, nil, nil)
 
 		cmd, err := New(ctx, base, "pwd", nil, nil)
 		require.NoError(t, err)
@@ -290,7 +290,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 
 	t.Run("with environment variables", func(t *testing.T) {
 		env := map[string]string{"TEST_VAR": "test_value"}
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, env)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, env)
 
 		cmd, err := New(ctx, base, "echo $TEST_VAR", nil, nil)
 		require.NoError(t, err)
@@ -300,7 +300,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 	})
 
 	t.Run("with custom run condition", func(t *testing.T) {
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnError, nil, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnError, nil, nil)
 
 		cmd, err := New(ctx, base, "echo error handler", nil, nil)
 		require.NoError(t, err)
@@ -311,7 +311,7 @@ func TestNew_WithDifferentBaseCommands(t *testing.T) {
 
 	t.Run("with custom exit codes", func(t *testing.T) {
 		exitCodes := []int{1, 2, 3}
-		base := runbatch.NewBaseCommand("test", "", runbatch.RunOnExitCodes, exitCodes, nil)
+		base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnExitCodes, exitCodes, nil)
 
 		cmd, err := New(ctx, base, "echo custom exit codes", nil, nil)
 		require.NoError(t, err)
@@ -335,7 +335,7 @@ func TestCommandConstants(t *testing.T) {
 
 func TestNew_CommandLineEdgeCases(t *testing.T) {
 	ctx := context.Background()
-	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
 
 	testCases := []struct {
 		name    string

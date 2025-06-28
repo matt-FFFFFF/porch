@@ -73,7 +73,12 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := &BaseCommand{Cwd: tt.initialCwd}
+			cmd := &BaseCommand{
+				Cwd: tt.initialCwd,
+				parent: &BaseCommand{
+					Cwd: t.TempDir(),
+				},
+			}
 			err := cmd.SetCwd(tt.newCwd)
 
 			if tt.expectError {
@@ -103,6 +108,9 @@ func TestBaseCommand_SetCwd_CopyCwdToTempScenario(t *testing.T) {
 	cmd := &BaseCommand{
 		Label: "foreachdirectory-cmd",
 		Cwd:   workingDir, // Now absolute from creation time
+		parent: &BaseCommand{
+			Cwd: t.TempDir(), // Parent command has a temp directory as its working directory
+		},
 	}
 
 	// 2. copycwdtotemp runs and sets new working directory (absolute path)
@@ -172,7 +180,7 @@ func TestBaseCommand_NewBaseCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := NewBaseCommand(tt.label, tt.cwd, tt.runsOn, tt.runOnExitCodes, tt.env)
+			cmd := NewBaseCommand(tt.label, tt.cwd, "", tt.runsOn, tt.runOnExitCodes, tt.env)
 
 			assert.Equal(t, tt.expectedLabel, cmd.Label)
 			assert.Equal(t, tt.expectedCwd, cmd.Cwd)

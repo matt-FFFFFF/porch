@@ -91,10 +91,18 @@ commands:
 		Register,
 	)
 
+	absCwd, _ := filepath.Abs(".")
+
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
+			parent := &runbatch.SerialBatch{
+				BaseCommand: &runbatch.BaseCommand{
+					Label: "Test Parent",
+					Cwd:   absCwd,
+				},
+			}
 			yamlPayload := fmt.Sprintf(yamlPayloadFmt, tc.mode, tc.includeHidden)
-			runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload))
+			runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload), parent)
 			require.NoError(t, err)
 			require.NotNil(t, runnable)
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
@@ -161,7 +169,14 @@ commands:
 		Register,
 	)
 
-	runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload))
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "Test Parent",
+			Cwd:   t.TempDir(),
+		},
+	}
+
+	runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload), parent)
 	require.NoError(t, err)
 	require.NotNil(t, runnable)
 	forEachCommand, ok := runnable.(*runbatch.ForEachCommand)

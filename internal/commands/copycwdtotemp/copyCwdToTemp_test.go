@@ -292,6 +292,7 @@ func TestCwdChangePropagation(t *testing.T) {
 	cwdChangingCmd := &runbatch.FunctionCommand{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "Change CWD",
+			Cwd:   tmpDir,
 		},
 		Func: func(_ context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 			return runbatch.FunctionCommandReturn{
@@ -304,6 +305,7 @@ func TestCwdChangePropagation(t *testing.T) {
 	tracker := &cwdTrackerCommand{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "Subsequent command",
+			Cwd:   tmpDir, // Initial CWD
 		},
 	}
 
@@ -313,6 +315,11 @@ func TestCwdChangePropagation(t *testing.T) {
 			Label: "CWD Change Test Batch",
 		},
 		Commands: []runbatch.Runnable{cwdChangingCmd, tracker},
+	}
+
+	// Set parent for proper context
+	for _, cmd := range batch.Commands {
+		cmd.SetParent(batch)
 	}
 
 	// Run the batch
@@ -374,6 +381,7 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	trackerCmd := &cwdTrackerCommand{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "Tracker Command",
+			Cwd:   initialCwd, // Start with the initial CWD
 		},
 	}
 
@@ -381,8 +389,13 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	batch := &runbatch.SerialBatch{
 		BaseCommand: &runbatch.BaseCommand{
 			Label: "Test CopyCwdToTemp Batch",
+			Cwd:   initialCwd, // Set the initial CWD for the batch
 		},
 		Commands: []runbatch.Runnable{copyCwdCmd, trackerCmd},
+	}
+	// Set parent for proper context
+	for _, cmd := range batch.Commands {
+		cmd.SetParent(batch)
 	}
 
 	// Run the batch and wait for completion

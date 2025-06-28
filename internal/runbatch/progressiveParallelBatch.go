@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
@@ -41,6 +42,11 @@ func (b *ParallelBatch) RunWithProgress(ctx context.Context, reporter progress.R
 func (b *ParallelBatch) executeWithProgressReporting(
 	ctx context.Context, reporter progress.Reporter, progressiveCommands []Runnable,
 ) Results {
+	label := FullLabel(b)
+	logger := ctxlog.Logger(ctx).
+		With("label", label).
+		With("runnableType", "progressiveParallelBatch")
+
 	children := make(Results, 0, len(progressiveCommands))
 	wg := &sync.WaitGroup{}
 	resChan := make(chan Results, len(progressiveCommands))
@@ -49,26 +55,12 @@ func (b *ParallelBatch) executeWithProgressReporting(
 
 	for _, cmd := range progressiveCommands {
 		wg.Add(1)
-		cmd.InheritEnv(b.Env)
-		if err := cmd.SetCwd(b.Cwd); err != nil {
-			// Report error setting cwd
-			reporter.Report(progress.Event{
-				CommandPath: []string{cmd.GetLabel()},
-				Type:        progress.EventFailed,
-				Message:     "Error setting working directory",
-				Timestamp:   time.Now(),
-				Data: progress.EventData{
-					Error: err,
-				},
-			})
+		// Inherit env from the batch if not already set
+		logger.Debug("setting environment for child commands",
+			"commandLabel", cmd.GetLabel(),
+			"env", b.Env)
 
-			children = append(children, &Result{
-				Label:  cmd.GetLabel(),
-				Status: ResultStatusError,
-				Error:  err,
-			})
-			continue
-		}
+		cmd.InheritEnv(b.Env)
 
 		go func(c Runnable) {
 			defer wg.Done()

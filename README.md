@@ -56,9 +56,7 @@ Porch currently supports the following operating systems:
 
 - Linux
 - macOS
-
-Porch does compile and run on Windows, but the tests do not pass.
-Therefore it is not officially supported.
+- Windows
 
 ### Install from Go modules
 

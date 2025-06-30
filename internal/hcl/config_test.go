@@ -57,8 +57,8 @@ workflow "enhanced_build" {
 	plan, err := RunPorchPlan(config)
 	require.NoError(t, err)
 	assert.Len(t, plan.Workflows, 1)
-	assert.Len(t, plan.Workflows[0].Command, 1)
-	assert.Contains(t, plan.Workflows[0].Command[0].CommandLine, `echo "Building for environment: development"`)
+	assert.Len(t, plan.Workflows[0].Commands, 1)
+	assert.Contains(t, plan.Workflows[0].Commands[0].CommandLine, `echo "Building for environment: development"`)
 }
 
 func Test_workflowWithDynamicCommand(t *testing.T) {
@@ -121,15 +121,84 @@ workflow "enhanced_build" {
 	plan, err := RunPorchPlan(config)
 	require.NoError(t, err)
 	assert.Len(t, plan.Workflows, 1)
-	assert.Len(t, plan.Workflows[0].Command, 3)
+	assert.Len(t, plan.Workflows[0].Commands, 3)
 	expectedCommands := []string{
 		"go test ./...",
 		"go test -race ./...",
 		"go test -bench=. ./...",
 	}
 	for i, expectedCmd := range expectedCommands {
-		assert.Equal(t, expectedCmd, plan.Workflows[0].Command[i].CommandLine)
+		assert.Equal(t, expectedCmd, plan.Workflows[0].Commands[i].CommandLine)
 	}
+}
+
+func Test_workflowWithDeepDynamicCommand(t *testing.T) {
+	content := `
+workflow "enhanced_build" {
+  name        = "Enhanced Build Pipeline"
+  description = "Build pipeline with variables and locals"
+
+  # Dynamic test generation
+  dynamic "command" {
+    for_each = [0]
+    content {
+      type         = "shell"
+      name         = command.value
+	  dynamic "command" {
+  		  for_each = [1]
+  		  content {
+            type         = "shell"
+  		    name         = command.value
+			  dynamic "command" {
+  			    for_each = [2]
+  			    content {
+                  type         = "shell"
+  			      name         = command.value
+ 					dynamic "command" {
+ 					  for_each = [3]
+ 					  content {
+                        type         = "shell"
+ 					    name         = command.value
+                    }
+ 				  }
+  			    }
+  			  }
+  		  }
+  	  }
+    }
+  }
+}
+	`
+	fs := afero.NewMemMapFs()
+	dummyFsWithFiles(fs, []string{"test.porch.hcl", "/example/testfile"}, []string{content, "world"})
+	gostub.Stub(&FsFactory, func() afero.Fs {
+		return fs
+	})
+
+	config, err := BuildPorchConfig("/", "", nil, nil)
+	require.NoError(t, err)
+
+	plan, err := RunPorchPlan(config)
+	require.NoError(t, err)
+	assert.Len(t, plan.Workflows, 1)
+	workflow := plan.Workflows[0]
+	expected := map[string]struct{}{
+		"0": {},
+		"1": {},
+		"2": {},
+		"3": {},
+	}
+	commands := workflow.Commands
+	for {
+		if len(commands) == 0 {
+			break
+		}
+		assert.Len(t, commands, 1)
+		name := commands[0].Name
+		delete(expected, name)
+		commands = commands[0].Commands
+	}
+	assert.Empty(t, expected)
 }
 
 func dummyFsWithFiles(fs afero.Fs, fileNames []string, contents []string) {

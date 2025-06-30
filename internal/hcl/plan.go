@@ -1,8 +1,9 @@
 package hcl
 
 import (
-	"github.com/Azure/golden"
 	"sync"
+
+	"github.com/Azure/golden"
 )
 
 func RunPorchPlan(c *PorchConfig) (*PorchPlan, error) {

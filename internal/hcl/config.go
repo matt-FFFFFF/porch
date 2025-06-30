@@ -3,13 +3,14 @@ package hcl
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+
 	"github.com/Azure/golden"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/spf13/afero"
-	"path/filepath"
 )
 
 var _ golden.Config = &PorchConfig{}

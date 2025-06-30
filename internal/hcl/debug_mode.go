@@ -3,6 +3,7 @@ package hcl
 import (
 	"errors"
 	"fmt"
+
 	"github.com/Azure/golden"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"

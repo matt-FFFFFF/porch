@@ -1,12 +1,23 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package hcl
 
 import (
+	"strings"
+
 	"github.com/Azure/golden"
 	"github.com/zclconf/go-cty/cty"
 )
 
+const (
+	workflowBlockAddressLength = 2
+	workflowBlockName          = "workflow"
+)
+
 var _ golden.ApplyBlock = (*WorkflowBlock)(nil)
 
+// WorkflowBlock represents a workflow block in the Porch configuration.
 type WorkflowBlock struct {
 	*golden.BaseBlock
 	WorkflowName string          `hcl:"name"`
@@ -15,32 +26,39 @@ type WorkflowBlock struct {
 	Commands     []*CommandBlock `hcl:"command,block"`
 }
 
+// Type returns the type of the block.
 func (b *WorkflowBlock) Type() string {
 	return ""
 }
 
+// BlockType returns the type of the block, which is "workflow" for WorkflowBlock.
 func (b *WorkflowBlock) BlockType() string {
-	return "workflow"
+	return workflowBlockName
 }
 
+// AddressLength returns the length of the address for the block.
 func (b *WorkflowBlock) AddressLength() int {
-	return 2
+	return workflowBlockAddressLength
 }
 
+// CanExecutePrePlan checks if the block can be executed before the plan is applied.
 func (b *WorkflowBlock) CanExecutePrePlan() bool {
 	return false
 }
 
+// Apply applies the workflow block, executing its commands and handling any dependencies.
 func (b *WorkflowBlock) Apply() error {
 	// Implement the logic to apply the workflow block
 	// This is a placeholder for actual implementation
 	return nil
 }
 
+// Address returns the address of the workflow block, which is prefixed with "workflow." followed by the workflow name.
 func (b *WorkflowBlock) Address() string {
-	return "workflow." + b.WorkflowName
+	return strings.Join([]string{workflowBlockName, b.WorkflowName}, ".")
 }
 
+// CommandBlock represents a command block within a workflow.
 type CommandBlock struct {
 	Type             string            `hcl:"type"`
 	Name             string            `hcl:"name,optional"`
@@ -106,6 +124,7 @@ func commandBlockCtyType(depth int) cty.Type {
 			"cwd",
 		})
 	}
+
 	return cty.ObjectWithOptionalAttrs(map[string]cty.Type{
 		"type":                       cty.String,
 		"name":                       cty.String,

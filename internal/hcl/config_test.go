@@ -1,6 +1,10 @@
+// Copyright (c) matt-FFFFFF 2025. All rights reserved.
+// SPDX-License-Identifier: MIT
+
 package hcl
 
 import (
+	"context"
 	"testing"
 
 	"github.com/prashantv/gostub"
@@ -51,7 +55,7 @@ workflow "enhanced_build" {
 		return fs
 	})
 
-	config, err := BuildPorchConfig("/", "", nil, nil)
+	config, err := BuildPorchConfig(context.Background(), "/", "", nil)
 	require.NoError(t, err)
 
 	plan, err := RunPorchPlan(config)
@@ -115,13 +119,14 @@ workflow "enhanced_build" {
 		return fs
 	})
 
-	config, err := BuildPorchConfig("/", "", nil, nil)
+	config, err := BuildPorchConfig(context.Background(), "/", "", nil)
 	require.NoError(t, err)
 
 	plan, err := RunPorchPlan(config)
 	require.NoError(t, err)
 	assert.Len(t, plan.Workflows, 1)
 	assert.Len(t, plan.Workflows[0].Commands, 3)
+
 	expectedCommands := []string{
 		"go test ./...",
 		"go test -race ./...",
@@ -175,7 +180,7 @@ workflow "enhanced_build" {
 		return fs
 	})
 
-	config, err := BuildPorchConfig("/", "", nil, nil)
+	config, err := BuildPorchConfig(context.Background(), "/", "", nil)
 	require.NoError(t, err)
 
 	plan, err := RunPorchPlan(config)
@@ -189,15 +194,15 @@ workflow "enhanced_build" {
 		"3": {},
 	}
 	commands := workflow.Commands
-	for {
-		if len(commands) == 0 {
-			break
-		}
+
+	for len(commands) != 0 {
 		assert.Len(t, commands, 1)
 		name := commands[0].Name
 		delete(expected, name)
+
 		commands = commands[0].Commands
 	}
+
 	assert.Empty(t, expected)
 }
 

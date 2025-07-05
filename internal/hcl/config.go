@@ -70,7 +70,11 @@ func NewPorchConfig(
 
 	err := golden.InitConfig(cfg, hclBlocks)
 
-	return cfg, errors.Join(ErrInitConfig, err)
+	if err != nil {
+		err = errors.Join(ErrInitConfig, err)
+	}
+
+	return cfg, err
 }
 
 // BuildPorchConfig constructs a PorchConfig instance by loading HCL blocks
@@ -100,7 +104,7 @@ func loadPorchHclBlocks(ignoreUnsupportedBlock bool, dir string) ([]*golden.HclB
 
 	matches, err := afero.Glob(fs, filepath.Join(dir, "*"+porchConfigFileExt))
 	if err != nil {
-		// the only error we expect here is ErrBadPattern, which should never happrn as it is a constant.
+		// the only error we expect here is ErrBadPattern, which should never happen as it is a constant.
 		panic(err)
 	}
 
@@ -147,5 +151,9 @@ func loadPorchHclBlocks(ignoreUnsupportedBlock bool, dir string) ([]*golden.HclB
 		}
 	}
 
-	return r, errors.Join(ErrParsePorchConfigFile, err)
+	if err != nil {
+		err = errors.Join(ErrParsePorchConfigFile, err)
+	}
+
+	return r, err
 }

@@ -113,7 +113,11 @@ func (c *Commander) CreateFromHcl(
 ) (runbatch.Runnable, error) {
 	base, err := commands.HclCommandToBaseCommand(ctx, hclCommand, parent)
 	if err != nil {
-		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+		return nil, errors.Join(
+			commands.NewErrCommandCreate(commandType),
+			commands.ErrFailedToCreateRunnable,
+			err,
+		)
 	}
 
 	forEachCommand, err := New(
@@ -140,7 +144,11 @@ func (c *Commander) CreateFromHcl(
 
 		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, forEachCommand)
 		if err != nil {
-			return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+			return nil, errors.Join(
+				commands.NewErrCommandCreate(commandType),
+				commands.ErrFailedToCreateRunnable,
+				err,
+			)
 		}
 
 		forEachCommand.Commands = append(forEachCommand.Commands, runnable)

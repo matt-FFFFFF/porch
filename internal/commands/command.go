@@ -32,6 +32,10 @@ var (
 	ErrPath = errors.New(
 		"error resolving path",
 	)
+	// ErrFailedToCreateRunnable is returned when a runnable command cannot be created.
+	ErrFailedToCreateRunnable = errors.New(
+		"failed to create runnable command, please check the command definition and ensure all required fields are set",
+	)
 )
 
 // ErrCommandCreate is returned when a command cannot be created.

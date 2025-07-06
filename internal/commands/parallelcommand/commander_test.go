@@ -258,7 +258,7 @@ commands:
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to create runnable for command 0")
+		require.ErrorIs(t, err, commands.ErrFailedToCreateRunnable)
 	})
 
 	t.Run("command with unmarshalable sub-command", func(t *testing.T) {

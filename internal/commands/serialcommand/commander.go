@@ -91,7 +91,11 @@ func (c *Commander) CreateFromYaml(
 
 		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML, serialBatch)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
+			return nil, errors.Join(
+				commands.NewErrCommandCreate(commandType),
+				commands.ErrFailedToCreateRunnable,
+				err,
+			)
 		}
 
 		runnables = append(runnables, runnable)
@@ -129,7 +133,11 @@ func (c *Commander) CreateFromHcl(
 
 		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, serialBatch)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create runnable for command: %w", err)
+			return nil, errors.Join(
+				commands.NewErrCommandCreate(commandType),
+				commands.ErrFailedToCreateRunnable,
+				err,
+			)
 		}
 
 		serialBatch.Commands = append(serialBatch.Commands, runnable)

@@ -100,8 +100,8 @@ func (r *Registry) CreateRunnableFromYAML(
 	return runnable, nil
 }
 
-// CreateRunnableFromHcl creates a runnable from HCL data using this registry.
-func (r *Registry) CreateRunnableFromHcl(
+// CreateRunnableFromHCL creates a runnable from HCL data using this registry.
+func (r *Registry) CreateRunnableFromHCL(
 	ctx context.Context, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	// Check for context cancellation

@@ -37,8 +37,9 @@ type CommanderFactory interface {
 	// CreateRunnableFromYAML creates a runnable from the provided YAML payload.
 	// This method is tasked with determining the command type from the payload.
 	CreateRunnableFromYAML(ctx context.Context, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error)
-	// This method is tasked with determining the command type from the payload.
-	CreateRunnableFromHcl(
+	// CreateRunnableFromHCL creates a runnable from the provided HCL command block.
+	// This method is tasked with determining the command type from the HCL command block.
+	CreateRunnableFromHCL(
 		ctx context.Context, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
 	) (runbatch.Runnable, error)
 	// Register registers a Commander for a specific command type.

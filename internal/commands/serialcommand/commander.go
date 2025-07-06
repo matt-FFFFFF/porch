@@ -127,7 +127,7 @@ func (c *Commander) CreateFromHcl(
 		default:
 		}
 
-		runnable, err := factory.CreateRunnableFromHcl(ctx, cmd, serialBatch)
+		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, serialBatch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command: %w", err)
 		}

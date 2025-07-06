@@ -238,7 +238,7 @@ func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool
 	return nil, false
 }
 
-func (m *mockCommanderFactory) CreateRunnableFromHcl(
+func (m *mockCommanderFactory) CreateRunnableFromHCL(
 	ctx context.Context, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	// Simple mock implementation

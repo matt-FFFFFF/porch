@@ -138,7 +138,7 @@ func (c *Commander) CreateFromHcl(
 		default:
 		}
 
-		runnable, err := factory.CreateRunnableFromHcl(ctx, cmd, forEachCommand)
+		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, forEachCommand)
 		if err != nil {
 			return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 		}
@@ -170,6 +170,10 @@ func New(
 	itemsSkipOnErrors := []error{}
 	if skipOnNotExist {
 		itemsSkipOnErrors = append(itemsSkipOnErrors, os.ErrNotExist)
+	}
+
+	if workingDirectoryStrategy == "" {
+		workingDirectoryStrategy = "none"
 	}
 
 	strat, err := runbatch.ParseCwdStrategy(workingDirectoryStrategy)

@@ -8,6 +8,7 @@ import (
 	"context"
 	"iter"
 
+	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
@@ -16,10 +17,15 @@ type FactoryContextKey struct{}
 
 // Commander is an interface for converting commands into runnables.
 type Commander interface {
-	// Create creates a runnable command from the provided payload.
+	// CreateFromYaml creates a runnable command from the provided payload.
 	// The payload is the YAML command in bytes.
-	Create(
+	CreateFromYaml(
 		ctx context.Context, registry CommanderFactory, payload []byte, parent runbatch.Runnable,
+	) (runbatch.Runnable, error)
+
+	// CreateFromHcl creates a runnable command from the provided HCL command block.
+	CreateFromHcl(
+		ctx context.Context, registry CommanderFactory, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
 	) (runbatch.Runnable, error)
 }
 
@@ -31,6 +37,10 @@ type CommanderFactory interface {
 	// CreateRunnableFromYAML creates a runnable from the provided YAML payload.
 	// This method is tasked with determining the command type from the payload.
 	CreateRunnableFromYAML(ctx context.Context, payload []byte, parent runbatch.Runnable) (runbatch.Runnable, error)
+	// This method is tasked with determining the command type from the payload.
+	CreateRunnableFromHcl(
+		ctx context.Context, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
+	) (runbatch.Runnable, error)
 	// Register registers a Commander for a specific command type.
 	Register(cmdtype string, commander Commander) error
 	// Iter returns an iterator over all registered command types.

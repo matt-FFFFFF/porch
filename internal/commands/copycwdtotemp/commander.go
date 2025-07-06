@@ -10,6 +10,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/matt-FFFFFF/porch/internal/schema"
 )
@@ -31,8 +32,8 @@ func NewCommander() *Commander {
 	return c
 }
 
-// Create creates a new runnable command and implements the commands.Commander interface.
-func (c *Commander) Create(
+// CreateFromYaml creates a new runnable command and implements the commands.Commander interface.
+func (c *Commander) CreateFromYaml(
 	ctx context.Context,
 	_ commands.CommanderFactory,
 	payload []byte,
@@ -48,6 +49,26 @@ func (c *Commander) Create(
 	}
 
 	base, err := def.ToBaseCommand(ctx, parent)
+	if err != nil {
+		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+	}
+
+	return New(base), nil
+}
+
+// CreateFromHcl creates a new runnable command from an HCL command block and
+// implements the commands.Commander interface.
+func (c *Commander) CreateFromHcl(
+	ctx context.Context,
+	_ commands.CommanderFactory,
+	hclCommand *hcl.CommandBlock,
+	parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
+	if hclCommand.WorkingDirectory == "" {
+		hclCommand.WorkingDirectory = "."
+	}
+
+	base, err := commands.HclCommandToBaseCommand(ctx, hclCommand, parent)
 	if err != nil {
 		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}

@@ -102,7 +102,7 @@ commands:
 				},
 			}
 			yamlPayload := fmt.Sprintf(yamlPayloadFmt, tc.mode, tc.includeHidden)
-			runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload), parent)
+			runnable, err := commander.CreateFromYaml(t.Context(), f, []byte(yamlPayload), parent)
 			require.NoError(t, err)
 			require.NotNil(t, runnable)
 			forEachCommand, ok := runnable.(*runbatch.ForEachCommand)
@@ -177,7 +177,7 @@ commands:
 		},
 	}
 
-	runnable, err := commander.Create(t.Context(), f, []byte(yamlPayload), parent)
+	runnable, err := commander.CreateFromYaml(t.Context(), f, []byte(yamlPayload), parent)
 	require.NoError(t, err)
 	require.NotNil(t, runnable)
 	forEachCommand, ok := runnable.(*runbatch.ForEachCommand)

@@ -12,6 +12,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/matt-FFFFFF/porch/internal/schema"
 )
@@ -33,8 +34,8 @@ func NewCommander() *Commander {
 	return c
 }
 
-// Create creates a new runnable command and implements the commands.Commander interface.
-func (c *Commander) Create(
+// CreateFromYaml creates a new runnable command and implements the commands.Commander interface.
+func (c *Commander) CreateFromYaml(
 	ctx context.Context,
 	factory commands.CommanderFactory,
 	payload []byte,
@@ -97,6 +98,42 @@ func (c *Commander) Create(
 	}
 
 	serialBatch.Commands = runnables
+
+	return serialBatch, nil
+}
+
+// CreateFromHcl creates a new runnable command from an HCL command block
+// and implements the commands.Commander interface.
+func (c *Commander) CreateFromHcl(
+	ctx context.Context,
+	factory commands.CommanderFactory,
+	hclCommand *hcl.CommandBlock,
+	parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
+	base, err := commands.HclCommandToBaseCommand(ctx, hclCommand, parent)
+	if err != nil {
+		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+	}
+
+	serialBatch := &runbatch.SerialBatch{
+		BaseCommand: base,
+	}
+
+	for _, cmd := range hclCommand.Commands {
+		// Check for context cancellation during command processing
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("serial command creation cancelled while processing command: %w", ctx.Err())
+		default:
+		}
+
+		runnable, err := factory.CreateRunnableFromHcl(ctx, cmd, serialBatch)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create runnable for command: %w", err)
+		}
+
+		serialBatch.Commands = append(serialBatch.Commands, runnable)
+	}
 
 	return serialBatch, nil
 }

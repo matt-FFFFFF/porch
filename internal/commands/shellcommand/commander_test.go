@@ -52,7 +52,7 @@ command_line: "echo hello"
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -75,7 +75,7 @@ command_line: "ls"
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -103,7 +103,7 @@ env:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -133,7 +133,7 @@ runs_on_condition: "error"
 				Cwd:   "/parent",
 			},
 		}
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -157,7 +157,7 @@ runs_on_condition: "always"
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -185,7 +185,7 @@ invalid: yaml: content
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 	})
@@ -204,7 +204,7 @@ command_line: ""
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "command not found")
@@ -223,7 +223,7 @@ name: "Missing Command"
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "command not found")
@@ -244,7 +244,7 @@ runs_on_condition: "invalid_condition"
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.Error(t, err)
 		assert.Nil(t, runnable)
 		assert.Contains(t, err.Error(), "unknown RunCondition")
@@ -300,7 +300,7 @@ environment: {}
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -322,7 +322,7 @@ command_line: "  echo test  "
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -345,7 +345,7 @@ command_line: "dir"
 				},
 			}
 
-			runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+			runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 			require.NoError(t, err)
 			require.NotNil(t, runnable)
 
@@ -427,7 +427,7 @@ runs_on_condition: "` + tc.condition + `"
 					},
 				}
 
-				runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+				runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 				require.NoError(t, err)
 				require.NotNil(t, runnable)
 
@@ -458,7 +458,7 @@ env:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -490,7 +490,7 @@ runs_on_exit_codes: [0, 1, 2, 255]
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 

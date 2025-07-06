@@ -12,6 +12,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
@@ -91,9 +92,33 @@ func (r *Registry) CreateRunnableFromYAML(
 		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandType, cmdType.Type)
 	}
 
-	runnable, err := commander.Create(ctx, r, yamlData, parent)
+	runnable, err := commander.CreateFromYaml(ctx, r, yamlData, parent)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s: %v", ErrCommandCreation, cmdType.Type, err)
+	}
+
+	return runnable, nil
+}
+
+// CreateRunnableFromHcl creates a runnable from HCL data using this registry.
+func (r *Registry) CreateRunnableFromHcl(
+	ctx context.Context, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
+	// Check for context cancellation
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("command creation cancelled: %w", ctx.Err())
+	default:
+	}
+
+	commander, exists := r.commands[hclCommand.Type]
+	if !exists {
+		return nil, fmt.Errorf("%w: %s", ErrUnknownCommandType, hclCommand.Type)
+	}
+
+	runnable, err := commander.CreateFromHcl(ctx, r, hclCommand, parent)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s: %v", ErrCommandCreation, hclCommand.Type, err)
 	}
 
 	return runnable, nil

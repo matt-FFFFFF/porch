@@ -60,7 +60,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -100,7 +100,7 @@ commands: []
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -137,7 +137,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -168,7 +168,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -199,7 +199,7 @@ commands: [
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		require.ErrorIs(t, err, commands.ErrYamlUnmarshal)
@@ -226,7 +226,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 
@@ -255,7 +255,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create runnable for command 0")
@@ -284,7 +284,7 @@ commands:
 		}
 
 		// First verify this normally works
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 	})
@@ -307,7 +307,7 @@ func TestCommander_Interface(t *testing.T) {
 		}
 
 		// Verify the method exists and has correct signature
-		runnable, err := commander.Create(ctx, testRegistry, []byte(`
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, []byte(`
 type: parallel
 name: "Test"
 commands: []
@@ -366,7 +366,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -403,7 +403,7 @@ commands:
 			},
 		}
 
-		runnable, err := commander.Create(ctx, testRegistry, yamlPayload, parent)
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 

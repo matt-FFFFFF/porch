@@ -12,6 +12,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/foreachproviders"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/matt-FFFFFF/porch/internal/schema"
@@ -34,8 +35,8 @@ func NewCommander() *Commander {
 	return c
 }
 
-// Create creates a new runnable command based on the provided YAML payload.
-func (c *Commander) Create(
+// CreateFromYaml creates a new runnable command based on the provided YAML payload.
+func (c *Commander) CreateFromYaml(
 	ctx context.Context,
 	factory commands.CommanderFactory,
 	payload []byte,
@@ -57,33 +58,17 @@ func (c *Commander) Create(
 		return nil, errors.Join(commands.NewErrCommandCreate("foreachdirectory"), err)
 	}
 
-	mode, err := runbatch.ParseForEachMode(def.Mode)
+	forEachCommand, err := New(
+		ctx,
+		base,
+		def.Depth,
+		def.IncludeHidden,
+		def.Mode,
+		def.WorkingDirectoryStrategy,
+		def.SkipOnNotExist,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse foreach mode: %q %w", def.Mode, err)
-	}
-
-	if def.WorkingDirectoryStrategy == "" {
-		def.WorkingDirectoryStrategy = runbatch.CwdStrategyNone.String()
-	}
-
-	strat, err := runbatch.ParseCwdStrategy(def.WorkingDirectoryStrategy)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse working directory strategy: %q %w", def.WorkingDirectoryStrategy, err)
-	}
-
-	itemsSkipOnErrors := []error{}
-	if def.SkipOnNotExist {
-		itemsSkipOnErrors = append(itemsSkipOnErrors, os.ErrNotExist)
-	}
-
-	forEachCommand := &runbatch.ForEachCommand{
-		BaseCommand: base,
-		ItemsProvider: foreachproviders.ListDirectoriesDepth(
-			def.Depth, foreachproviders.IncludeHidden(def.IncludeHidden),
-		),
-		Mode:              mode,
-		CwdStrategy:       strat,
-		ItemsSkipOnErrors: itemsSkipOnErrors,
+		return nil, fmt.Errorf("failed to create foreach command: %w", err)
 	}
 
 	// Determine which commands to use
@@ -117,6 +102,89 @@ func (c *Commander) Create(
 	forEachCommand.Commands = runnables
 
 	return forEachCommand, nil
+}
+
+// CreateFromHcl creates a new runnable command from an HCL command block.
+func (c *Commander) CreateFromHcl(
+	ctx context.Context,
+	factory commands.CommanderFactory,
+	hclCommand *hcl.CommandBlock,
+	parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
+	base, err := commands.HclCommandToBaseCommand(ctx, hclCommand, parent)
+	if err != nil {
+		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+	}
+
+	forEachCommand, err := New(
+		ctx,
+		base,
+		hclCommand.Depth,
+		hclCommand.IncludeHidden,
+		hclCommand.Mode,
+		hclCommand.WorkingDirectoryStrategy,
+		hclCommand.SkipOnNotExist,
+	)
+	if err != nil {
+		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+	}
+
+	for _, cmd := range hclCommand.Commands {
+		cmd := cmd
+		// Check for context cancellation during command processing
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("foreach command creation cancelled while processing command: %w", ctx.Err())
+		default:
+		}
+
+		runnable, err := factory.CreateRunnableFromHcl(ctx, cmd, forEachCommand)
+		if err != nil {
+			return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
+		}
+
+		forEachCommand.Commands = append(forEachCommand.Commands, runnable)
+	}
+
+	return forEachCommand, nil
+}
+
+// New creates a new ForEachCommand for iterating over directories.
+func New(
+	_ context.Context,
+	base *runbatch.BaseCommand,
+	depth int,
+	includeHidden bool,
+	mode, workingDirectoryStrategy string,
+	skipOnNotExist bool,
+) (*runbatch.ForEachCommand, error) {
+	if base == nil {
+		return nil, commands.ErrNilParent
+	}
+
+	forEachMode, err := runbatch.ParseForEachMode(mode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse foreach mode: %q %w", mode, err)
+	}
+
+	itemsSkipOnErrors := []error{}
+	if skipOnNotExist {
+		itemsSkipOnErrors = append(itemsSkipOnErrors, os.ErrNotExist)
+	}
+
+	strat, err := runbatch.ParseCwdStrategy(workingDirectoryStrategy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse working directory strategy: %q %w", workingDirectoryStrategy, err)
+	}
+
+	return &runbatch.ForEachCommand{
+		BaseCommand:       base,
+		ItemsProvider:     foreachproviders.ListDirectoriesDepth(depth, foreachproviders.IncludeHidden(includeHidden)),
+		Mode:              forEachMode,
+		CwdStrategy:       strat,
+		ItemsSkipOnErrors: itemsSkipOnErrors,
+		Commands:          []runbatch.Runnable{},
+	}, nil
 }
 
 // GetSchemaFields returns the schema fields for the foreachdirectory type.

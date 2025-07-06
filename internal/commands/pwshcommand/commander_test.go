@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/matt-FFFFFF/porch/internal/commands"
+	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
@@ -152,7 +153,7 @@ invalid_yaml: [
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			runnable, err := commander.Create(ctx, nil, []byte(tc.yaml), parent)
+			runnable, err := commander.CreateFromYaml(ctx, nil, []byte(tc.yaml), parent)
 
 			if tc.expectError {
 				require.Error(t, err)
@@ -235,6 +236,13 @@ func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool
 	}
 
 	return nil, false
+}
+
+func (m *mockCommanderFactory) CreateRunnableFromHcl(
+	ctx context.Context, hclCommand *hcl.CommandBlock, parent runbatch.Runnable,
+) (runbatch.Runnable, error) {
+	// Simple mock implementation
+	return nil, errors.New("not implemented in mock")
 }
 
 func (m *mockCommanderFactory) CreateRunnableFromYAML(

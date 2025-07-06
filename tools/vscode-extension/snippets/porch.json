@@ -1,0 +1,196 @@
+{
+  "Workflow Block": {
+    "prefix": "workflow",
+    "body": [
+      "workflow \"${1:name}\" {",
+      "  name        = \"${2:Display Name}\"",
+      "  description = \"${3:Description}\"",
+      "",
+      "  command {",
+      "    type = \"${4|shell,pwsh,serial,parallel,foreachdirectory,copycwdtotemp|}\"",
+      "    name = \"${5:Command Name}\"",
+      "    ${6:command_line = \"${7:echo 'hello'}\"}",
+      "  }",
+      "}"
+    ],
+    "description": "Create a workflow block with commands"
+  },
+  "Shell Command": {
+    "prefix": "shell",
+    "body": [
+      "command {",
+      "  type = \"shell\"",
+      "  name = \"${1:Command Name}\"",
+      "  command_line = \"${2:echo 'hello'}\"",
+      "  ${3:working_directory = \"${4:.}\"}",
+      "}"
+    ],
+    "description": "Create a shell command block"
+  },
+  "PowerShell Command": {
+    "prefix": "pwsh",
+    "body": [
+      "command {",
+      "  type = \"pwsh\"",
+      "  name = \"${1:Command Name}\"",
+      "  ${2|script,script_file|} = \"${3:Write-Output 'hello'}\"",
+      "  ${4:working_directory = \"${5:.}\"}",
+      "}"
+    ],
+    "description": "Create a PowerShell command block"
+  },
+  "Serial Command": {
+    "prefix": "serial",
+    "body": [
+      "command {",
+      "  type = \"serial\"",
+      "  name = \"${1:Serial Commands}\"",
+      "",
+      "  command {",
+      "    type = \"shell\"",
+      "    name = \"${2:First Command}\"",
+      "    command_line = \"${3:echo 'first'}\"",
+      "  }",
+      "",
+      "  command {",
+      "    type = \"shell\"",
+      "    name = \"${4:Second Command}\"",
+      "    command_line = \"${5:echo 'second'}\"",
+      "  }",
+      "}"
+    ],
+    "description": "Create a serial command block with nested commands"
+  },
+  "Parallel Command": {
+    "prefix": "parallel",
+    "body": [
+      "command {",
+      "  type = \"parallel\"",
+      "  name = \"${1:Parallel Commands}\"",
+      "",
+      "  command {",
+      "    type = \"shell\"",
+      "    name = \"${2:First Command}\"",
+      "    command_line = \"${3:echo 'first'}\"",
+      "  }",
+      "",
+      "  command {",
+      "    type = \"shell\"",
+      "    name = \"${4:Second Command}\"",
+      "    command_line = \"${5:echo 'second'}\"",
+      "  }",
+      "}"
+    ],
+    "description": "Create a parallel command block with nested commands"
+  },
+  "Foreach Directory Command": {
+    "prefix": "foreachdirectory",
+    "body": [
+      "command {",
+      "  type = \"foreachdirectory\"",
+      "  name = \"${1:For Each Directory}\"",
+      "  mode = \"${2|directories,files,both|}\"",
+      "  ${3:depth = ${4:1}}",
+      "  ${5:working_directory = \"${6:.}\"}",
+      "",
+      "  command {",
+      "    type = \"shell\"",
+      "    name = \"${7:Directory Command}\"",
+      "    command_line = \"${8:echo 'processing directory'}\"",
+      "  }",
+      "}"
+    ],
+    "description": "Create a foreach directory command block"
+  },
+  "Variable Block": {
+    "prefix": "variable",
+    "body": [
+      "variable \"${1:name}\" {",
+      "  description = \"${2:Description}\"",
+      "  type        = ${3|string,number,bool,list,map,object|}",
+      "  ${4:default     = \"${5:default_value}\"}",
+      "}"
+    ],
+    "description": "Create a variable block"
+  },
+  "Locals Block": {
+    "prefix": "locals",
+    "body": [
+      "locals {",
+      "  ${1:name} = ${2:\"value\"}",
+      "}"
+    ],
+    "description": "Create a locals block"
+  },
+  "Dynamic Block": {
+    "prefix": "dynamic",
+    "body": [
+      "dynamic \"${1:block_name}\" {",
+      "  for_each = ${2:local.items}",
+      "  content {",
+      "    ${3:# Dynamic content here}",
+      "    ${4:name = ${1:block_name}.value}",
+      "  }",
+      "}"
+    ],
+    "description": "Create a dynamic block"
+  },
+  "Environment Variables": {
+    "prefix": "env",
+    "body": [
+      "env = {",
+      "  ${1:ENV_VAR} = \"${2:value}\"",
+      "}"
+    ],
+    "description": "Add environment variables"
+  },
+  "Success Exit Codes": {
+    "prefix": "success_exit_codes",
+    "body": [
+      "success_exit_codes = [${1:0}]"
+    ],
+    "description": "Add success exit codes"
+  },
+  "Skip Exit Codes": {
+    "prefix": "skip_exit_codes",
+    "body": [
+      "skip_exit_codes = [${1:130}]"
+    ],
+    "description": "Add skip exit codes"
+  },
+  "Runs on Condition": {
+    "prefix": "runs_on_condition",
+    "body": [
+      "runs_on_condition = \"${1|success,error,always,exit-codes|}\""
+    ],
+    "description": "Add runs on condition"
+  },
+  "Timestamp Function": {
+    "prefix": "timestamp",
+    "body": [
+      "timestamp()"
+    ],
+    "description": "Insert timestamp function"
+  },
+  "Length Function": {
+    "prefix": "length",
+    "body": [
+      "length(${1:value})"
+    ],
+    "description": "Insert length function"
+  },
+  "UUID Function": {
+    "prefix": "uuid",
+    "body": [
+      "uuid()"
+    ],
+    "description": "Insert UUID function"
+  },
+  "Environment Function": {
+    "prefix": "env_func",
+    "body": [
+      "env(\"${1:ENV_VAR}\")"
+    ],
+    "description": "Insert env function to get environment variable"
+  }
+}

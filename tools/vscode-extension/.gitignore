@@ -1,0 +1,16 @@
+# VSCode extension build artifacts
+*.vsix
+out/
+node_modules/
+bin/
+
+# Development files
+.vscode-test/
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -76,7 +76,52 @@ make build
 
 See [DEVELOPER.md](DEVELOPER.md) for detailed instructions on setting up a development environment, running tests, and contributing to the project.
 
-## 🚀 Quick Start
+## �️ Language Support Tools
+
+Porch includes comprehensive language support tools for `.porch.hcl` configuration files:
+
+### VSCode Extension
+
+Get rich language support in Visual Studio Code with:
+- **Syntax highlighting** for Porch HCL files
+- **Auto-completion** for blocks, commands, and HCL functions
+- **Code snippets** for common patterns
+- **Real-time validation** and error highlighting
+- **Hover documentation** for functions and attributes
+
+Install from the VSCode Marketplace: [Porch HCL](https://marketplace.visualstudio.com/items?itemName=matt-FFFFFF.porch-hcl)
+
+### Language Server
+
+The included Language Server Protocol (LSP) implementation provides:
+- Support for all **30+ HCL functions** from `hclfuncs` library
+- **Porch-specific validation** for workflow blocks and command types
+- **Function documentation** with parameter information
+- **Cross-editor compatibility** (VSCode, Vim, Emacs, etc.)
+- **Context-aware completions** with proper block scoping
+
+**Installation Options:**
+
+1. **Download from Releases**: Pre-built binaries are available in [GitHub Releases](https://github.com/matt-FFFFFF/porch/releases)
+2. **Build from Source**:
+   ```bash
+   cd tools
+   make build-lsp
+   make install-lsp  # Installs to /usr/local/bin/porch-lsp
+   ```
+
+### Supported HCL Functions
+
+The language server provides IntelliSense for all functions including:
+- **String**: `length()`, `replace()`, `startswith()`, `endswith()`
+- **Date/Time**: `timestamp()`, `timecmp()`, `formatdate()`
+- **Encoding**: `base64encode()`, `urlencode()`, `yaml2json()`
+- **Collections**: `alltrue()`, `anytrue()`, `sum()`, `matchkeys()`
+- **Utilities**: `uuid()`, `env()`, `cidrcontains()`
+
+See [tools/README.md](tools/README.md) for complete documentation.
+
+## �🚀 Quick Start
 
 ### Basic Workflow
 

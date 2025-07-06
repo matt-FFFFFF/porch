@@ -210,7 +210,18 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 			}
 
 			// Create the command
-			cmd, err := New(ctx, definition, parent)
+			base, err := definition.ToBaseCommand(ctx, parent)
+			require.NoError(t, err, "failed to convert definition to base command")
+
+			cmd, err := New(
+				ctx,
+				base,
+				definition.Script,
+				definition.ScriptFile,
+				definition.SuccessExitCodes,
+				definition.SkipExitCodes,
+			)
+
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -278,7 +289,17 @@ Write-Host "Calculation result: $result"`
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -357,7 +378,18 @@ func TestPowerShellWithEnvironmentVariables_Integration(t *testing.T) {
 				},
 			}
 
-			cmd, err := New(ctx, definition, parent)
+			base, err := definition.ToBaseCommand(ctx, parent)
+			require.NoError(t, err, "failed to convert definition to base command")
+
+			cmd, err := New(
+				ctx,
+				base,
+				definition.Script,
+				definition.ScriptFile,
+				definition.SuccessExitCodes,
+				definition.SkipExitCodes,
+			)
+
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -410,7 +442,18 @@ func TestPowerShellWithWorkingDirectory_Integration(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
+
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -450,7 +493,18 @@ func TestPowerShellTimeout_Integration(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
+
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -530,7 +584,18 @@ func TestPowerShellFailure_Integration(t *testing.T) {
 				},
 			}
 
-			cmd, err := New(ctx, definition, parent)
+			base, err := definition.ToBaseCommand(ctx, parent)
+			require.NoError(t, err, "failed to convert definition to base command")
+
+			cmd, err := New(
+				ctx,
+				base,
+				definition.Script,
+				definition.ScriptFile,
+				definition.SuccessExitCodes,
+				definition.SkipExitCodes,
+			)
+
 			require.NoError(t, err)
 			require.NotNil(t, cmd)
 
@@ -568,7 +633,18 @@ func TestPowerShellWithSuccessExitCodes_Integration(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
+
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 
@@ -604,7 +680,18 @@ func TestPowerShellLongOutput_Integration(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
+
 	require.NoError(t, err)
 	require.NotNil(t, cmd)
 

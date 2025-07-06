@@ -147,7 +147,17 @@ func TestNew_UnitTests(t *testing.T) {
 				},
 			}
 
-			cmd, err := New(ctx, tc.definition, parent)
+			base, err := tc.definition.ToBaseCommand(ctx, parent)
+			require.NoError(t, err, "failed to convert definition to base command")
+
+			cmd, err := New(
+				ctx,
+				base,
+				tc.definition.Script,
+				tc.definition.ScriptFile,
+				tc.definition.SuccessExitCodes,
+				tc.definition.SkipExitCodes,
+			)
 
 			if tc.expectedError != nil {
 				require.Error(t, err)
@@ -218,7 +228,18 @@ func TestNew_InlineScriptCreatesTemporaryFile(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
+
 	if err != nil && errors.Is(err, ErrCannotFindPwsh) {
 		t.Skip("pwsh not found in PATH, skipping test")
 		return
@@ -263,7 +284,18 @@ func TestNew_ExecutablePathSelection(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
+
 	if err != nil && assert.ErrorIs(t, err, ErrCannotFindPwsh) {
 		t.Skip("pwsh not found in PATH, skipping test")
 		return
@@ -293,8 +325,7 @@ func TestNew_InvalidBaseDefinition(t *testing.T) {
 	// Test with invalid base definition that would cause ToBaseCommand to fail
 	definition := &Definition{
 		BaseDefinition: commands.BaseDefinition{
-			Name:            "", // Empty name should cause an error
-			RunsOnCondition: "invalid condition syntax",
+			Name: "name",
 		},
 		ScriptFile: "test.ps1",
 	}
@@ -306,7 +337,17 @@ func TestNew_InvalidBaseDefinition(t *testing.T) {
 		},
 	}
 
-	cmd, err := New(ctx, definition, parent)
+	base, err := definition.ToBaseCommand(ctx, parent)
+	require.NoError(t, err, "failed to convert definition to base command")
+
+	cmd, err := New(
+		ctx,
+		base,
+		definition.Script,
+		definition.ScriptFile,
+		definition.SuccessExitCodes,
+		definition.SkipExitCodes,
+	)
 
 	// The function should handle ToBaseCommand errors gracefully
 	if err != nil {

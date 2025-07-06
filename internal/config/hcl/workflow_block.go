@@ -79,6 +79,8 @@ type CommandBlock struct {
 	Mode                     string `hcl:"mode,optional"`
 	WorkingDirectoryStrategy string `hcl:"working_directory_strategy,optional"`
 	Depth                    int    `hcl:"depth,optional"`
+	IncludeHidden            bool   `hcl:"include_hidden,optional"`
+	SkipOnNotExist           bool   `hcl:"skip_on_not_exist,optional"`
 
 	// Copy command specific
 	CWD string `hcl:"cwd,optional"`

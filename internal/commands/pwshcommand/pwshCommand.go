@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
@@ -35,9 +34,13 @@ var (
 )
 
 // New creates a new runbatch.OSCommand for PowerShell scripts.
-func New(ctx context.Context, def *Definition, parent runbatch.Runnable) (runbatch.Runnable, error) {
+func New(_ context.Context,
+	base *runbatch.BaseCommand,
+	script, scriptFile string,
+	successExitCodes, skipExitCodes []int,
+) (runbatch.Runnable, error) {
 	// Check for conflicting script definitions first
-	if def.Script != "" && def.ScriptFile != "" {
+	if script != "" && scriptFile != "" {
 		return nil, ErrBothScriptAndScriptFileSpecified
 	}
 
@@ -51,21 +54,16 @@ func New(ctx context.Context, def *Definition, parent runbatch.Runnable) (runbat
 		return nil, errors.Join(ErrCannotFindPwsh, err)
 	}
 
-	base, err := def.ToBaseCommand(ctx, parent)
-	if err != nil {
-		return nil, commands.NewErrCommandCreate(commandType) //nolint:wrapcheck
-	}
-
 	cmd := &runbatch.OSCommand{
 		BaseCommand:      base,
 		Path:             execPath,
 		Args:             nil, // Arguments will be set below
-		SuccessExitCodes: def.SuccessExitCodes,
-		SkipExitCodes:    def.SkipExitCodes,
+		SuccessExitCodes: successExitCodes,
+		SkipExitCodes:    skipExitCodes,
 	}
 
 	// If script is specified, write it to a temporary file and use that as the script file.
-	if def.Script != "" {
+	if script != "" {
 		tmpFile, err := os.CreateTemp("", "script-*.ps1")
 
 		if err != nil {
@@ -74,16 +72,16 @@ func New(ctx context.Context, def *Definition, parent runbatch.Runnable) (runbat
 
 		defer tmpFile.Close() //nolint:errcheck
 
-		if _, err := tmpFile.Write([]byte(def.Script)); err != nil {
+		if _, err := tmpFile.Write([]byte(script)); err != nil {
 			return nil, errors.Join(ErrCannotWriteTempFile, err)
 		}
 
-		def.ScriptFile = tmpFile.Name()
+		scriptFile = tmpFile.Name()
 
 		// Set the cleanup function to remove the temporary script file after execution
 		cmd.SetCleanup(func(ctx context.Context) {
-			ctxlog.Logger(ctx).Debug("cleaning up temporary script file", "file", def.ScriptFile)
-			os.Remove(def.ScriptFile) //nolint:errcheck
+			ctxlog.Logger(ctx).Debug("cleaning up temporary script file", "file", scriptFile)
+			os.Remove(scriptFile) //nolint:errcheck
 		})
 	}
 
@@ -94,7 +92,7 @@ func New(ctx context.Context, def *Definition, parent runbatch.Runnable) (runbat
 	osCommmandArgs[2] = "-ExecutionPolicy"
 	osCommmandArgs[3] = "Bypass" // Bypass execution policy for the script, Windows only
 	osCommmandArgs[4] = "-File"
-	osCommmandArgs[5] = def.ScriptFile
+	osCommmandArgs[5] = scriptFile
 
 	cmd.Args = osCommmandArgs
 

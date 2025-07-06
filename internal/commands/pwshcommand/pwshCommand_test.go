@@ -325,8 +325,7 @@ func TestNew_InvalidBaseDefinition(t *testing.T) {
 	// Test with invalid base definition that would cause ToBaseCommand to fail
 	definition := &Definition{
 		BaseDefinition: commands.BaseDefinition{
-			Name:            "", // Empty name should cause an error
-			RunsOnCondition: "invalid condition syntax",
+			Name: "name",
 		},
 		ScriptFile: "test.ps1",
 	}

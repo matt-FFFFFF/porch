@@ -1,0 +1,350 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Porch HCL",
+  "scopeName": "source.porch-hcl",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#blocks"
+    },
+    {
+      "include": "#attributes"
+    },
+    {
+      "include": "#expressions"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.porch-hcl",
+          "begin": "#",
+          "end": "$",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.porch-hcl"
+            }
+          }
+        },
+        {
+          "name": "comment.block.porch-hcl",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.porch-hcl"
+            }
+          }
+        }
+      ]
+    },
+    "blocks": {
+      "patterns": [
+        {
+          "name": "meta.block.workflow.porch-hcl",
+          "begin": "\\b(workflow)\\s+(\"[^\"]*\")\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.block.porch-hcl"
+            },
+            "2": {
+              "name": "string.quoted.double.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#blocks"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "include": "#expressions"
+            }
+          ]
+        },
+        {
+          "name": "meta.block.command.porch-hcl",
+          "begin": "\\b(command)\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.block.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#blocks"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "include": "#expressions"
+            }
+          ]
+        },
+        {
+          "name": "meta.block.variable.porch-hcl",
+          "begin": "\\b(variable)\\s+(\"[^\"]*\")\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.block.porch-hcl"
+            },
+            "2": {
+              "name": "string.quoted.double.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "include": "#expressions"
+            }
+          ]
+        },
+        {
+          "name": "meta.block.locals.porch-hcl",
+          "begin": "\\b(locals)\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.block.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "include": "#expressions"
+            }
+          ]
+        },
+        {
+          "name": "meta.block.dynamic.porch-hcl",
+          "begin": "\\b(dynamic)\\s+(\"[^\"]*\")\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.block.porch-hcl"
+            },
+            "2": {
+              "name": "string.quoted.double.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#blocks"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "include": "#expressions"
+            }
+          ]
+        }
+      ]
+    },
+    "attributes": {
+      "patterns": [
+        {
+          "name": "meta.attribute.porch-hcl",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=)",
+          "captures": {
+            "1": {
+              "name": "variable.other.assignment.porch-hcl"
+            },
+            "2": {
+              "name": "punctuation.separator.assignment.porch-hcl"
+            }
+          }
+        }
+      ]
+    },
+    "expressions": {
+      "patterns": [
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#booleans"
+        },
+        {
+          "include": "#functions"
+        },
+        {
+          "include": "#variables"
+        },
+        {
+          "include": "#operators"
+        },
+        {
+          "include": "#heredoc"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.porch-hcl",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.porch-hcl",
+              "match": "\\\\."
+            },
+            {
+              "include": "#interpolation"
+            }
+          ]
+        }
+      ]
+    },
+    "interpolation": {
+      "patterns": [
+        {
+          "name": "meta.interpolation.porch-hcl",
+          "begin": "\\$\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.template-expression.begin.porch-hcl"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.template-expression.end.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#expressions"
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.porch-hcl",
+          "match": "\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
+        }
+      ]
+    },
+    "booleans": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.porch-hcl",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "meta.function-call.porch-hcl",
+          "begin": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(\\()",
+          "end": "\\)",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.function.porch-hcl"
+            },
+            "2": {
+              "name": "punctuation.definition.parameters.begin.porch-hcl"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.parameters.end.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#expressions"
+            },
+            {
+              "name": "punctuation.separator.parameter.porch-hcl",
+              "match": ","
+            }
+          ]
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.reference.porch-hcl",
+          "match": "\\b(var|local)\\.[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "name": "variable.other.porch-hcl",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.porch-hcl",
+          "match": "(==|!=|<=|>=|<|>|&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.porch-hcl",
+          "match": "(\\+|\\-|\\*|/|%)"
+        }
+      ]
+    },
+    "heredoc": {
+      "patterns": [
+        {
+          "name": "string.unquoted.heredoc.porch-hcl",
+          "begin": "<<-?\\s*([A-Z_][A-Z0-9_]*)\\s*$",
+          "end": "^\\s*\\1\\s*$",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.porch-hcl"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.porch-hcl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#interpolation"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

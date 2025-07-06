@@ -1,0 +1,129 @@
+{
+  "name": "porch-hcl",
+  "displayName": "Porch HCL Language Support",
+  "description": "Language support for Porch HCL configuration files",
+  "version": "0.1.0",
+  "publisher": "matt-FFFFFF",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "keywords": [
+    "porch",
+    "hcl",
+    "terraform",
+    "configuration",
+    "orchestration"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "porch-hcl",
+        "aliases": [
+          "Porch HCL",
+          "porch-hcl"
+        ],
+        "extensions": [
+          ".porch.hcl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "porch-hcl",
+        "scopeName": "source.porch-hcl",
+        "path": "./syntaxes/porch-hcl.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "porch-hcl",
+        "path": "./snippets/porch.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Porch HCL",
+      "properties": {
+        "porch-hcl.server.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Porch HCL Language Server executable (auto-detected if empty)"
+        },
+        "porch-hcl.server.args": {
+          "type": "array",
+          "default": [],
+          "description": "Arguments to pass to the language server"
+        },
+        "porch-hcl.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "porch-hcl.createFile",
+        "title": "Create New Porch HCL File",
+        "category": "Porch HCL"
+      },
+      {
+        "command": "porch-hcl.restartServer",
+        "title": "Restart Language Server",
+        "category": "Porch HCL"
+      },
+      {
+        "command": "porch-hcl.triggerCompletion",
+        "title": "Trigger Completion (Debug)",
+        "category": "Porch HCL"
+      },
+      {
+        "command": "porch-hcl.showServerStatus",
+        "title": "Show Language Server Status",
+        "category": "Porch HCL"
+      }
+    ]
+  },
+  "activationEvents": [],
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.95.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.6.0",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matt-FFFFFF/porch.git",
+    "directory": "tools/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/matt-FFFFFF/porch/issues"
+  },
+  "homepage": "https://github.com/matt-FFFFFF/porch#readme",
+  "license": "MIT"
+}

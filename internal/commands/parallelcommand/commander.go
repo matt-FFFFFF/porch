@@ -57,7 +57,7 @@ func (c *Commander) CreateFromYaml(
 		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}
 
-	parallalBatch := &runbatch.ParallelBatch{
+	parallelBatch := &runbatch.ParallelBatch{
 		BaseCommand: base,
 	}
 
@@ -88,7 +88,7 @@ func (c *Commander) CreateFromYaml(
 			return nil, fmt.Errorf("failed to marshal command %d: %w", i, err)
 		}
 
-		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML, parallalBatch)
+		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML, parallelBatch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}
@@ -96,9 +96,9 @@ func (c *Commander) CreateFromYaml(
 		runnables = append(runnables, runnable)
 	}
 
-	parallalBatch.Commands = runnables
+	parallelBatch.Commands = runnables
 
-	return parallalBatch, nil
+	return parallelBatch, nil
 }
 
 // CreateFromHcl creates a new runnable command from an HCL command block
@@ -114,7 +114,7 @@ func (c *Commander) CreateFromHcl(
 		return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 	}
 
-	parallalBatch := &runbatch.ParallelBatch{
+	parallelBatch := &runbatch.ParallelBatch{
 		BaseCommand: base,
 	}
 
@@ -126,15 +126,15 @@ func (c *Commander) CreateFromHcl(
 		default:
 		}
 
-		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, parallalBatch)
+		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, parallelBatch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command: %w", err)
 		}
 
-		parallalBatch.Commands = append(parallalBatch.Commands, runnable)
+		parallelBatch.Commands = append(parallelBatch.Commands, runnable)
 	}
 
-	return parallalBatch, nil
+	return parallelBatch, nil
 }
 
 // GetSchemaFields returns the schema fields for the parallelcommand type.

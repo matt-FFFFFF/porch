@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mockCommanderFactory for testing parallel command creation
+// mockCommanderFactory for testing parallel command creation.
 type mockCommanderFactory struct{}
 
 func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool) {
@@ -220,7 +220,7 @@ func TestCommander_CreateFromHcl(t *testing.T) {
 			validateResult: func(t *testing.T, runnable runbatch.Runnable) {
 				parallelBatch, ok := runnable.(*runbatch.ParallelBatch)
 				require.True(t, ok, "expected ParallelBatch")
-				assert.Len(t, parallelBatch.Commands, 0)
+				assert.Empty(t, parallelBatch.Commands)
 			},
 		},
 		{

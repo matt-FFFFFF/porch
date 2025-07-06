@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mockCommanderFactory for testing foreachdirectory command creation
+// mockCommanderFactory for testing foreachdirectory command creation.
 type mockCommanderFactory struct{}
 
 func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool) {
@@ -304,7 +304,7 @@ func TestCommander_CreateFromHcl(t *testing.T) {
 			validateResult: func(t *testing.T, runnable runbatch.Runnable) {
 				forEachCmd, ok := runnable.(*runbatch.ForEachCommand)
 				require.True(t, ok, "expected ForEachCommand")
-				assert.Len(t, forEachCmd.Commands, 0)
+				assert.Empty(t, forEachCmd.Commands)
 			},
 		},
 		{

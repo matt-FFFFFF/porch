@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// mockCommanderFactory for testing serial command creation
+// mockCommanderFactory for testing serial command creation.
 type mockCommanderFactory struct{}
 
 func (m *mockCommanderFactory) Get(commandType string) (commands.Commander, bool) {
@@ -220,7 +220,7 @@ func TestCommander_CreateFromHcl(t *testing.T) {
 			validateResult: func(t *testing.T, runnable runbatch.Runnable) {
 				serialBatch, ok := runnable.(*runbatch.SerialBatch)
 				require.True(t, ok, "expected SerialBatch")
-				assert.Len(t, serialBatch.Commands, 0)
+				assert.Empty(t, serialBatch.Commands)
 			},
 		},
 		{

@@ -107,6 +107,10 @@ func HclCommandToBaseCommand(
 		return nil, ErrNilParent
 	}
 
+	if hclCommand.RunsOnCondition == "" {
+		hclCommand.RunsOnCondition = runbatch.RunOnSuccess.String()
+	}
+
 	runsOn, err := runbatch.NewRunCondition(hclCommand.RunsOnCondition)
 	if err != nil {
 		return nil, errors.Join(ErrHclConfig, err)

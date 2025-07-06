@@ -177,6 +177,160 @@ invalid_yaml: [
 	}
 }
 
+func TestCommander_CreateFromHcl(t *testing.T) {
+	ctx := context.Background()
+	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+
+	commander := NewCommander()
+
+	testCases := []struct {
+		name           string
+		hclCommand     *hcl.CommandBlock
+		expectError    bool
+		errorType      error
+		validateResult func(t *testing.T, runnable runbatch.Runnable)
+	}{
+		{
+			name: "valid HCL with script file",
+			hclCommand: &hcl.CommandBlock{
+				Type:       "pwsh",
+				Name:       "test-command",
+				ScriptFile: "test.ps1",
+			},
+			expectError: false,
+			validateResult: func(t *testing.T, runnable runbatch.Runnable) {
+				osCmd, ok := runnable.(*runbatch.OSCommand)
+				require.True(t, ok, "expected OSCommand")
+				assert.Contains(t, osCmd.GetLabel(), "test-command")
+			},
+		},
+		{
+			name: "valid HCL with inline script",
+			hclCommand: &hcl.CommandBlock{
+				Type:   "pwsh",
+				Name:   "test-script",
+				Script: "Write-Host \"Hello World\"",
+			},
+			expectError: false,
+			validateResult: func(t *testing.T, runnable runbatch.Runnable) {
+				osCmd, ok := runnable.(*runbatch.OSCommand)
+				require.True(t, ok, "expected OSCommand")
+				assert.Contains(t, osCmd.GetLabel(), "test-script")
+			},
+		},
+		{
+			name: "valid HCL with success exit codes",
+			hclCommand: &hcl.CommandBlock{
+				Type:             "pwsh",
+				Name:             "test-command",
+				ScriptFile:       "test.ps1",
+				SuccessExitCodes: []int{0, 1, 2},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid HCL with skip exit codes",
+			hclCommand: &hcl.CommandBlock{
+				Type:          "pwsh",
+				Name:          "test-command",
+				ScriptFile:    "test.ps1",
+				SkipExitCodes: []int{3, 4},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid HCL with working directory",
+			hclCommand: &hcl.CommandBlock{
+				Type:             "pwsh",
+				Name:             "test-command",
+				ScriptFile:       "test.ps1",
+				WorkingDirectory: "/tmp",
+			},
+			expectError: false,
+		},
+		{
+			name: "valid HCL with environment variables",
+			hclCommand: &hcl.CommandBlock{
+				Type:       "pwsh",
+				Name:       "test-command",
+				ScriptFile: "test.ps1",
+				Env: map[string]string{
+					"TEST_VAR":    "test_value",
+					"ANOTHER_VAR": "another_value",
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid HCL with runs on condition",
+			hclCommand: &hcl.CommandBlock{
+				Type:            "pwsh",
+				Name:            "test-command",
+				ScriptFile:      "test.ps1",
+				RunsOnCondition: "always",
+			},
+			expectError: false,
+		},
+		{
+			name: "valid HCL with runs on exit codes",
+			hclCommand: &hcl.CommandBlock{
+				Type:            "pwsh",
+				Name:            "test-command",
+				ScriptFile:      "test.ps1",
+				RunsOnExitCodes: []int{0, 1},
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid runs on condition",
+			hclCommand: &hcl.CommandBlock{
+				Type:            "pwsh",
+				Name:            "test-command",
+				ScriptFile:      "test.ps1",
+				RunsOnCondition: "invalid-condition",
+			},
+			expectError: true,
+			errorType:   commands.ErrHclConfig,
+		},
+	}
+
+	parent := &runbatch.SerialBatch{
+		BaseCommand: &runbatch.BaseCommand{
+			Label: "parent-batch",
+			Cwd:   "/",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			runnable, err := commander.CreateFromHcl(ctx, nil, tc.hclCommand, parent)
+
+			if tc.expectError {
+				require.Error(t, err)
+
+				if tc.errorType != nil {
+					require.ErrorIs(t, err, tc.errorType)
+				}
+
+				assert.Nil(t, runnable)
+			} else {
+				// If pwsh is not available, the New function might fail
+				if err != nil && strings.Contains(err.Error(), "pwsh") {
+					t.Skip("pwsh not available, skipping test")
+					return
+				}
+
+				require.NoError(t, err)
+				assert.NotNil(t, runnable)
+
+				if tc.validateResult != nil {
+					tc.validateResult(t, runnable)
+				}
+			}
+		})
+	}
+}
+
 func TestCommander_GetSchemaFields(t *testing.T) {
 	commander := NewCommander()
 	fields := commander.GetSchemaFields()

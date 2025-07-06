@@ -90,7 +90,7 @@ func (c *Commander) CreateFromYaml(
 
 		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML, parallelBatch)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
+			return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 		}
 
 		runnables = append(runnables, runnable)
@@ -128,7 +128,7 @@ func (c *Commander) CreateFromHcl(
 
 		runnable, err := factory.CreateRunnableFromHCL(ctx, cmd, parallelBatch)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create runnable for command: %w", err)
+			return nil, errors.Join(commands.NewErrCommandCreate(commandType), err)
 		}
 
 		parallelBatch.Commands = append(parallelBatch.Commands, runnable)

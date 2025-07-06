@@ -19,7 +19,7 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 )
 
-// LSP Message types
+// LSP Message types.
 type Message struct {
 	JSONRPC string      `json:"jsonrpc"`
 	ID      interface{} `json:"id,omitempty"`
@@ -29,50 +29,50 @@ type Message struct {
 	Error   interface{} `json:"error,omitempty"`
 }
 
-// ResponseMessage represents a JSON-RPC response (always has result field)
+// ResponseMessage represents a JSON-RPC response (always has result field).
 type ResponseMessage struct {
 	JSONRPC string      `json:"jsonrpc"`
 	ID      interface{} `json:"id"`
 	Result  interface{} `json:"result"`
 }
 
-// ErrorResponseMessage represents a JSON-RPC error response
+// ErrorResponseMessage represents a JSON-RPC error response.
 type ErrorResponseMessage struct {
 	JSONRPC string      `json:"jsonrpc"`
 	ID      interface{} `json:"id"`
 	Error   interface{} `json:"error"`
 }
 
-// Position represents a position in a text document
+// Position represents a position in a text document.
 type Position struct {
 	Line      int `json:"line"`
 	Character int `json:"character"`
 }
 
-// Range represents a range in a text document
+// Range represents a range in a text document.
 type Range struct {
 	Start Position `json:"start"`
 	End   Position `json:"end"`
 }
 
-// Location represents a location in a text document
+// Location represents a location in a text document.
 type Location struct {
 	URI   string `json:"uri"`
 	Range Range  `json:"range"`
 }
 
-// TextDocumentIdentifier identifies a text document
+// TextDocumentIdentifier identifies a text document.
 type TextDocumentIdentifier struct {
 	URI string `json:"uri"`
 }
 
-// VersionedTextDocumentIdentifier includes version
+// VersionedTextDocumentIdentifier includes version.
 type VersionedTextDocumentIdentifier struct {
 	TextDocumentIdentifier
 	Version int `json:"version"`
 }
 
-// TextDocumentItem represents a text document item
+// TextDocumentItem represents a text document item.
 type TextDocumentItem struct {
 	URI        string `json:"uri"`
 	LanguageID string `json:"languageId"`
@@ -80,20 +80,20 @@ type TextDocumentItem struct {
 	Text       string `json:"text"`
 }
 
-// TextDocumentContentChangeEvent represents a change to a text document
+// TextDocumentContentChangeEvent represents a change to a text document.
 type TextDocumentContentChangeEvent struct {
 	Range       *Range `json:"range,omitempty"`
 	RangeLength *int   `json:"rangeLength,omitempty"`
 	Text        string `json:"text"`
 }
 
-// TextDocumentPositionParams contains params for position-based requests
+// TextDocumentPositionParams contains params for position-based requests.
 type TextDocumentPositionParams struct {
 	TextDocument TextDocumentIdentifier `json:"textDocument"`
 	Position     Position               `json:"position"`
 }
 
-// CompletionItem represents a completion suggestion
+// CompletionItem represents a completion suggestion.
 type CompletionItem struct {
 	Label            string `json:"label"`
 	Kind             int    `json:"kind,omitempty"`
@@ -104,13 +104,13 @@ type CompletionItem struct {
 	SortText         string `json:"sortText,omitempty"`
 }
 
-// Hover represents hover information
+// Hover represents hover information.
 type Hover struct {
 	Contents interface{} `json:"contents"`
 	Range    *Range      `json:"range,omitempty"`
 }
 
-// Diagnostic represents a diagnostic message
+// Diagnostic represents a diagnostic message.
 type Diagnostic struct {
 	Range    Range  `json:"range"`
 	Severity int    `json:"severity"`
@@ -119,7 +119,7 @@ type Diagnostic struct {
 	Message  string `json:"message"`
 }
 
-// CompletionItemKind constants
+// CompletionItemKind constants.
 const (
 	CompletionItemKindText          = 1
 	CompletionItemKindMethod        = 2
@@ -148,7 +148,7 @@ const (
 	CompletionItemKindTypeParameter = 25
 )
 
-// DiagnosticSeverity constants
+// DiagnosticSeverity constants.
 const (
 	DiagnosticSeverityError       = 1
 	DiagnosticSeverityWarning     = 2
@@ -156,7 +156,7 @@ const (
 	DiagnosticSeverityHint        = 4
 )
 
-// Server implements an LSP server for Porch HCL files
+// Server implements an LSP server for Porch HCL files.
 type Server struct {
 	mu        sync.RWMutex
 	documents map[string]*parser.HCLDocument
@@ -164,7 +164,7 @@ type Server struct {
 	writer    io.Writer
 }
 
-// NewServer creates a new LSP server instance
+// NewServer creates a new LSP server instance.
 func NewServer(reader io.Reader, writer io.Writer) *Server {
 	// Ensure all logging goes to stderr to avoid interfering with LSP protocol
 	log.SetOutput(os.Stderr)
@@ -176,7 +176,7 @@ func NewServer(reader io.Reader, writer io.Writer) *Server {
 	}
 }
 
-// Run starts the language server using stdio
+// Run starts the language server using stdio.
 func (s *Server) Run(ctx context.Context) error {
 	log.Println("Starting Porch HCL Language Server...")
 	log.Printf("Server running with PID: %d", os.Getpid())
@@ -191,17 +191,20 @@ func (s *Server) Run(ctx context.Context) error {
 					log.Println("Client disconnected")
 					return nil
 				}
+
 				log.Printf("Error handling message: %v", err)
+
 				continue
 			}
 		}
 	}
 }
 
-// handleMessage reads and processes a single LSP message
+// handleMessage reads and processes a single LSP message.
 func (s *Server) handleMessage(ctx context.Context) error {
 	// Read headers
 	var contentLength int
+
 	for {
 		line, err := s.reader.ReadString('\n')
 		if err != nil {
@@ -251,7 +254,7 @@ func (s *Server) handleMessage(ctx context.Context) error {
 	return s.processMessage(ctx, &msg)
 }
 
-// processMessage processes an LSP message and sends a response if needed
+// processMessage processes an LSP message and sends a response if needed.
 func (s *Server) processMessage(ctx context.Context, msg *Message) error {
 	switch msg.Method {
 	case "initialize":
@@ -278,17 +281,18 @@ func (s *Server) processMessage(ctx context.Context, msg *Message) error {
 	}
 }
 
-// sendResponse sends a JSON-RPC response
+// sendResponse sends a JSON-RPC response.
 func (s *Server) sendResponse(id interface{}, result interface{}) error {
 	response := ResponseMessage{
 		JSONRPC: "2.0",
 		ID:      id,
 		Result:  result, // Allow explicit null values
 	}
+
 	return s.sendMessage(response)
 }
 
-// sendError sends a JSON-RPC error response
+// sendError sends a JSON-RPC error response.
 func (s *Server) sendError(id interface{}, code int, message string) error {
 	errorObj := map[string]interface{}{
 		"code":    code,
@@ -299,20 +303,22 @@ func (s *Server) sendError(id interface{}, code int, message string) error {
 		ID:      id,
 		Error:   errorObj,
 	}
+
 	return s.sendMessage(response)
 }
 
-// sendNotification sends a JSON-RPC notification
+// sendNotification sends a JSON-RPC notification.
 func (s *Server) sendNotification(method string, params interface{}) error {
 	notification := Message{
 		JSONRPC: "2.0",
 		Method:  method,
 		Params:  params,
 	}
+
 	return s.sendMessage(notification)
 }
 
-// sendMessage sends a JSON-RPC message
+// sendMessage sends a JSON-RPC message.
 func (s *Server) sendMessage(msg interface{}) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -327,6 +333,7 @@ func (s *Server) sendMessage(msg interface{}) error {
 		log.Printf("Error writing header: %v", err)
 		return err
 	}
+
 	if _, err := s.writer.Write(data); err != nil {
 		log.Printf("Error writing body: %v", err)
 		return err
@@ -335,7 +342,7 @@ func (s *Server) sendMessage(msg interface{}) error {
 	return nil
 }
 
-// handleInitialize handles the initialize request
+// handleInitialize handles the initialize request.
 func (s *Server) handleInitialize(msg *Message) error {
 	capabilities := map[string]interface{}{
 		"textDocumentSync": map[string]interface{}{
@@ -363,13 +370,13 @@ func (s *Server) handleInitialize(msg *Message) error {
 	return s.sendResponse(msg.ID, result)
 }
 
-// handleInitialized handles the initialized notification
+// handleInitialized handles the initialized notification.
 func (s *Server) handleInitialized(msg *Message) error {
 	log.Println("Server initialized")
 	return nil
 }
 
-// handleTextDocumentDidOpen handles document open notifications
+// handleTextDocumentDidOpen handles document open notifications.
 func (s *Server) handleTextDocumentDidOpen(ctx context.Context, msg *Message) error {
 	params, ok := msg.Params.(map[string]interface{})
 	if !ok {
@@ -431,7 +438,7 @@ func (s *Server) handleTextDocumentDidOpen(ctx context.Context, msg *Message) er
 	return s.publishDiagnostics(ctx, uri)
 }
 
-// handleTextDocumentDidChange handles document change notifications
+// handleTextDocumentDidChange handles document change notifications.
 func (s *Server) handleTextDocumentDidChange(ctx context.Context, msg *Message) error {
 	params, ok := msg.Params.(map[string]interface{})
 	if !ok {
@@ -546,7 +553,7 @@ func (s *Server) handleTextDocumentDidChange(ctx context.Context, msg *Message) 
 	return s.publishDiagnostics(ctx, uri)
 }
 
-// handleTextDocumentDidClose handles document close notifications
+// handleTextDocumentDidClose handles document close notifications.
 func (s *Server) handleTextDocumentDidClose(msg *Message) error {
 	params := msg.Params.(map[string]interface{})
 	textDoc := params["textDocument"].(map[string]interface{})
@@ -563,7 +570,7 @@ func (s *Server) handleTextDocumentDidClose(msg *Message) error {
 	return nil
 }
 
-// handleCompletion handles completion requests
+// handleCompletion handles completion requests.
 func (s *Server) handleCompletion(ctx context.Context, msg *Message) error {
 	params, ok := msg.Params.(map[string]interface{})
 	if !ok {
@@ -647,10 +654,11 @@ func (s *Server) handleCompletion(ctx context.Context, msg *Message) error {
 
 	items := s.getCompletionItems(ctx, doc, Position{Line: line, Character: character})
 	log.Printf("Returning %d completion items", len(items))
+
 	return s.sendResponse(msg.ID, items)
 }
 
-// handleHover handles hover requests
+// handleHover handles hover requests.
 func (s *Server) handleHover(ctx context.Context, msg *Message) error {
 	params, ok := msg.Params.(map[string]interface{})
 	if !ok {
@@ -738,16 +746,17 @@ func (s *Server) handleHover(ctx context.Context, msg *Message) error {
 	} else {
 		log.Printf("No hover info found")
 	}
+
 	return s.sendResponse(msg.ID, hover)
 }
 
-// handleShutdown handles shutdown requests
+// handleShutdown handles shutdown requests.
 func (s *Server) handleShutdown(msg *Message) error {
 	log.Println("Server shutdown requested")
 	return s.sendResponse(msg.ID, nil)
 }
 
-// publishDiagnostics sends diagnostic notifications for a document
+// publishDiagnostics sends diagnostic notifications for a document.
 func (s *Server) publishDiagnostics(ctx context.Context, uri string) error {
 	s.mu.RLock()
 	doc, exists := s.documents[uri]
@@ -767,7 +776,7 @@ func (s *Server) publishDiagnostics(ctx context.Context, uri string) error {
 	return s.sendNotification("textDocument/publishDiagnostics", params)
 }
 
-// getCompletionItems generates completion items for the given position
+// getCompletionItems generates completion items for the given position.
 func (s *Server) getCompletionItems(ctx context.Context, doc *parser.HCLDocument, pos Position) []CompletionItem {
 	// Always return a non-nil slice to ensure JSON marshaling produces [] instead of null
 	items := make([]CompletionItem, 0)
@@ -799,16 +808,20 @@ func (s *Server) getCompletionItems(ctx context.Context, doc *parser.HCLDocument
 		for name, fn := range doc.Functions {
 			// Create snippet with parameter placeholders
 			params := ""
+
 			fnParams := fn.Params()
 			if len(fnParams) > 0 {
 				paramPlaceholders := make([]string, len(fnParams))
+
 				for i, param := range fnParams {
 					placeholder := param.Name
 					if placeholder == "" {
 						placeholder = fmt.Sprintf("arg%d", i+1)
 					}
+
 					paramPlaceholders[i] = fmt.Sprintf("${%d:%s}", i+1, placeholder)
 				}
+
 				params = strings.Join(paramPlaceholders, ", ")
 			}
 
@@ -910,11 +923,12 @@ func (s *Server) getCompletionItems(ctx context.Context, doc *parser.HCLDocument
 				switch attr {
 				case "type":
 					// Provide type-specific snippets based on context
-					if blockType == "variable" {
+					switch blockType {
+					case "variable":
 						insertText = attr + " = ${1|string,number,bool,list,map,object|}"
-					} else if blockType == "command" {
+					case "command":
 						insertText = attr + " = \"${1|shell,pwsh,parallel,serial,foreachdirectory,copycwdtotemp|}\""
-					} else {
+					default:
 						insertText = attr + " = \"${1}\""
 					}
 				case "default":
@@ -962,6 +976,7 @@ func (s *Server) getCompletionItems(ctx context.Context, doc *parser.HCLDocument
 		// Root-level blocks (workflow, variable, locals) - only at root level
 		if atRootLevel {
 			log.Printf("Adding root-level block completions")
+
 			rootBlocks := map[string]string{
 				"variable": "variable \"${1:name}\" {\n  description = \"${2:Variable description}\"\n  type        = ${3|string,number,bool,list,map,object|}\n  default     = \"${4:default_value}\"\n}",
 				"locals":   "locals {\n  ${1:key} = \"${2:value}\"\n}",
@@ -1002,7 +1017,7 @@ func (s *Server) getCompletionItems(ctx context.Context, doc *parser.HCLDocument
 	return items
 }
 
-// getHoverInfo generates hover information for the given position
+// getHoverInfo generates hover information for the given position.
 func (s *Server) getHoverInfo(ctx context.Context, doc *parser.HCLDocument, pos Position) *Hover {
 	// Get the line content to understand what we're hovering over
 	lines := strings.Split(doc.Content, "\n")
@@ -1026,6 +1041,7 @@ func (s *Server) getHoverInfo(ctx context.Context, doc *parser.HCLDocument, pos 
 	// Check if it's an HCL function
 	if fn, exists := doc.Functions[word]; exists {
 		documentation := s.getFunctionDocumentation(word, fn)
+
 		return &Hover{
 			Contents: map[string]interface{}{
 				"kind":  "markdown",
@@ -1075,7 +1091,7 @@ func (s *Server) getHoverInfo(ctx context.Context, doc *parser.HCLDocument, pos 
 	}
 }
 
-// getDiagnostics generates diagnostics for the document
+// getDiagnostics generates diagnostics for the document.
 func (s *Server) getDiagnostics(ctx context.Context, doc *parser.HCLDocument) []Diagnostic {
 	// Always return a non-nil slice to ensure JSON marshaling produces [] instead of null
 	diagnostics := make([]Diagnostic, 0)
@@ -1086,15 +1102,16 @@ func (s *Server) getDiagnostics(ctx context.Context, doc *parser.HCLDocument) []
 	return diagnostics
 }
 
-// Helper function for min
+// Helper function for min.
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
+
 	return b
 }
 
-// isInBlock checks if the cursor is inside a block (for attribute completion)
+// isInBlock checks if the cursor is inside a block (for attribute completion).
 func (s *Server) isInBlock(lines []string, currentLineIndex, character int) bool {
 	// Check for indentation on current line
 	if currentLineIndex < len(lines) {
@@ -1106,6 +1123,7 @@ func (s *Server) isInBlock(lines []string, currentLineIndex, character int) bool
 
 	// Look backwards for an opening brace to see if we're inside a block
 	braceCount := 0
+
 	for i := currentLineIndex; i >= 0; i-- {
 		line := lines[i]
 
@@ -1117,9 +1135,10 @@ func (s *Server) isInBlock(lines []string, currentLineIndex, character int) bool
 
 		// Count braces
 		for _, char := range searchLine {
-			if char == '{' {
+			switch char {
+			case '{':
 				braceCount++
-			} else if char == '}' {
+			case '}':
 				braceCount--
 			}
 		}
@@ -1138,14 +1157,14 @@ func (s *Server) isInBlock(lines []string, currentLineIndex, character int) bool
 	return false
 }
 
-// isAtBlockLevel checks if we're at the top level where blocks can be defined
+// isAtBlockLevel checks if we're at the top level where blocks can be defined.
 func (s *Server) isAtBlockLevel(lines []string, currentLineIndex int) bool {
 	// If we're not inside any block, we're at block level
 	return !s.isInBlock(lines, currentLineIndex, 0)
 }
 
 // isAtRootLevel checks if we're at the root level where top-level blocks can be defined
-// This is different from isAtBlockLevel which checks if we can define ANY blocks
+// This is different from isAtBlockLevel which checks if we can define ANY blocks.
 func (s *Server) isAtRootLevel(lines []string, currentLineIndex int) bool {
 	// Check if we're inside any block at all
 	if s.isInBlock(lines, currentLineIndex, 0) {
@@ -1154,14 +1173,16 @@ func (s *Server) isAtRootLevel(lines []string, currentLineIndex int) bool {
 
 	// Additional check: scan backwards to see if we're inside any block structure
 	braceCount := 0
+
 	for i := currentLineIndex; i >= 0; i-- {
 		line := strings.TrimSpace(lines[i])
 
 		// Count braces on each line
 		for _, char := range line {
-			if char == '{' {
+			switch char {
+			case '{':
 				braceCount++
-			} else if char == '}' {
+			case '}':
 				braceCount--
 			}
 		}
@@ -1175,7 +1196,7 @@ func (s *Server) isAtRootLevel(lines []string, currentLineIndex int) bool {
 	return true
 }
 
-// getFunctionDocumentation returns documentation for HCL functions
+// getFunctionDocumentation returns documentation for HCL functions.
 func (s *Server) getFunctionDocumentation(name string, fn function.Function) string {
 	// Basic documentation for common HCL functions
 	docs := map[string]string{
@@ -1246,7 +1267,7 @@ func (s *Server) getFunctionDocumentation(name string, fn function.Function) str
 	return "HCL function"
 }
 
-// getWordAtPosition extracts the word at the given character position in a line
+// getWordAtPosition extracts the word at the given character position in a line.
 func (s *Server) getWordAtPosition(line string, character int) string {
 	if character >= len(line) {
 		return ""
@@ -1271,7 +1292,7 @@ func (s *Server) getWordAtPosition(line string, character int) string {
 	return line[start:end]
 }
 
-// isAlphaNumeric checks if a character is alphanumeric
+// isAlphaNumeric checks if a character is alphanumeric.
 func isAlphaNumeric(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
 }
@@ -1283,7 +1304,7 @@ func (s *Server) isInExpression(lineBeforeCursor string) bool {
 		strings.Contains(lineBeforeCursor, ",")
 }
 
-// getCurrentBlockType determines what type of block the cursor is currently in
+// getCurrentBlockType determines what type of block the cursor is currently in.
 func (s *Server) getCurrentBlockType(lines []string, currentLineIndex int) string {
 	// Look backwards to find the current block type
 	for i := currentLineIndex; i >= 0; i-- {
@@ -1298,15 +1319,19 @@ func (s *Server) getCurrentBlockType(lines []string, currentLineIndex int) strin
 		if strings.HasPrefix(line, "variable ") {
 			return "variable"
 		}
+
 		if strings.HasPrefix(line, "locals ") || line == "locals {" {
 			return "locals"
 		}
+
 		if strings.HasPrefix(line, "workflow ") {
 			return "workflow"
 		}
+
 		if strings.HasPrefix(line, "command ") || line == "command {" {
 			return "command"
 		}
+
 		if strings.HasPrefix(line, "validation ") || line == "validation {" {
 			return "validation"
 		}
@@ -1320,7 +1345,7 @@ func (s *Server) getCurrentBlockType(lines []string, currentLineIndex int) strin
 	return "top-level"
 }
 
-// getCommandType determines the type of command block we're in
+// getCommandType determines the type of command block we're in.
 func (s *Server) getCommandType(lines []string, currentLineIndex int) string {
 	// Look for a "type" attribute in the current command block
 	blockStart := s.findBlockStart(lines, currentLineIndex, "command")
@@ -1330,14 +1355,16 @@ func (s *Server) getCommandType(lines []string, currentLineIndex int) string {
 
 	// Look for type = "..." within this command block
 	braceCount := 0
+
 	for i := blockStart; i <= currentLineIndex && i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
 
 		// Count braces to stay within the current block
 		for _, char := range line {
-			if char == '{' {
+			switch char {
+			case '{':
 				braceCount++
-			} else if char == '}' {
+			case '}':
 				braceCount--
 				if braceCount == 0 {
 					// We've exited the command block
@@ -1352,6 +1379,7 @@ func (s *Server) getCommandType(lines []string, currentLineIndex int) string {
 			if len(parts) >= 2 {
 				value := strings.TrimSpace(parts[1])
 				value = strings.Trim(value, "\"'")
+
 				return value
 			}
 		}
@@ -1360,7 +1388,7 @@ func (s *Server) getCommandType(lines []string, currentLineIndex int) string {
 	return ""
 }
 
-// findBlockStart finds the start line of a specific block type containing the current line
+// findBlockStart finds the start line of a specific block type containing the current line.
 func (s *Server) findBlockStart(lines []string, currentLineIndex int, blockType string) int {
 	braceCount := 0
 
@@ -1371,9 +1399,10 @@ func (s *Server) findBlockStart(lines []string, currentLineIndex int, blockType 
 		// Count braces (in reverse)
 		for j := len(line) - 1; j >= 0; j-- {
 			char := line[j]
-			if char == '}' {
+			switch char {
+			case '}':
 				braceCount++
-			} else if char == '{' {
+			case '{':
 				braceCount--
 			}
 		}
@@ -1392,7 +1421,7 @@ func (s *Server) findBlockStart(lines []string, currentLineIndex int, blockType 
 	return -1
 }
 
-// isAttributeAlreadySet checks if an attribute is already defined in the current block
+// isAttributeAlreadySet checks if an attribute is already defined in the current block.
 func (s *Server) isAttributeAlreadySet(lines []string, currentLineIndex int, attribute string) bool {
 	blockStart := s.findCurrentBlockStart(lines, currentLineIndex)
 	if blockStart == -1 {
@@ -1401,14 +1430,16 @@ func (s *Server) isAttributeAlreadySet(lines []string, currentLineIndex int, att
 
 	// Look for the attribute within the current block
 	braceCount := 0
+
 	for i := blockStart; i <= currentLineIndex && i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
 
 		// Count braces to stay within the current block
 		for _, char := range line {
-			if char == '{' {
+			switch char {
+			case '{':
 				braceCount++
-			} else if char == '}' {
+			case '}':
 				braceCount--
 				if braceCount == 0 {
 					// We've exited the block
@@ -1426,7 +1457,7 @@ func (s *Server) isAttributeAlreadySet(lines []string, currentLineIndex int, att
 	return false
 }
 
-// findCurrentBlockStart finds the start of the current block (any type)
+// findCurrentBlockStart finds the start of the current block (any type).
 func (s *Server) findCurrentBlockStart(lines []string, currentLineIndex int) int {
 	braceCount := 0
 
@@ -1437,9 +1468,10 @@ func (s *Server) findCurrentBlockStart(lines []string, currentLineIndex int) int
 		// Count braces (in reverse)
 		for j := len(line) - 1; j >= 0; j-- {
 			char := line[j]
-			if char == '}' {
+			switch char {
+			case '}':
 				braceCount++
-			} else if char == '{' {
+			case '{':
 				braceCount--
 			}
 		}
@@ -1458,7 +1490,7 @@ func (s *Server) findCurrentBlockStart(lines []string, currentLineIndex int) int
 	return -1
 }
 
-// applyIncrementalChange applies an incremental change to the document content
+// applyIncrementalChange applies an incremental change to the document content.
 func (s *Server) applyIncrementalChange(content string, rangeMap map[string]interface{}, newText string) string {
 	// Extract start and end positions from the range
 	startInterface, ok := rangeMap["start"]
@@ -1562,6 +1594,7 @@ func (s *Server) applyIncrementalChange(content string, rangeMap map[string]inte
 			log.Printf("Start character %d out of bounds for line %d (0-%d)", startCharInt, startLineInt, len(line))
 			return content
 		}
+
 		if endCharInt < 0 || endCharInt > len(line) {
 			log.Printf("End character %d out of bounds for line %d (0-%d)", endCharInt, startLineInt, len(line))
 			return content
@@ -1580,6 +1613,7 @@ func (s *Server) applyIncrementalChange(content string, rangeMap map[string]inte
 			log.Printf("Start character %d out of bounds for line %d (0-%d)", startCharInt, startLineInt, len(startLine))
 			return content
 		}
+
 		if endCharInt < 0 || endCharInt > len(endLine) {
 			log.Printf("End character %d out of bounds for line %d (0-%d)", endCharInt, endLineInt, len(endLine))
 			return content
@@ -1608,6 +1642,7 @@ func (s *Server) applyIncrementalChange(content string, rangeMap map[string]inte
 			if len(newLines) > 2 {
 				newLinesArray = append(newLinesArray, newLines[1:len(newLines)-1]...)
 			}
+
 			newLinesArray = append(newLinesArray, newLines[len(newLines)-1]+after)
 		}
 

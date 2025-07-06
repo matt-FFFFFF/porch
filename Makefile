@@ -43,11 +43,6 @@ build-extension:
 	@echo "Building VSCode Extension..."
 	@cd tools && make build-extension
 
-.PHONY: tools-dev-setup
-tools-dev-setup:
-	@echo "Setting up language support tools development environment..."
-	@cd tools && make dev-setup
-
 .PHONY: tools-clean
 tools-clean:
 	@echo "Cleaning language support tools..."

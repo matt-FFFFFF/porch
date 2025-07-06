@@ -15,7 +15,7 @@ import (
 	"github.com/zclconf/go-cty/cty/function"
 )
 
-// HCLDocument represents a parsed HCL document
+// HCLDocument represents a parsed HCL document.
 type HCLDocument struct {
 	URI       string
 	Content   string
@@ -25,19 +25,19 @@ type HCLDocument struct {
 	Diags     hcl.Diagnostics
 }
 
-// Position represents a position in the document
+// Position represents a position in the document.
 type Position struct {
 	Line      int
 	Character int
 }
 
-// Range represents a range in the document
+// Range represents a range in the document.
 type Range struct {
 	Start Position
 	End   Position
 }
 
-// Diagnostic represents a diagnostic message
+// Diagnostic represents a diagnostic message.
 type Diagnostic struct {
 	Range    Range
 	Severity int
@@ -45,7 +45,7 @@ type Diagnostic struct {
 	Source   string
 }
 
-// CompletionItem represents a completion suggestion
+// CompletionItem represents a completion suggestion.
 type CompletionItem struct {
 	Label         string
 	Kind          int
@@ -54,7 +54,7 @@ type CompletionItem struct {
 	InsertText    string
 }
 
-// ParseDocument parses HCL content and returns a document representation
+// ParseDocument parses HCL content and returns a document representation.
 func ParseDocument(ctx context.Context, uri, content string) (*HCLDocument, error) {
 	file, diags := hclsyntax.ParseConfig([]byte(content), uri, hcl.Pos{Line: 1, Column: 1})
 	if diags.HasErrors() {
@@ -80,7 +80,7 @@ func ParseDocument(ctx context.Context, uri, content string) (*HCLDocument, erro
 	}, nil
 }
 
-// GetDiagnostics returns diagnostics for the document
+// GetDiagnostics returns diagnostics for the document.
 func (doc *HCLDocument) GetDiagnostics() []Diagnostic {
 	var diagnostics []Diagnostic
 
@@ -113,7 +113,7 @@ func (doc *HCLDocument) GetDiagnostics() []Diagnostic {
 	return diagnostics
 }
 
-// GetCompletionItems returns completion items for the given position
+// GetCompletionItems returns completion items for the given position.
 func (doc *HCLDocument) GetCompletionItems(ctx context.Context, pos Position) []CompletionItem {
 	var items []CompletionItem
 
@@ -198,7 +198,7 @@ func (doc *HCLDocument) GetCompletionItems(ctx context.Context, pos Position) []
 	return items
 }
 
-// GetHoverInfo returns hover information for the given position
+// GetHoverInfo returns hover information for the given position.
 func (doc *HCLDocument) GetHoverInfo(ctx context.Context, pos Position) string {
 	// Get the word at the position
 	word := doc.getWordAtPosition(pos)
@@ -240,7 +240,7 @@ func (doc *HCLDocument) GetHoverInfo(ctx context.Context, pos Position) string {
 	return ""
 }
 
-// isInBlock checks if the position is inside a block
+// isInBlock checks if the position is inside a block.
 func (doc *HCLDocument) isInBlock(pos hcl.Pos) bool {
 	// Simple heuristic: check if we're inside braces
 	// This is a simplified implementation
@@ -248,6 +248,7 @@ func (doc *HCLDocument) isInBlock(pos hcl.Pos) bool {
 	lines := strings.Split(content, "\n")
 
 	braceCount := 0
+
 	for i := 0; i < pos.Line-1; i++ {
 		if i < len(lines) {
 			line := lines[i]
@@ -267,7 +268,7 @@ func (doc *HCLDocument) isInBlock(pos hcl.Pos) bool {
 	return braceCount > 0
 }
 
-// getWordAtPosition extracts the word at the given position
+// getWordAtPosition extracts the word at the given position.
 func (doc *HCLDocument) getWordAtPosition(pos Position) string {
 	lines := strings.Split(doc.Content, "\n")
 	if pos.Line < 0 || pos.Line >= len(lines) {
@@ -300,7 +301,7 @@ func (doc *HCLDocument) getWordAtPosition(pos Position) string {
 	return line[start:end]
 }
 
-// isWordChar checks if a character is part of a word
+// isWordChar checks if a character is part of a word.
 func isWordChar(c byte) bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'
 }

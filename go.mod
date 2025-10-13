@@ -1,6 +1,6 @@
 module github.com/matt-FFFFFF/porch
 
-go 1.24.4
+go 1.25.2
 
 require (
 	github.com/Azure/golden v0.0.0-20250630020943-099b41e5049b

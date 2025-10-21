@@ -31,3 +31,29 @@ precommit:
 	@go fmt ./...
 	@go vet ./...
 	@golangci-lint run --fix
+
+# Language Server targets
+.PHONY: build-lsp
+build-lsp:
+	@echo "Building Porch HCL Language Server..."
+	@cd tools && make build-lsp
+
+.PHONY: build-extension
+build-extension:
+	@echo "Building VSCode Extension..."
+	@cd tools && make build-extension
+
+.PHONY: tools-clean
+tools-clean:
+	@echo "Cleaning language support tools..."
+	@cd tools && make clean
+
+# Combined build target
+.PHONY: build-all
+build-all: build build-lsp
+	@echo "All components built successfully"
+
+# Release preparation
+.PHONY: release-check
+release-check: test testrace lint build-all
+	@echo "Release checks completed successfully"

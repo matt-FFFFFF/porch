@@ -4,8 +4,11 @@ version: 2
 before:
   hooks:
     - make test
+    - cd tools && make cross-compile-lsp
 builds:
-  - env:
+  # Main Porch CLI
+  - id: porch
+    env:
       # goreleaser does not work with CGO, it could also complicate
       # usage by users in CI/CD systems like Terraform Cloud where
       # they are unable to install libraries.
@@ -24,9 +27,38 @@ builds:
       - arm64
     binary: "{{ .ProjectName }}"
     main: ./cmd/{{ .ProjectName }}
+
+  # Porch HCL Language Server
+  - id: porch-lsp
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w"
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    binary: porch-lsp
+    main: ./cmd/porch-lsp
+    dir: ./tools/language-server
 archives:
-  - formats: [tar.gz]
+  - id: porch-cli
+    builds: [porch]
+    formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - formats: [zip]
+        goos: windows
+  - id: porch-lsp
+    builds: [porch-lsp]
+    formats: [tar.gz]
+    name_template: "porch-lsp_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - formats: [zip]
         goos: windows
@@ -35,6 +67,23 @@ checksum:
   algorithm: sha256
 release:
   make_latest: true
+  name_template: "Porch v{{ .Version }}"
+  header: |
+    ## Porch v{{ .Version }}
+
+    This release includes both the Porch CLI and the Porch HCL Language Server.
+
+    ### Porch CLI
+    The main Porch command-line tool for workflow execution.
+
+    ### Porch HCL Language Server
+    A Language Server Protocol (LSP) implementation for `.porch.hcl` files that provides:
+    - Syntax validation and real-time diagnostics
+    - Auto-completion for blocks, attributes, and HCL functions
+    - Hover documentation
+    - Context-aware suggestions
+
+    To use the language server with VSCode, install the Porch HCL extension from the marketplace or build it from source in the `tools/vscode-extension` directory.
 
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true

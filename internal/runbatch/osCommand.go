@@ -75,7 +75,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger = logger.With("runnableType", "OSCommand").
 		With("label", fullLabel)
 
-	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
+	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args, "env", c.Env)
 
 	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
 

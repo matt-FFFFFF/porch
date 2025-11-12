@@ -262,6 +262,7 @@ func NewModel(ctx context.Context) *Model {
 func (m *Model) SetReporter(reporter progress.Reporter) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+
 	m.reporter = reporter
 }
 

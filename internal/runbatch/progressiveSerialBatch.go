@@ -85,6 +85,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipIntentional,
 				})
+
 				continue OuterLoop
 
 			case ShouldRunActionError:
@@ -104,6 +105,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipOnError,
 				})
+
 				continue OuterLoop
 			}
 
@@ -139,7 +141,7 @@ OuterLoop:
 
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(progressiveCommands[i+1:]) {
-					if err := rb.SetCwd(newCwd); err != nil {
+					if err := rb.SetCwdToSpecificAbsolute(newCwd); err != nil {
 						// Report error setting cwd for the next command
 						reporter.Report(progress.Event{
 							CommandPath: []string{rb.GetLabel()},
@@ -156,6 +158,7 @@ OuterLoop:
 							Status: ResultStatusError,
 							Error:  err,
 						})
+
 						continue OuterLoop
 					}
 

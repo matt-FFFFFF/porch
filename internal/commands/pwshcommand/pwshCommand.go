@@ -65,7 +65,6 @@ func New(_ context.Context,
 	// If script is specified, write it to a temporary file and use that as the script file.
 	if script != "" {
 		tmpFile, err := os.CreateTemp("", "script-*.ps1")
-
 		if err != nil {
 			return nil, errors.Join(ErrCannotCreateTempFile, err)
 		}

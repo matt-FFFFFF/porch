@@ -86,7 +86,6 @@ func (d *BaseDefinition) ToBaseCommand(
 		d.WorkingDirectory,
 		parent.GetCwd(),
 	)
-
 	if err != nil {
 		return nil, errors.Join(ErrPath, err)
 	}
@@ -130,7 +129,6 @@ func HclCommandToBaseCommand(
 		hclCommand.WorkingDirectory,
 		parent.GetCwd(),
 	)
-
 	if err != nil {
 		return nil, err
 	}

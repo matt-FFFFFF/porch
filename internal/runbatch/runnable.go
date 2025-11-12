@@ -17,6 +17,8 @@ type Runnable interface {
 	// SetCwd sets the working directory for the command or batch.
 	// It should be called before Run() to ensure the command or batch runs in the correct directory.
 	SetCwd(string) error
+	// SetCwdToSpecificAbsolute sets the working directory to a specific absolute path.
+	SetCwdToSpecificAbsolute(string) error
 	// GetCwdRel returns the relative working directory for the command or batch, from the source YAML file.
 	GetCwdRel() string
 	// InheritEnv sets the environment variables for the command or batch.

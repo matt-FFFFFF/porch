@@ -53,6 +53,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipIntentional,
 				})
+
 				continue OuterLoop
 			case ShouldRunActionError:
 				results = append(results, &Result{
@@ -60,6 +61,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipOnError,
 				})
+
 				continue OuterLoop
 			}
 
@@ -77,14 +79,16 @@ OuterLoop:
 				)
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
-					if err := rb.SetCwd(newCwd); err != nil {
+					if err := rb.SetCwdToSpecificAbsolute(newCwd); err != nil {
 						results = append(results, &Result{
 							Label:  rb.GetLabel(),
 							Status: ResultStatusError,
 							Error:  err,
 						})
+
 						continue OuterLoop
 					}
+
 					logger.Debug("newCwd resultant working directory",
 						"commandLabel", rb.GetLabel(),
 						"cwd", rb.GetCwd(),
@@ -122,6 +126,21 @@ func (b *SerialBatch) SetCwd(cwd string) error {
 
 	for _, cmd := range b.Commands {
 		if err := cmd.SetCwd(cwd); err != nil {
+			return err //nolint:err113,wrapcheck
+		}
+	}
+
+	return nil
+}
+
+// SetCwdToSpecificAbsolute sets the current working directory for the batch and all its sub-commands.
+func (b *SerialBatch) SetCwdToSpecificAbsolute(cwd string) error {
+	if err := b.BaseCommand.SetCwd(cwd); err != nil {
+		return err //nolint:err113,wrapcheck
+	}
+
+	for _, cmd := range b.Commands {
+		if err := cmd.SetCwdToSpecificAbsolute(cwd); err != nil {
 			return err //nolint:err113,wrapcheck
 		}
 	}

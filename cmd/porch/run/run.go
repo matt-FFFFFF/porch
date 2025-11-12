@@ -24,16 +24,17 @@ import (
 )
 
 const (
-	fileFlag                 = "file"
-	outFlag                  = "out"
-	noOutputStdErrFlag       = "no-output-stderr"
-	outputStdOutFlag         = "output-stdout"
-	outputSuccessDetailsFlag = "output-success-details"
-	parallelismFlag          = "parallelism"
-	tuiFlag                  = "tui"
-	writeFlag                = "write"
-	configTimeoutSeconds     = 30
-	cliExitStr               = ""
+	fileFlag                    = "file"
+	outFlag                     = "out"
+	noOutputStdErrFlag          = "no-output-stderr"
+	outputStdOutFlag            = "output-stdout"
+	outputSuccessDetailsFlag    = "output-success-details"
+	parallelismFlag             = "parallelism"
+	tuiFlag                     = "tui"
+	writeFlag                   = "write"
+	configTimeoutFlag           = "config-timeout"
+	configTimeoutSecondsDefault = 30
+	cliExitStr                  = ""
 )
 
 var (
@@ -116,6 +117,13 @@ To save the results to a file, specify the output file name as an argument.
 			TakesFile:   false,
 			OnlyOnce:    true,
 		},
+		&cli.IntFlag{
+			Name:    configTimeoutFlag,
+			Aliases: []string{"timeout"},
+			Usage: "Set the maximum time in seconds to wait for configuration building. " +
+				"Defaults to 30 seconds.",
+			Value: configTimeoutSecondsDefault,
+		},
 	},
 	Action: actionFunc,
 }
@@ -138,7 +146,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	factory := ctx.Value(commands.FactoryContextKey{}).(commands.CommanderFactory)
 
 	// Create a timeout context for configuration building
-	configCtx, configCancel := context.WithTimeout(ctx, configTimeoutSeconds*time.Second)
+	configCtx, configCancel := context.WithTimeout(ctx, time.Duration(cmd.Int(configTimeoutFlag))*time.Second)
 	defer configCancel()
 
 	runnables := make([]runbatch.Runnable, len(url))

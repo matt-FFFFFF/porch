@@ -46,5 +46,6 @@ type PorchPlan struct {
 func (p *PorchPlan) addWorkflow(c *WorkflowBlock) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
 	p.Workflows = append(p.Workflows, c)
 }

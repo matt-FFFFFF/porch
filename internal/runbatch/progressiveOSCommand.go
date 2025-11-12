@@ -24,6 +24,7 @@ func (c *OSCommand) RunWithProgress(ctx context.Context, reporter progress.Repor
 
 	logCh := make(chan string, defaultProgressiveLogChannelBufferSize) // Buffered channel for log messages
 	defer close(logCh)                                                 // Ensure the channel is closed when done
+
 	ctx = context.WithValue(ctx, ProgressiveLogChannelKey{}, (chan<- string)(logCh))
 	ctx = context.WithValue(ctx, ProgressiveLogUpdateInterval{}, defaultProgressiveLogUpdateInterval) // Update every 500ms
 

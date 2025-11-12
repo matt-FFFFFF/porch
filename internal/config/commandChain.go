@@ -91,7 +91,6 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 		}
 
 		runnable, err := factory.CreateRunnableFromYAML(ctx, cmdYAML, topLevelCommand)
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to create runnable for command %d: %w", i, err)
 		}

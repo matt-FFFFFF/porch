@@ -24,6 +24,7 @@ func TestGenerateJSONSchemaString_IncludesCommandGroups(t *testing.T) {
 
 	// Parse the JSON to verify structure
 	var schema map[string]interface{}
+
 	err = json.Unmarshal([]byte(schemaJSON), &schema)
 	require.NoError(t, err)
 
@@ -81,6 +82,7 @@ func TestGenerateJSONSchemaString_ValidJSON(t *testing.T) {
 
 	// Verify it's valid JSON
 	var schema interface{}
+
 	err = json.Unmarshal([]byte(schemaJSON), &schema)
 	require.NoError(t, err, "Generated schema should be valid JSON")
 

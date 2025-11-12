@@ -87,6 +87,7 @@ func TestCommandGroups_ForEachDirectoryWithCommandGroup(t *testing.T) {
 	// Create a temporary directory structure for testing
 	tempDir, err := os.MkdirTemp("", "porch_test_*")
 	require.NoError(t, err)
+
 	defer os.RemoveAll(tempDir)
 
 	// Create subdirectories

@@ -35,7 +35,7 @@ linters:
     - unparam
     - unused
     - wrapcheck
-    - wsl
+    - wsl_v5
 
   exclusions:
     rules:

@@ -1,54 +1,87 @@
-name: Terraform unit test
-description: Terraform unit tests for root module and submodules
+name: Terraform test
+description: |
+  Terraform tests for root module and submodules, please set $AVM_TEST_TYPE to "unit" to run unit tests.
+  Set $AVM_TEST_TYPE to "integration" to run integration tests.
 command_groups:
-  - name: terraform_unit_tests
-    description: Run Terraform unit tests for root module and submodules
+  - name: terraform_tests
+    description: Run Terraform tests for root module and submodules
     commands:
+      - type: copycwdtotemp
+        name: Copy current working directory to temp
+        cwd: "."
+
       - type: shell
-        name: Check for unit tests
+        name: Clean Terraform
         command_line: |
-          if [ ! -d ./tests/unit ]; then
-            echo "No unit tests found in $(pwd)"
+          echo $(pwd) && \
+          find . -type d -name .terraform | xargs -n1 rm -rf && \
+          find . -type f -name .terraform.lock.hcl | xargs -n1 rm -f && \
+          find . -type f -name *.tfstate* | xargs -n1 rm -f
+
+      - type: shell
+        name: Check for AVM_TEST_TYPE env
+        command_line: |
+          if [ -z "$AVM_TEST_TYPE" ]; then
+            echo "AVM_TEST_TYPE is not set. Please set AVM_TEST_TYPE to 'unit' or 'integration'." 1>&2
+            echo "E.g. AVM_TEST_TYPE=\"unit\" # ... rest of your command" 1>&2
+            exit 1
+          fi
+
+      - type: shell
+        name: Check for tests
+        command_line: |
+          if [ ! -d ./tests/$AVM_TEST_TYPE ]; then
+            echo "No $AVM_TEST_TYPE tests found in $(pwd)"
             exit 99
           fi
         skip_exit_codes: [99]
+
+      - type: shell
+        name: Check and Run setup.sh
+        command_line: |
+          if [ -f ./tests/$AVM_TEST_TYPE/setup.sh ]; then
+            if [ ! -x ./tests/$AVM_TEST_TYPE/setup.sh ]; then
+              echo "Making setup.sh executable"
+              chmod +x ./tests/$AVM_TEST_TYPE/setup.sh
+            fi
+            echo "Running setup.sh"
+            ./tests/$AVM_TEST_TYPE/setup.sh
+          fi
+
       - type: shell
         name: "Terraform Init"
-        command_line: "terraform init -test-directory ./tests/unit"
+        command_line: "terraform init -test-directory ./tests/$AVM_TEST_TYPE"
+
       - type: shell
         name: "Terraform Test"
-        command_line: "terraform test -test-directory ./tests/unit"
+        command_line: "terraform test -test-directory ./tests/$AVM_TEST_TYPE"
+
+      - type: shell
+        name: Clean up
+        command_line: |
+          rm -fr $(pwd)
+        runs_on_condition: always
 
 commands:
-  - type: copycwdtotemp
-    name: Copy current working directory to temp
+  - type: shell
+    name: install terraform
+    command_line: terraform -version
     cwd: "."
 
-  - type: shell
-    name: Clean Terraform
-    command_line: |
-      echo $(pwd) && \
-      find . -type d -name .terraform | xargs -n1 rm -rf && \
-      find . -type f -name .terraform.lock.hcl | xargs -n1 rm -f && \
-      find . -type f -name *.tfstate* | xargs -n1 rm -f
-
   - type: parallel
-    name: Unit tests
+    name: Terraform tests
     env:
       TF_IN_AUTOMATION: "1"
     commands:
       - type: foreachdirectory
         name: submodules
+        depth: 1
         working_directory: "./modules"
         mode: parallel
-        command_group: terraform_unit_tests
+        skip_on_not_exist: true
+        command_group: terraform_tests
+        working_directory_strategy: item_relative
 
       - type: serial
         name: root module
-        command_group: terraform_unit_tests
-
-  - type: shell
-    name: Clean up
-    command_line: |
-      rm -fr $(pwd)
-    runs_on_condition: always
+        command_group: terraform_tests

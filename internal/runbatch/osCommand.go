@@ -229,13 +229,14 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				if _, ok := signalCount[s]; ok {
 					logger.Debug("received duplicate signal, killing process", "signal", s.String())
 					fmt.Fprintf(wErr, "received duplicate signal, killing process: %s\n", s.String()) //nolint:errcheck
-					killPs(ctx, ps)
 
-					// Try to send reason (non-blocking)
+					// Send reason before killing to ensure it's available when ps.Wait() returns
 					select {
 					case killReason <- ErrDuplicateSignalReceived:
 					default: // Channel full, that's fine
 					}
+
+					killPs(ctx, ps)
 
 					return
 				}
@@ -245,25 +246,26 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				logger.Debug("received signal", "signal", s.String())
 				fmt.Fprintf(wErr, "received signal: %s\n", s.String()) //nolint:errcheck
 
-				if err := ps.Signal(s); err != nil {
-					logger.Debug("failed to send signal", "signal", s.String(), "error", err)
-				}
-
-				// Try to send reason (non-blocking)
+				// Send reason before signaling to ensure it's available if process terminates
 				select {
 				case killReason <- ErrSignalReceived:
 				default: // Channel full, that's fine
 				}
 
+				if err := ps.Signal(s); err != nil {
+					logger.Debug("failed to send signal", "signal", s.String(), "error", err)
+				}
+
 			case <-ctx.Done():
 				logger.Debug("context done, killing process")
-				killPs(ctx, ps)
 
-				// Try to send reason (non-blocking)
+				// Send reason before killing to ensure it's available when ps.Wait() returns
 				select {
 				case killReason <- ErrTimeoutExceeded:
 				default: // Channel full, that's fine
 				}
+
+				killPs(ctx, ps)
 
 				return
 			}

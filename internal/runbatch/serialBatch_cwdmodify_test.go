@@ -302,3 +302,105 @@ func TestSerialBatchCwdWithNestedBatches(t *testing.T) {
 	assert.Equal(t, "/new/path", innerCmd2.runWith)
 	assert.Equal(t, "/new/path", outerCmd2.runWith)
 }
+
+// TestSerialBatchCwdWithNestedNestedBatches tests that cwd changes propagate through nested batches.
+func TestSerialBatchCwdWithNestedNestedBatches(t *testing.T) {
+	// Setup inner batch
+	innerCmd1 := &cwdCapturingCmd{
+		BaseCommand: &BaseCommand{
+			Label: "inner_cmd1",
+			Cwd:   "/initial/path", // Commands should have absolute paths
+		},
+		exitCode: 0,
+		status:   ResultStatusSuccess,
+	}
+	innerCmd2 := &cwdCapturingCmd{
+		BaseCommand: &BaseCommand{
+			Label: "inner_cmd2",
+			Cwd:   "/initial/path", // Commands should have absolute paths
+		},
+		exitCode: 0,
+		status:   ResultStatusSuccess,
+	}
+	innerCmd3 := &cwdCapturingCmd{
+		BaseCommand: &BaseCommand{
+			Label: "inner_cmd3",
+			Cwd:   "/initial/path", // Commands should have absolute paths
+		},
+		exitCode: 0,
+		status:   ResultStatusSuccess,
+	}
+	innerCmd4 := &cwdCapturingCmd{
+		BaseCommand: &BaseCommand{
+			Label: "inner_cmd4",
+			Cwd:   "/initial/path", // Commands should have absolute paths
+		},
+		exitCode: 0,
+		status:   ResultStatusSuccess,
+	}
+
+	innerBatch2 := &SerialBatch{
+		BaseCommand: &BaseCommand{
+			Label:  "inner_batch_2",
+			Cwd:    "/initial/path",
+			CwdRel: "./new/path",
+		},
+		Commands: []Runnable{innerCmd3, innerCmd4},
+	}
+
+	for _, cmd := range innerBatch2.Commands {
+		cmd.SetParent(innerBatch2) // Set parent for proper context
+	}
+
+	innerBatch1 := &SerialBatch{
+		BaseCommand: &BaseCommand{
+			Label: "inner_batch_1",
+			Cwd:   "/initial/path",
+		},
+		Commands: []Runnable{innerCmd1, innerCmd2, innerBatch2},
+	}
+
+	for _, cmd := range innerBatch1.Commands {
+		cmd.SetParent(innerBatch1) // Set parent for proper context
+	}
+
+	// Setup outer batch
+	outerCmd1 := &cwdCapturingCmd{
+		BaseCommand: &BaseCommand{
+			Label: "outer_cmd1",
+			Cwd:   "/initial/path",
+		},
+		exitCode: 0,
+		newCwd:   "/new/path",
+		status:   ResultStatusSuccess,
+	}
+	outerCmd2 := &cwdCapturingCmd{
+		BaseCommand: &BaseCommand{
+			Label: "outer_cmd2",
+			Cwd:   "/initial/path",
+		},
+		exitCode: 0,
+		status:   ResultStatusSuccess,
+	}
+
+	outerBatch := &SerialBatch{
+		BaseCommand: &BaseCommand{
+			Label: "outer_batch",
+		},
+		Commands: []Runnable{outerCmd1, innerBatch1, outerCmd2},
+	}
+	for _, cmd := range outerBatch.Commands {
+		cmd.SetParent(outerBatch) // Set parent for proper context
+	}
+
+	// Run the outer batch
+	outerBatch.Run(context.Background())
+
+	// Check cwd propagation
+	assert.Equal(t, "/initial/path", outerCmd1.runWith)
+	assert.Equal(t, "/new/path", innerCmd1.runWith)
+	assert.Equal(t, "/new/path", innerCmd2.runWith)
+	assert.Equal(t, "/new/path", outerCmd2.runWith)
+	assert.Equal(t, "/new/path/new/path", innerCmd3.runWith)
+	assert.Equal(t, "/new/path/new/path", innerCmd4.runWith)
+}

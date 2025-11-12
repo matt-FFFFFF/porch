@@ -192,12 +192,12 @@ func (b *SerialBatch) SetCwd(cwd string) error {
 
 // SetCwdToSpecificAbsolute sets the current working directory for the batch and all its sub-commands.
 func (b *SerialBatch) SetCwdToSpecificAbsolute(cwd string) error {
-	if err := b.BaseCommand.SetCwd(cwd); err != nil {
+	if err := b.BaseCommand.SetCwdToSpecificAbsolute(cwd); err != nil {
 		return err //nolint:err113,wrapcheck
 	}
 
 	for _, cmd := range b.Commands {
-		if err := cmd.SetCwdToSpecificAbsolute(cwd); err != nil {
+		if err := cmd.SetCwd(cwd); err != nil {
 			return err //nolint:err113,wrapcheck
 		}
 	}

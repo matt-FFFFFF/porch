@@ -32,7 +32,7 @@ const (
 	parallelismFlag          = "parallelism"
 	tuiFlag                  = "tui"
 	writeFlag                = "write"
-	configTimeoutSeconds     = 30
+	configTimeoutSeconds     = 10000
 	cliExitStr               = ""
 )
 

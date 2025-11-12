@@ -77,7 +77,7 @@ OuterLoop:
 				)
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
-					if err := rb.SetCwd(newCwd); err != nil {
+					if err := rb.SetCwdToSpecificAbsolute(newCwd); err != nil {
 						results = append(results, &Result{
 							Label:  rb.GetLabel(),
 							Status: ResultStatusError,

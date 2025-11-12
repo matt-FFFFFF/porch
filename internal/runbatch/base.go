@@ -25,6 +25,7 @@ type BaseCommand struct {
 	Label           string            // Optional label for the command
 	Cwd             string            // The absolute working directory for the command
 	CwdRel          string            // The relative working directory for the command, from the source YAML file
+	CwdIsTemp       bool              // Indicates if the cwd is a temporary directory
 	RunsOnCondition RunCondition      // The condition under which the command runs
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command
@@ -90,6 +91,32 @@ func (c *BaseCommand) GetCwd() string {
 // GetCwdRel returns the relative working directory for the command, from the source YAML file.
 func (c *BaseCommand) GetCwdRel() string {
 	return c.CwdRel
+}
+
+// SetCwd sets the working directory for the command.
+// All commands MUST have an absolute cwd at all times.
+// This method requires the current cwd to be absolute and will error otherwise.
+func (c *BaseCommand) SetCwdToSpecificAbsolute(cwd string) error {
+	if cwd == "" {
+		return nil
+	}
+
+	if !filepath.IsAbs(cwd) {
+		return fmt.Errorf(
+			"%w: new working directory %q is not absolute, all commands must have absolute cwd", ErrPathNotAbsolute, cwd,
+		)
+	}
+
+	// Current working directory must be absolute
+	if !filepath.IsAbs(c.Cwd) {
+		return fmt.Errorf(
+			"%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd,
+		)
+	}
+
+	c.Cwd = cwd
+
+	return nil
 }
 
 // SetCwd sets the working directory for the command.

@@ -6,8 +6,10 @@ package runbatch
 import (
 	"context"
 	"slices"
+	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
 var _ Runnable = (*SerialBatch)(nil)
@@ -24,6 +26,19 @@ func (b *SerialBatch) Run(ctx context.Context) Results {
 	logger := ctxlog.Logger(ctx).
 		With("label", label).
 		With("runnableType", "SerialBatch")
+
+	// Report that this batch is starting if we have a reporter
+	if b.hasProgressReporter() {
+		ReportBatchStarted(b.reporter, b.Label, "serial")
+	}
+
+	// Propagate reporter to child commands
+	if b.hasProgressReporter() {
+		childReporter := CreateChildReporterForBatch(b.reporter, b.Label)
+		for _, cmd := range b.Commands {
+			cmd.SetProgressReporter(childReporter)
+		}
+	}
 
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""
@@ -48,6 +63,19 @@ OuterLoop:
 
 			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
+				// Report skipped command if we have a reporter
+				if b.hasProgressReporter() {
+					b.reporter.Report(progress.Event{
+						CommandPath: []string{cmd.GetLabel()},
+						Type:        progress.EventSkipped,
+						Message:     "Command skipped intentionally",
+						Timestamp:   time.Now(),
+						Data: progress.EventData{
+							Error: ErrSkipIntentional,
+						},
+					})
+				}
+
 				results = append(results, &Result{
 					Label:  cmd.GetLabel(),
 					Status: ResultStatusSkipped,
@@ -55,7 +83,21 @@ OuterLoop:
 				})
 
 				continue OuterLoop
+
 			case ShouldRunActionError:
+				// Report skipped command due to error if we have a reporter
+				if b.hasProgressReporter() {
+					b.reporter.Report(progress.Event{
+						CommandPath: []string{cmd.GetLabel()},
+						Type:        progress.EventSkipped,
+						Message:     "Command skipped due to previous error",
+						Timestamp:   time.Now(),
+						Data: progress.EventData{
+							Error: ErrSkipOnError,
+						},
+					})
+				}
+
 				results = append(results, &Result{
 					Label:  cmd.GetLabel(),
 					Status: ResultStatusSkipped,
@@ -80,6 +122,19 @@ OuterLoop:
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
 					if err := rb.SetCwdToSpecificAbsolute(newCwd); err != nil {
+						// Report error if we have a reporter
+						if b.hasProgressReporter() {
+							b.reporter.Report(progress.Event{
+								CommandPath: []string{rb.GetLabel()},
+								Type:        progress.EventFailed,
+								Message:     "Error setting working directory for next command",
+								Timestamp:   time.Now(),
+								Data: progress.EventData{
+									Error: err,
+								},
+							})
+						}
+
 						results = append(results, &Result{
 							Label:  rb.GetLabel(),
 							Status: ResultStatusError,
@@ -115,6 +170,13 @@ OuterLoop:
 		res[0].Status = ResultStatusError
 	}
 
+	// Report completion based on results if we have a reporter
+	if b.hasProgressReporter() {
+		ReportExecutionComplete(ctx, b.reporter, b.Label, res,
+			"Serial batch completed successfully",
+			"Serial batch failed")
+	}
+
 	return res
 }
 
@@ -146,4 +208,10 @@ func (b *SerialBatch) SetCwdToSpecificAbsolute(cwd string) error {
 	}
 
 	return nil
+}
+
+// SetProgressReporter sets the progress reporter and propagates it to all child commands.
+func (b *SerialBatch) SetProgressReporter(reporter progress.Reporter) {
+	b.BaseCommand.SetProgressReporter(reporter)
+	// Note: We don't propagate here as it's done in Run() with a child reporter
 }

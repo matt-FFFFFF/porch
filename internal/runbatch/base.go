@@ -10,6 +10,8 @@ import (
 	"maps"
 	"path/filepath"
 	"slices"
+
+	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
 var (
@@ -29,6 +31,7 @@ type BaseCommand struct {
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command
 	parent          Runnable          // The parent command or batch, if any
+	reporter        progress.Reporter // Optional progress reporter for real-time updates
 }
 
 // PreviousCommandStatus holds the state of the previous command execution.
@@ -203,4 +206,20 @@ func (c *BaseCommand) ShouldRun(prev PreviousCommandStatus) ShouldRunAction {
 // It should be overridden by concrete command types to provide actual functionality.
 func (c *BaseCommand) Run(_ context.Context) Results {
 	return nil
+}
+
+// SetProgressReporter sets an optional progress reporter for real-time execution updates.
+// If not set (nil), the command will run without progress reporting.
+func (c *BaseCommand) SetProgressReporter(reporter progress.Reporter) {
+	c.reporter = reporter
+}
+
+// GetProgressReporter returns the progress reporter if set, nil otherwise.
+func (c *BaseCommand) GetProgressReporter() progress.Reporter {
+	return c.reporter
+}
+
+// hasProgressReporter returns true if a progress reporter has been set.
+func (c *BaseCommand) hasProgressReporter() bool {
+	return c.reporter != nil
 }

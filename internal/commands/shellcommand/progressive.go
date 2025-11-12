@@ -12,8 +12,9 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/runbatch"
 )
 
-// NewProgressive creates a new progressive shell command that supports real-time progress reporting.
-// It wraps the standard shell command with progress reporting capabilities.
+// NewProgressive creates a new shell command. This is now just an alias for New()
+// since all commands support optional progress reporting via dependency injection.
+// Kept for backward compatibility.
 func NewProgressive(
 	ctx context.Context,
 	base *runbatch.BaseCommand,
@@ -21,16 +22,13 @@ func NewProgressive(
 	successExitCodes []int,
 	skipExitCodes []int) (*runbatch.OSCommand, error,
 ) {
-	// Create the underlying OSCommand using the existing function
-	osCmd, err := New(ctx, base, command, successExitCodes, skipExitCodes)
-	if err != nil {
-		return nil, err
-	}
-
-	return osCmd, nil
+	// Just delegate to the regular New function - no difference anymore
+	return New(ctx, base, command, successExitCodes, skipExitCodes)
 }
 
 // ProgressiveCommander extends Commander with progress reporting capabilities.
+// This is now just a wrapper around Commander since all commands support progress reporting.
+// Kept for backward compatibility.
 type ProgressiveCommander struct {
 	*Commander
 }
@@ -42,13 +40,14 @@ func NewProgressiveCommander() *ProgressiveCommander {
 	}
 }
 
-// CreateProgressive creates a new progressive runnable command.
+// CreateProgressive creates a new runnable command. Since all commands now support
+// progress reporting via SetProgressReporter(), this just returns a regular Runnable.
 func (pc *ProgressiveCommander) CreateProgressive(
 	ctx context.Context,
 	_ commands.CommanderFactory,
 	payload []byte,
 	parent runbatch.Runnable,
-) (runbatch.ProgressiveRunnable, error) {
+) (runbatch.Runnable, error) {
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)

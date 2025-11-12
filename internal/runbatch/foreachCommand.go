@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"time"
 
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
 var _ Runnable = (*ForEachCommand)(nil)
@@ -149,17 +151,47 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 			// If the error is in the skip list, treat it as a skipped result.
 			if errors.Is(err, skipErr) {
 				result.Status = ResultStatusSkipped
+				result.Error = ErrSkipIntentional
+
+				// Report skipped if we have a reporter
+				if f.hasProgressReporter() {
+					f.reporter.Report(progress.Event{
+						CommandPath: []string{f.Label},
+						Type:        progress.EventSkipped,
+						Message:     result.Error.Error(),
+						Timestamp:   time.Now(),
+						Data: progress.EventData{
+							ExitCode:   result.ExitCode,
+							Error:      result.Error,
+							OutputLine: fmt.Sprintf("%v: %v", ErrSkipIntentional, err),
+						},
+					})
+				}
+
 				return Results{result}
 			}
 		}
 
 		// If the error is not in the skip list, return an error result.
-		return Results{{
-			Label:    f.Label,
-			ExitCode: -1,
-			Error:    fmt.Errorf("%w: %v", ErrItemsProviderFailed, err),
-			Status:   ResultStatusError,
-		}}
+		result.Error = fmt.Errorf("%w: %v", ErrItemsProviderFailed, err)
+		result.Status = ResultStatusError
+		result.ExitCode = -1
+
+		// Report failure if we have a reporter
+		if f.hasProgressReporter() {
+			f.reporter.Report(progress.Event{
+				CommandPath: []string{f.Label},
+				Type:        progress.EventFailed,
+				Message:     result.Error.Error(),
+				Timestamp:   time.Now(),
+				Data: progress.EventData{
+					ExitCode: result.ExitCode,
+					Error:    result.Error,
+				},
+			})
+		}
+
+		return Results{result}
 	}
 
 	logger.Debug("items to iterate over",
@@ -250,6 +282,13 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 	// Now set the parent for each foreach command to the run batch
 	for _, foreachCmd := range foreachCommands {
 		foreachCmd.SetParent(run)
+	}
+
+	// If we have a progress reporter, use a transparent reporter so the batch reports
+	// directly without the ForEach layer showing up in the hierarchy
+	if f.hasProgressReporter() {
+		transparentReporter := NewTransparentReporter(f.reporter)
+		run.SetProgressReporter(transparentReporter)
 	}
 
 	results := run.Run(ctx)

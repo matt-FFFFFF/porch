@@ -12,7 +12,8 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/commands"
 	"github.com/matt-FFFFFF/porch/internal/config/hcl"
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
-	"github.com/matt-FFFFFF/porch/internal/runbatch"
+	"github.com/matt-FFFFFF/porch/internal/progress"
+"github.com/matt-FFFFFF/porch/internal/runbatch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -91,6 +92,9 @@ func (m *mockRunnable) GetCwdRel() string                         { return "" }
 func (m *mockRunnable) InheritEnv(env map[string]string)          {}
 func (m *mockRunnable) SetParent(parent runbatch.Runnable)        {}
 func (m *mockRunnable) GetParent() runbatch.Runnable              { return nil }
+func (m *mockRunnable) SetProgressReporter(reporter progress.Reporter) {}
+func (m *mockRunnable) GetProgressReporter() progress.Reporter { return nil }
+
 func (m *mockRunnable) ShouldRun(state runbatch.PreviousCommandStatus) runbatch.ShouldRunAction {
 	return runbatch.ShouldRunActionRun
 }

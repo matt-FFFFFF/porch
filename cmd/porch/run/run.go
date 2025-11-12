@@ -253,7 +253,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	opts.IncludeStdErr = !cmd.Bool(noOutputStdErrFlag)
 	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
 	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
-	opts.ShowDetals = cmd.Bool(showDetails)
+	opts.ShowDetails = cmd.Bool(showDetails)
 
 	logger.Info("Displaying results...")
 

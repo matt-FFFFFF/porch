@@ -17,7 +17,7 @@ type OutputOptions struct {
 	IncludeStdOut      bool // Whether to include stdout in the output
 	IncludeStdErr      bool // Whether to include stderr in the output
 	ShowSuccessDetails bool // Whether to show details for successful commands
-	ShowDetals         bool // Whether to show the working directory in the output
+	ShowDetails        bool // Whether to show the working directory in the output
 }
 
 // DefaultOutputOptions returns a default set of output options.
@@ -26,7 +26,7 @@ func DefaultOutputOptions() *OutputOptions {
 		IncludeStdOut:      false,
 		IncludeStdErr:      true,
 		ShowSuccessDetails: false,
-		ShowDetals:         false,
+		ShowDetails:        false,
 	}
 }
 
@@ -81,7 +81,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		color.ControlString(color.Reset),
 	)
 
-	if options.ShowDetals && r.Type != "" {
+	if options.ShowDetails && r.Type != "" {
 		fmt.Fprintf( // nolint:errcheck
 			w,
 			" %s(type: %s)%s",
@@ -91,7 +91,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		)
 	}
 
-	if options.ShowDetals && r.newCwd != "" {
+	if options.ShowDetails && r.newCwd != "" {
 		fmt.Fprintf( // nolint:errcheck
 			w,
 			" %s(newCwd: %s)%s",
@@ -101,7 +101,7 @@ func writeResultWithIndent(w io.Writer, r *Result, indent string, options *Outpu
 		)
 	}
 
-	if options.ShowDetals && r.Cwd != "" {
+	if options.ShowDetails && r.Cwd != "" {
 		fmt.Fprintf( // nolint:errcheck
 			w,
 			" %s(cwd: %s)%s",

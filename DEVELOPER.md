@@ -118,6 +118,36 @@ Contributions are welcome! Here's how to get started:
 
 6. **Open a Pull Request**
 
+### Debugging
+
+- Most example commands are bash based, so make sure you are running in an environment that supports bash. E.g. on Windows open VSCode from WSL
+- Create a launch.json file like this:
+
+   ```json
+   {
+      "version": "0.2.0",
+      "configurations": [
+         {
+               "name": "Launch Package",
+               "type": "go",
+               "request": "launch",
+               "mode": "debug",
+               "program": "${workspaceRoot}/cmd/porch/main.go",
+               "env": { "AVM_TEST_TYPE": "integration" },
+               "args": [ "run", "-f", "${workspaceRoot}/examples/terraform-test-unit.yaml"],
+               "cwd": "${workspaceRoot}/../terraform-azurerm-lz-vending"
+         }
+      ]
+   }
+   ```
+
+   - `args`: The is the porch config you want to debug
+   - `cwd`: This the target folder structure you want to run the command against
+   - `env`: This is any environment variables needed by your porch config
+- Set your break points and Run the VSCode debugger
+
+>NOTE: If you see a Delve related issue, try installing the latest version from trunk: `go install -v github.com/go-delve/delve/cmd/dlv@master`
+
 ### Development Guidelines
 
 - Write comprehensive tests for new features

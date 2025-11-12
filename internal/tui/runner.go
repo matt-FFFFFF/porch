@@ -89,16 +89,12 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 	go func() {
 		defer close(resultChan)
 
-		// If the runnable implements ProgressiveRunnable, use that method
-		// Otherwise, fall back to the regular Run method.
-		switch runnable := runnable.(type) {
-		case runbatch.ProgressiveRunnable:
-			result := runnable.RunWithProgress(ctx, r.reporter)
-			resultChan <- result
-		default:
-			result := runnable.Run(ctx)
-			resultChan <- result
-		}
+		// Set the progress reporter on the runnable
+		runnable.SetProgressReporter(r.reporter)
+
+		// Run the command
+		result := runnable.Run(ctx)
+		resultChan <- result
 	}()
 
 	// Start the TUI program in a goroutine
@@ -165,11 +161,9 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 func RunWithoutTUI(
 	ctx context.Context, runnable runbatch.Runnable, reporter progress.Reporter,
 ) runbatch.Results {
-	// Check if the runnable supports progress reporting
-	if progressive, ok := runnable.(runbatch.ProgressiveRunnable); ok {
-		return progressive.RunWithProgress(ctx, reporter)
-	}
+	// Set the progress reporter on the runnable
+	runnable.SetProgressReporter(reporter)
 
-	// Fallback to regular execution
+	// Run the command
 	return runnable.Run(ctx)
 }

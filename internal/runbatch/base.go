@@ -10,6 +10,9 @@ import (
 	"maps"
 	"path/filepath"
 	"slices"
+	"sync"
+
+	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
 var (
@@ -29,6 +32,8 @@ type BaseCommand struct {
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command
 	parent          Runnable          // The parent command or batch, if any
+	reporterMu      sync.RWMutex      // Mutex to protect the reporter field
+	reporter        progress.Reporter // Optional progress reporter for real-time updates
 }
 
 // PreviousCommandStatus holds the state of the previous command execution.
@@ -203,4 +208,31 @@ func (c *BaseCommand) ShouldRun(prev PreviousCommandStatus) ShouldRunAction {
 // It should be overridden by concrete command types to provide actual functionality.
 func (c *BaseCommand) Run(_ context.Context) Results {
 	return nil
+}
+
+// SetProgressReporter sets an optional progress reporter for real-time execution updates.
+// If not set (nil), the command will run without progress reporting.
+// This method is thread-safe but should be called before Run() for proper behavior.
+func (c *BaseCommand) SetProgressReporter(reporter progress.Reporter) {
+	c.reporterMu.Lock()
+	defer c.reporterMu.Unlock()
+
+	c.reporter = reporter
+}
+
+// GetProgressReporter returns the currently set progress reporter, or nil if none is set.
+// This method is thread-safe.
+func (c *BaseCommand) GetProgressReporter() progress.Reporter {
+	c.reporterMu.RLock()
+	defer c.reporterMu.RUnlock()
+
+	return c.reporter
+}
+
+// hasProgressReporter returns true if a progress reporter has been set.
+func (c *BaseCommand) hasProgressReporter() bool {
+	c.reporterMu.RLock()
+	defer c.reporterMu.RUnlock()
+
+	return c.reporter != nil
 }

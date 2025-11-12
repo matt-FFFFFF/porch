@@ -5,6 +5,8 @@ package runbatch
 
 import (
 	"context"
+
+	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
 // Runnable is an interface for something that can be run as part of a batch (either a Command or a nested Batch).
@@ -32,6 +34,13 @@ type Runnable interface {
 	SetParent(Runnable)
 	// ShouldRun returns true if the command or batch should be run.
 	ShouldRun(state PreviousCommandStatus) ShouldRunAction
+	// SetProgressReporter sets an optional progress reporter for real-time execution updates.
+	// If not set (nil), the command will run without progress reporting.
+	// This method is thread-safe but should be called before Run() for proper behavior.
+	SetProgressReporter(reporter progress.Reporter)
+	// GetProgressReporter returns the currently set progress reporter, or nil if none is set.
+	// This method is thread-safe.
+	GetProgressReporter() progress.Reporter
 }
 
 // RunnableWithChildren is an interface for runnables that can have child commands or batches.

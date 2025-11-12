@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/matt-FFFFFF/porch/internal/ctxlog"
+	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
 var _ Runnable = (*ParallelBatch)(nil)
@@ -25,6 +26,14 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	logger := ctxlog.Logger(ctx).
 		With("label", label).
 		With("runnableType", "ParallelBatch")
+
+	// Report that this batch is starting if we have a reporter
+	if b.hasProgressReporter() {
+		ReportBatchStarted(b.GetProgressReporter(), b.Label, "parallel")
+	}
+
+	// Propagate reporter to child commands
+	PropagateReporterToChildren(b.GetProgressReporter(), b.Label, b.Commands)
 
 	children := make(Results, 0, len(b.Commands))
 	wg := &sync.WaitGroup{}
@@ -66,6 +75,13 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		res[0].Status = ResultStatusError
 	}
 
+	// Report completion based on results if we have a reporter
+	if b.hasProgressReporter() {
+		ReportExecutionComplete(ctx, b.GetProgressReporter(), b.Label, res,
+			"Parallel batch completed successfully",
+			"Parallel batch failed")
+	}
+
 	return res
 }
 
@@ -82,4 +98,10 @@ func (b *ParallelBatch) SetCwd(cwd string) error {
 	}
 
 	return nil
+}
+
+// SetProgressReporter sets the progress reporter and propagates it to all child commands.
+func (b *ParallelBatch) SetProgressReporter(reporter progress.Reporter) {
+	b.BaseCommand.SetProgressReporter(reporter)
+	// Note: We don't propagate here as it's done in Run() with a child reporter
 }

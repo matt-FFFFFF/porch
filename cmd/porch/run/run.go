@@ -35,7 +35,7 @@ const (
 	configTimeoutFlag           = "config-timeout"
 	configTimeoutSecondsDefault = 30
 	cliExitStr                  = ""
-	showDetails                 = "show-details"
+	showDetailsFlag             = "show-details"
 )
 
 var (
@@ -126,7 +126,7 @@ To save the results to a file, specify the output file name as an argument.
 			Value: configTimeoutSecondsDefault,
 		},
 		&cli.BoolFlag{
-			Name:        showDetails,
+			Name:        showDetailsFlag,
 			Aliases:     []string{"details"},
 			Usage:       "Include the types and working directory in the output",
 			Value:       false,
@@ -253,7 +253,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	opts.IncludeStdErr = !cmd.Bool(noOutputStdErrFlag)
 	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
 	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
-	opts.ShowDetails = cmd.Bool(showDetails)
+	opts.ShowDetails = cmd.Bool(showDetailsFlag)
 
 	logger.Info("Displaying results...")
 

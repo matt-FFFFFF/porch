@@ -82,15 +82,18 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	// Report start if we have a reporter
 	if c.hasProgressReporter() {
-		ReportCommandStarted(c.reporter, c.GetLabel())
+		ReportCommandStarted(c.GetProgressReporter(), c.GetLabel())
 	}
 
 	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
 
 	var logCh chan<- string
 
-	// Setup progress reporting or legacy context-based logging
-	logCh, tickerInterval = c.setupProgressReporting(ctx, tickerInterval)
+	// Setup progress reporting if we have a reporter
+	if c.hasProgressReporter() {
+		logCh = c.setupProgressReporting(ctx)
+		tickerInterval = defaultProgressiveLogUpdateInterval
+	}
 
 	if c.SuccessExitCodes == nil {
 		c.SuccessExitCodes = []int{0} // Default to success on exit code 0
@@ -366,14 +369,14 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		c.cleanup(ctx)
 	}
 
-	// Close the log channel if it was created by setupProgressReporting
-	if c.hasProgressReporter() && logCh != nil {
+	// Close the log channel if we created it
+	if logCh != nil {
 		close(logCh)
 	}
 
 	// Report completion if we have a reporter
 	if c.hasProgressReporter() {
-		ReportExecutionComplete(ctx, c.reporter, c.GetLabel(), Results{res},
+		ReportExecutionComplete(ctx, c.GetProgressReporter(), c.GetLabel(), Results{res},
 			fmt.Sprintf("Command completed: %s", c.GetLabel()),
 			fmt.Sprintf("Command failed: %s", c.GetLabel()))
 	}
@@ -427,7 +430,7 @@ func (c *OSCommand) reportProgressFromLogChannel(ctx context.Context, ch <-chan 
 				return
 			}
 
-			c.reporter.Report(progress.Event{
+			c.GetProgressReporter().Report(progress.Event{
 				CommandPath: []string{c.GetLabel()},
 				Type:        progress.EventProgress,
 				Message:     fmt.Sprintf("Output from %s", c.GetLabel()),
@@ -441,37 +444,13 @@ func (c *OSCommand) reportProgressFromLogChannel(ctx context.Context, ch <-chan 
 	}
 }
 
-// setupProgressReporting sets up progress reporting channel or falls back to legacy context-based logging.
-// Returns the log channel and ticker interval. The caller is responsible for closing the returned channel.
-func (c *OSCommand) setupProgressReporting(
-	ctx context.Context, defaultInterval time.Duration,
-) (chan<- string, time.Duration) {
-	// If we have a progress reporter, create a log channel for real-time output
-	if c.hasProgressReporter() {
-		ch := make(chan string, defaultProgressiveLogChannelBufferSize)
+// setupProgressReporting sets up progress reporting channel for real-time output.
+// Returns the log channel which the caller is responsible for closing.
+func (c *OSCommand) setupProgressReporting(ctx context.Context) chan<- string {
+	ch := make(chan string, defaultProgressiveLogChannelBufferSize)
 
-		// Start goroutine to read from log channel and report progress events
-		go c.reportProgressFromLogChannel(ctx, ch)
+	// Start goroutine to read from log channel and report progress events
+	go c.reportProgressFromLogChannel(ctx, ch)
 
-		return ch, defaultProgressiveLogUpdateInterval
-	}
-
-	// Legacy: check context for log channel (for backward compatibility)
-	var logCh chan<- string
-
-	if logInt := ctx.Value(ProgressiveLogChannelKey{}); logInt != nil {
-		if v, ok := logInt.(chan<- string); ok {
-			logCh = v
-		}
-	}
-
-	interval := defaultInterval
-
-	if updateInt := ctx.Value(ProgressiveLogUpdateInterval{}); updateInt != nil {
-		if v, ok := updateInt.(time.Duration); ok {
-			interval = v
-		}
-	}
-
-	return logCh, interval
+	return ch
 }

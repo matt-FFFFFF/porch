@@ -14,17 +14,6 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
-// ProgressiveLogChannelKey is used to store the channel in the Runnable context
-// for real-time progress updates. This allows commands to report their
-// logging output to the progressive TUI in real-time.
-// This is kept for backward compatibility with any existing context-based usage.
-type ProgressiveLogChannelKey struct{}
-
-// ProgressiveLogUpdateInterval defines the interval in seconds at which
-// the progressive TUI updates its display with new log output.
-// This is kept for backward compatibility with any existing context-based usage.
-type ProgressiveLogUpdateInterval struct{}
-
 // ReportBatchStarted reports that a batch operation has started.
 // If reporter is nil, this is a no-op.
 func ReportBatchStarted(reporter progress.Reporter, label, batchType string) {

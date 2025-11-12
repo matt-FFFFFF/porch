@@ -29,7 +29,7 @@ func (b *SerialBatch) Run(ctx context.Context) Results {
 
 	// Report that this batch is starting if we have a reporter
 	if b.hasProgressReporter() {
-		ReportBatchStarted(b.reporter, b.Label, "serial")
+		ReportBatchStarted(b.GetProgressReporter(), b.Label, "serial")
 	}
 
 	// Propagate reporter to child commands
@@ -60,7 +60,7 @@ OuterLoop:
 			case ShouldRunActionSkip:
 				// Report skipped command if we have a reporter
 				if b.hasProgressReporter() {
-					b.reporter.Report(progress.Event{
+					b.GetProgressReporter().Report(progress.Event{
 						CommandPath: []string{cmd.GetLabel()},
 						Type:        progress.EventSkipped,
 						Message:     "Command skipped intentionally",
@@ -82,7 +82,7 @@ OuterLoop:
 			case ShouldRunActionError:
 				// Report skipped command due to error if we have a reporter
 				if b.hasProgressReporter() {
-					b.reporter.Report(progress.Event{
+					b.GetProgressReporter().Report(progress.Event{
 						CommandPath: []string{cmd.GetLabel()},
 						Type:        progress.EventSkipped,
 						Message:     "Command skipped due to previous error",
@@ -119,7 +119,7 @@ OuterLoop:
 					if err := rb.SetCwdToSpecificAbsolute(newCwd); err != nil {
 						// Report error if we have a reporter
 						if b.hasProgressReporter() {
-							b.reporter.Report(progress.Event{
+							b.GetProgressReporter().Report(progress.Event{
 								CommandPath: []string{rb.GetLabel()},
 								Type:        progress.EventFailed,
 								Message:     "Error setting working directory for next command",
@@ -167,7 +167,7 @@ OuterLoop:
 
 	// Report completion based on results if we have a reporter
 	if b.hasProgressReporter() {
-		ReportExecutionComplete(ctx, b.reporter, b.Label, res,
+		ReportExecutionComplete(ctx, b.GetProgressReporter(), b.Label, res,
 			"Serial batch completed successfully",
 			"Serial batch failed")
 	}

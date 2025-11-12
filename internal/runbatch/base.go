@@ -212,7 +212,7 @@ func (c *BaseCommand) Run(_ context.Context) Results {
 
 // SetProgressReporter sets an optional progress reporter for real-time execution updates.
 // If not set (nil), the command will run without progress reporting.
-// This method must be called before Run() and must not be called concurrently with Run() or GetProgressReporter().
+// This method is thread-safe but should be called before Run() for proper behavior.
 func (c *BaseCommand) SetProgressReporter(reporter progress.Reporter) {
 	c.reporterMu.Lock()
 	defer c.reporterMu.Unlock()
@@ -220,7 +220,8 @@ func (c *BaseCommand) SetProgressReporter(reporter progress.Reporter) {
 	c.reporter = reporter
 }
 
-// GetProgressReporter returns the progress reporter if set, nil otherwise.
+// GetProgressReporter returns the currently set progress reporter, or nil if none is set.
+// This method is thread-safe.
 func (c *BaseCommand) GetProgressReporter() progress.Reporter {
 	c.reporterMu.RLock()
 	defer c.reporterMu.RUnlock()

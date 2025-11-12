@@ -35,6 +35,7 @@ const (
 	configTimeoutFlag           = "config-timeout"
 	configTimeoutSecondsDefault = 30
 	cliExitStr                  = ""
+	showDetails                 = "show-details"
 )
 
 var (
@@ -123,6 +124,15 @@ To save the results to a file, specify the output file name as an argument.
 			Usage: "Set the maximum time in seconds to wait for configuration building. " +
 				"Defaults to 30 seconds.",
 			Value: configTimeoutSecondsDefault,
+		},
+		&cli.BoolFlag{
+			Name:        showDetails,
+			Aliases:     []string{"details"},
+			Usage:       "Include the types and working directory in the output",
+			Value:       false,
+			DefaultText: "false",
+			TakesFile:   false,
+			OnlyOnce:    true,
 		},
 	},
 	Action: actionFunc,
@@ -243,6 +253,7 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 	opts.IncludeStdErr = !cmd.Bool(noOutputStdErrFlag)
 	opts.IncludeStdOut = cmd.Bool(outputStdOutFlag)
 	opts.ShowSuccessDetails = cmd.Bool(outputSuccessDetailsFlag)
+	opts.ShowDetals = cmd.Bool(showDetails)
 
 	logger.Info("Displaying results...")
 

@@ -39,6 +39,13 @@ func (c *Commander) CreateFromYaml(
 	payload []byte,
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
+	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
+		return nil, errors.Join(
+			commands.NewErrCommandCreate(commandType),
+			errors.New("copycwdtotemp command can only be used within a serial batch"),
+		)
+	}
+
 	def := new(Definition)
 	if err := yaml.Unmarshal(payload, def); err != nil {
 		return nil, errors.Join(commands.ErrYamlUnmarshal, err)
@@ -64,6 +71,13 @@ func (c *Commander) CreateFromHcl(
 	hclCommand *hcl.CommandBlock,
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
+	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
+		return nil, errors.Join(
+			commands.NewErrCommandCreate(commandType),
+			errors.New("copycwdtotemp command can only be used within a serial batch"),
+		)
+	}
+
 	if hclCommand.WorkingDirectory == "" {
 		hclCommand.WorkingDirectory = "."
 	}

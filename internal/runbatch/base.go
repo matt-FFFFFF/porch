@@ -97,18 +97,9 @@ func (c *BaseCommand) GetCwdRel() string {
 	return c.CwdRel
 }
 
-// SetCwdToSpecificAbsolute sets the working directory for the command.
-// All commands MUST have an absolute cwd at all times.
-// This method requires the current cwd to be absolute and will error otherwise.
-func (c *BaseCommand) SetCwdToSpecificAbsolute(cwd string) error {
+func (c *BaseCommand) SetCwdAbsolute(cwd string) error {
 	if cwd == "" {
 		return nil
-	}
-
-	if !filepath.IsAbs(cwd) {
-		return fmt.Errorf(
-			"%w: new working directory %q is not absolute, all commands must have absolute cwd", ErrPathNotAbsolute, cwd,
-		)
 	}
 
 	// Current working directory must be absolute
@@ -235,4 +226,8 @@ func (c *BaseCommand) hasProgressReporter() bool {
 	defer c.reporterMu.RUnlock()
 
 	return c.reporter != nil
+}
+
+func (c *BaseCommand) GetType() string {
+	return "BaseCommand"
 }

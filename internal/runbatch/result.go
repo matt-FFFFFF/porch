@@ -42,6 +42,8 @@ type gobResult struct {
 	Label    string       `json:"label"`
 	Children Results      `json:"children,omitempty"` // Nested results for tree output
 	NewCwd   string       `json:"new_cwd,omitempty"`  // Exported version of newCwd
+	Cwd      string       `json:"cwd,omitempty"`      // Exported version of Cwd
+	Type     string       `json:"type,omitempty"`     // Exported version of Type
 }
 
 // Result represents the outcome of running a command or batch.
@@ -63,6 +65,10 @@ type Result struct {
 	Children Results
 	// New working directory, if changed. Only processed by serial batches.
 	newCwd string
+	// The working directory at the time of execution
+	Cwd string
+	// The type of the runnable that produced this result
+	Type string
 }
 
 // ResultStatus summarizes the status of a command or batch result.
@@ -107,6 +113,8 @@ func (r *Result) GobEncode() ([]byte, error) {
 		Label:    r.Label,
 		Children: r.Children,
 		NewCwd:   r.newCwd,
+		Cwd:      r.Cwd,
+		Type:     r.Type,
 	}
 
 	// Convert error to string
@@ -143,6 +151,8 @@ func (r *Result) GobDecode(data []byte) error {
 	r.Children = gr.Children
 	r.newCwd = gr.NewCwd
 	r.Status = gr.Status
+	r.Cwd = gr.Cwd
+	r.Type = gr.Type
 
 	// Convert error message back to error
 	if gr.HasError {

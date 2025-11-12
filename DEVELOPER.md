@@ -128,14 +128,14 @@ Contributions are welcome! Here's how to get started:
       "version": "0.2.0",
       "configurations": [
          {
-               "name": "Launch Package",
-               "type": "go",
-               "request": "launch",
-               "mode": "debug",
-               "program": "${workspaceRoot}/cmd/porch/main.go",
-               "env": { "AVM_TEST_TYPE": "integration" },
-               "args": [ "run", "-f", "${workspaceRoot}/examples/terraform-test-unit.yaml", "-config-timeout", "10000"],
-               "cwd": "${workspaceRoot}/../terraform-azurerm-lz-vending"
+            "name": "Launch Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceRoot}/cmd/porch/main.go",
+            "env": { "AVM_TEST_TYPE": "integration", "PORCH_LOG_LEVEL": "DEBUG" },
+            "args": [ "run", "-f", "${workspaceRoot}/examples/complex-nested.yml", "-config-timeout", "10000", "-show-details" ],
+            "cwd": "${workspaceRoot}/../terraform-azurerm-lz-vending-test"
          }
       ]
    }

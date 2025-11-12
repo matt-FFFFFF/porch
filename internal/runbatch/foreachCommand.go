@@ -142,6 +142,8 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		ExitCode: 0,
 		Children: Results{},
 		Status:   ResultStatusSuccess,
+		Cwd:      f.Cwd,
+		Type:     f.GetType(),
 	}
 
 	// Get the items to iterate over
@@ -330,4 +332,13 @@ func (f *ForEachCommand) SetCwd(cwd string) error {
 	}
 
 	return nil
+}
+
+// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
+func (b *ForEachCommand) SetCwdAbsolute(cwd string) error {
+	return b.SetCwd(cwd)
+}
+
+func (f *ForEachCommand) GetType() string {
+	return "ForEachCommand"
 }

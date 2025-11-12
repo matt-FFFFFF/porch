@@ -132,6 +132,8 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 			// Context cancelled, return what we have
 			result = runbatch.Results{&runbatch.Result{
 				Error: ctx.Err(),
+				Cwd:   runnable.GetCwd(),
+				Type:  runnable.GetType(),
 			}}
 		}
 
@@ -147,6 +149,8 @@ func (r *Runner) Run(ctx context.Context, runnable runbatch.Runnable) (runbatch.
 			// Return cancellation error
 			result = runbatch.Results{&runbatch.Result{
 				Error: ctx.Err(),
+				Cwd:   runnable.GetCwd(),
+				Type:  runnable.GetType(),
 			}}
 		}
 

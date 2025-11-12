@@ -53,6 +53,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipIntentional,
 				})
+
 				continue OuterLoop
 			case ShouldRunActionError:
 				results = append(results, &Result{
@@ -60,6 +61,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipOnError,
 				})
+
 				continue OuterLoop
 			}
 
@@ -83,8 +85,10 @@ OuterLoop:
 							Status: ResultStatusError,
 							Error:  err,
 						})
+
 						continue OuterLoop
 					}
+
 					logger.Debug("newCwd resultant working directory",
 						"commandLabel", rb.GetLabel(),
 						"cwd", rb.GetCwd(),
@@ -129,6 +133,7 @@ func (b *SerialBatch) SetCwd(cwd string) error {
 	return nil
 }
 
+// SetCwdToSpecificAbsolute sets the current working directory for the batch and all its sub-commands.
 func (b *SerialBatch) SetCwdToSpecificAbsolute(cwd string) error {
 	if err := b.BaseCommand.SetCwd(cwd); err != nil {
 		return err //nolint:err113,wrapcheck

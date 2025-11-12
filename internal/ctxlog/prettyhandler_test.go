@@ -206,6 +206,7 @@ func TestPrettyHandler_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
+
 			opts := append([]Option{WithDestinationWriter(&buf)}, tt.options...)
 			handler := NewPrettyHandler(&slog.HandlerOptions{
 				Level: slog.LevelDebug, // Enable all levels for testing
@@ -284,6 +285,7 @@ func TestPrettyHandler_computeAttrs_Error(t *testing.T) {
 func TestFunctionalOptions(t *testing.T) {
 	t.Run("WithDestinationWriter", func(t *testing.T) {
 		var buf bytes.Buffer
+
 		handler := NewPrettyHandler(nil, WithDestinationWriter(&buf))
 
 		assert.Equal(t, &buf, handler.writer, "WithDestinationWriter() did not set writer correctly")
@@ -420,8 +422,8 @@ func TestPrettyHandler_Handle_WriteError(t *testing.T) {
 	}, WithDestinationWriter(&failingWriter{}))
 
 	record := slog.NewRecord(time.Now(), slog.LevelInfo, "test message", 0)
-	err := handler.Handle(context.Background(), record)
 
+	err := handler.Handle(context.Background(), record)
 	if err == nil {
 		t.Error("Handle() should return error when writer fails")
 	}
@@ -433,6 +435,7 @@ func TestPrettyHandler_Handle_WriteError(t *testing.T) {
 
 func TestPrettyHandler_LevelColors(t *testing.T) {
 	var buf bytes.Buffer
+
 	handler := NewPrettyHandler(&slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}, WithDestinationWriter(&buf), WithColour())

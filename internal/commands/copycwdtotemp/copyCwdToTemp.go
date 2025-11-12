@@ -105,7 +105,6 @@ func New(base *runbatch.BaseCommand) *runbatch.FunctionCommand {
 					return afero.WriteFile(fs, dstPath, srcFile, info.Mode().Perm())
 				}
 			})
-
 			if err != nil {
 				return runbatch.FunctionCommandReturn{
 					Err: err,

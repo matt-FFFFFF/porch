@@ -85,6 +85,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipIntentional,
 				})
+
 				continue OuterLoop
 
 			case ShouldRunActionError:
@@ -104,6 +105,7 @@ OuterLoop:
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipOnError,
 				})
+
 				continue OuterLoop
 			}
 
@@ -156,6 +158,7 @@ OuterLoop:
 							Status: ResultStatusError,
 							Error:  err,
 						})
+
 						continue OuterLoop
 					}
 

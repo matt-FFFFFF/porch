@@ -725,7 +725,6 @@ func (b *BaseSchemaGenerator) WriteJSONSchema(w io.Writer, f commands.CommanderF
 	}
 
 	_, err = w.Write([]byte(schema))
-
 	if err != nil {
 		return errors.Join(ErrCreatingSchema, err)
 	}
@@ -742,7 +741,6 @@ func (b *BaseSchemaGenerator) WriteYAMLExample(w io.Writer, ex interface{}) erro
 	}
 
 	_, err = w.Write(yamlBytes)
-
 	if err != nil {
 		return errors.Join(ErrCreatingSchema, err)
 	}
@@ -798,7 +796,6 @@ func (b *BaseSchemaGenerator) WriteMarkdownExample(
 	}
 
 	_, err = w.Write([]byte(doc))
-
 	if err != nil {
 		return errors.Join(ErrCreatingSchema, err)
 	}

@@ -16,6 +16,7 @@ import (
 // EnterDebugMode starts an interactive debugging session for evaluating HCL expressions.
 func EnterDebugMode(config PorchConfig) {
 	line := liner.NewLiner()
+
 	defer func() {
 		_ = line.Close()
 	}()

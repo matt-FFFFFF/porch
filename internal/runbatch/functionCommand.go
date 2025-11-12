@@ -22,6 +22,7 @@ type ErrFunctionCmdPanic struct {
 // Error implements the error interface for ErrFunctionCmdPanic.
 func (e *ErrFunctionCmdPanic) Error() string {
 	prefix := "function command panic: "
+
 	switch x := e.v.(type) {
 	case string:
 		return fmt.Sprintf("%s %s", prefix, x)
@@ -102,6 +103,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 					logger.Debug("Function command panic done channel closed, skipping result send")
 				default:
 					logger.Debug("Function command panic sending error", "error", err)
+
 					frCh <- FunctionCommandReturn{
 						Err: err,
 					}
@@ -123,6 +125,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 			// Already done, don't send on frCh
 		default:
 			logger.Debug("Function command sending result", "result", fr)
+
 			frCh <- fr
 		}
 	}()

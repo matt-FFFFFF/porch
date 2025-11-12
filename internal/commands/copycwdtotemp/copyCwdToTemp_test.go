@@ -152,6 +152,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 			setupFS: func() afero.Fs {
 				baseFs := afero.NewMemMapFs()
 				errPath := filepath.Join(tmpDir, "porch_testrun")
+
 				return &errorFS{fs: baseFs, errorPath: errPath}
 			},
 			testFunc: func(t *testing.T, fs afero.Fs) {
@@ -197,8 +198,10 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
+
 				testFilePath := filepath.Join(srcDir, "file1.txt")
 				_ = afero.WriteFile(baseFs, testFilePath, []byte("content"), 0644)
+
 				return &errorFS{fs: baseFs, errorPath: testFilePath}
 			},
 			testFunc: func(t *testing.T, fs afero.Fs) {
@@ -272,7 +275,6 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 				require.Len(t, results, 1)
 				assert.Equal(t, -1, results[0].ExitCode) // FunctionCommand.Run returns -1 for errors
 				assert.Equal(t, ctx.Err(), results[0].Error)
-
 			},
 		},
 	}

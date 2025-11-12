@@ -69,7 +69,6 @@ func NewPorchConfig(
 	}
 
 	err := golden.InitConfig(cfg, hclBlocks)
-
 	if err != nil {
 		err = errors.Join(ErrInitConfig, err)
 	}

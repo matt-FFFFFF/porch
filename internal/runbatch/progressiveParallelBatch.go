@@ -87,7 +87,9 @@ func (b *ParallelBatch) executeWithProgressReporting(
 			// Check for errors in a thread-safe way
 			if childResults.HasError() {
 				errorMutex.Lock()
+
 				hasError = true
+
 				errorMutex.Unlock()
 			}
 

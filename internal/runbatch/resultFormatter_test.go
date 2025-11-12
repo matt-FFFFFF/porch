@@ -131,6 +131,7 @@ func TestWriteResults_DefaultOptions(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
+
 	err := writeTextResults(&buf, results, nil)
 	require.NoError(t, err)
 

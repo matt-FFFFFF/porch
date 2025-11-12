@@ -132,6 +132,7 @@ func TestCommandRun_SigInt(t *testing.T) {
 
 	go func() {
 		time.Sleep(1 * time.Second)
+
 		cmd.sigCh <- os.Interrupt
 	}()
 

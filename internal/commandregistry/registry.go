@@ -150,6 +150,7 @@ func (r *Registry) resolveCommandGroupWithDepth(
 	// Check if we're currently visiting this group (circular dependency)
 	if visiting[groupName] {
 		cyclePath := append(path, groupName)
+
 		return nil, fmt.Errorf("%w: %s", ErrCircularDependency,
 			formatCircularDependencyPath(cyclePath))
 	}

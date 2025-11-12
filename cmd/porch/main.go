@@ -54,6 +54,7 @@ flow control, parallel processing, and comprehensive error handling.`,
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
+
 	defer cancel()
 
 	sigCh := signalbroker.New(ctx)

@@ -117,6 +117,7 @@ func TestLogger(t *testing.T) {
 func TestLoggingFunctions(t *testing.T) {
 	// Create a buffer to capture log output
 	var buf bytes.Buffer
+
 	logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
@@ -180,6 +181,7 @@ func TestLoggingFunctions(t *testing.T) {
 func TestLogLevelFromEnv(t *testing.T) {
 	// Save original environment value
 	originalValue := os.Getenv(porchLogLevelEnvVar)
+
 	defer func() {
 		if originalValue != "" {
 			os.Setenv(porchLogLevelEnvVar, originalValue)

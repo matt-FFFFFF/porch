@@ -51,6 +51,7 @@ func (tr *Reporter) Report(event progress.Event) {
 func (tr *Reporter) Close() {
 	tr.mutex.Lock()
 	defer tr.mutex.Unlock()
+
 	tr.closed = true
 }
 

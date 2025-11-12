@@ -100,7 +100,6 @@ func ListDirectoriesDepth(depth int, includeHidden IncludeHidden) func(context.C
 
 			return nil
 		})
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to list directories in %s: %w", workingDirectory, err)
 		}

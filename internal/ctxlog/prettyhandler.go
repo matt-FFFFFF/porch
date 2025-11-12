@@ -80,6 +80,7 @@ func (h *PrettyHandler) computeAttrs(
 	r slog.Record,
 ) (map[string]any, error) {
 	h.m.Lock()
+
 	defer func() {
 		h.b.Reset()
 		h.m.Unlock()

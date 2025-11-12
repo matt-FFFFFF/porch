@@ -43,6 +43,7 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 
 		go func(c Runnable) {
 			defer wg.Done()
+
 			resChan <- c.Run(ctx)
 		}(cmd)
 	}

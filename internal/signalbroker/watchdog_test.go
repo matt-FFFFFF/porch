@@ -27,11 +27,14 @@ func TestWatch_FirstSignalNoCancel(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
+
 		Watch(ctx, sigCh, cancel)
 	}()
+
 	sigCh <- os.Interrupt
 
 	time.Sleep(50 * time.Millisecond)
+
 	select {
 	case <-ctx.Done():
 		t.Fatal("context should not be cancelled after first signal")
@@ -53,12 +56,16 @@ func TestWatch_SecondSignalCancels(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
+
 		Watch(ctx, sigCh, cancel)
 	}()
+
 	sigCh <- os.Interrupt
+
 	sigCh <- os.Interrupt
 
 	time.Sleep(50 * time.Millisecond)
+
 	select {
 	case <-ctx.Done():
 		// ok
@@ -85,12 +92,16 @@ func TestWatch_DifferentSignalsNoCancel(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
+
 		Watch(ctx, sigCh, cancel)
 	}()
+
 	sigCh <- os.Interrupt
+
 	sigCh <- os.Kill
 
 	time.Sleep(50 * time.Millisecond)
+
 	select {
 	case <-ctx.Done():
 		t.Fatal("context should not be cancelled for different signals")

@@ -92,7 +92,7 @@ func (c *BaseCommand) GetCwdRel() string {
 	return c.CwdRel
 }
 
-// SetCwd sets the working directory for the command.
+// SetCwdToSpecificAbsolute sets the working directory for the command.
 // All commands MUST have an absolute cwd at all times.
 // This method requires the current cwd to be absolute and will error otherwise.
 func (c *BaseCommand) SetCwdToSpecificAbsolute(cwd string) error {

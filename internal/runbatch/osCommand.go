@@ -164,6 +164,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	// Start a goroutine to continuously read stdout through the teereader
 	stdoutDone := make(chan struct{})
+
 	go func() {
 		defer close(stdoutDone)
 		// Read all data through the teereader to capture it
@@ -216,7 +217,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 				if logCh != nil && lastLine != lastLogSent {
 					logger.Debug("sending last log message to log channel", "message", lastLine)
-					logCh <- lastLine      // Send the status message to the log channel
+
+					logCh <- lastLine // Send the status message to the log channel
+
 					lastLogSent = lastLine // Update last log sent to avoid duplicates
 				}
 
@@ -332,8 +335,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	stdoutReader := stdoutTeeReader.GetFullBufferReader()
 	logger.Debug("stdout length", "bytes", stdoutReader.Len(), "maxBytes", maxBufferSize)
-	stdout, err := readAllUpToMax(ctx, stdoutReader, maxBufferSize)
 
+	stdout, err := readAllUpToMax(ctx, stdoutReader, maxBufferSize)
 	if err != nil {
 		res.ExitCode = -1
 		res.Error = errors.Join(res.Error, err)

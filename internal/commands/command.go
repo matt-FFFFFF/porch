@@ -42,6 +42,7 @@ var (
 // It includes the command name for easier debugging.
 type ErrCommandCreate struct {
 	cmdName string
+	details string
 }
 
 // Error implements the error interface for ErrCommandCreate.
@@ -52,6 +53,10 @@ func (e *ErrCommandCreate) Error() string {
 // NewErrCommandCreate creates a new ErrCommandCreate error.
 func NewErrCommandCreate(cmdName string) error {
 	return &ErrCommandCreate{cmdName: cmdName}
+}
+
+func NewErrCommandCreateWithDetails(cmdName string, details string) error {
+	return &ErrCommandCreate{cmdName: cmdName, details: details}
 }
 
 // ToBaseCommand converts the BaseDefinition to a runbatch.BaseCommand.

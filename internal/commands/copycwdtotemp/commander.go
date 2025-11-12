@@ -72,10 +72,7 @@ func (c *Commander) CreateFromHcl(
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
-		return nil, errors.Join(
-			commands.NewErrCommandCreate(commandType),
-			errors.New("copycwdtotemp command can only be used within a serial batch"),
-		)
+		return nil, commands.NewErrCommandCreateWithDetails(commandType, "copycwdtotemp command can only be used within a serial batch")
 	}
 
 	if hclCommand.WorkingDirectory == "" {

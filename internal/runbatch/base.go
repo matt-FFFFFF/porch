@@ -25,7 +25,6 @@ type BaseCommand struct {
 	Label           string            // Optional label for the command
 	Cwd             string            // The absolute working directory for the command
 	CwdRel          string            // The relative working directory for the command, from the source YAML file
-	CwdIsTemp       bool              // Indicates if the cwd is a temporary directory
 	RunsOnCondition RunCondition      // The condition under which the command runs
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command

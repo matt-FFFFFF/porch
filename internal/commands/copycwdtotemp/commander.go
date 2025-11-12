@@ -42,7 +42,7 @@ func (c *Commander) CreateFromYaml(
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
-		return nil, commands.NewErrCommandCreateWithDetails(commandType, typeErrorMessage)
+		return nil, errors.Join(commands.NewErrCommandCreateWithDetails(commandType, typeErrorMessage))
 	}
 
 	def := new(Definition)
@@ -71,7 +71,7 @@ func (c *Commander) CreateFromHcl(
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
-		return nil, commands.NewErrCommandCreateWithDetails(commandType, typeErrorMessage)
+		return nil, errors.Join(commands.NewErrCommandCreateWithDetails(commandType, typeErrorMessage))
 	}
 
 	if hclCommand.WorkingDirectory == "" {

@@ -151,7 +151,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 			// If the error is in the skip list, treat it as a skipped result.
 			if errors.Is(err, skipErr) {
 				result.Status = ResultStatusSkipped
-				result.Error = ErrSkipIntentional
+				result.Error = fmt.Errorf("%w: %v", ErrSkipIntentional, err)
 
 				// Report skipped if we have a reporter
 				if f.hasProgressReporter() {
@@ -163,7 +163,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 						Data: progress.EventData{
 							ExitCode:   result.ExitCode,
 							Error:      result.Error,
-							OutputLine: fmt.Sprintf("%v: %v", ErrSkipIntentional, err),
+							OutputLine: result.Error.Error(),
 						},
 					})
 				}

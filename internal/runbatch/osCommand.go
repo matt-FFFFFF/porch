@@ -366,6 +366,11 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 		c.cleanup(ctx)
 	}
 
+	// Close the log channel if it was created by setupProgressReporting
+	if c.hasProgressReporter() && logCh != nil {
+		close(logCh)
+	}
+
 	// Report completion if we have a reporter
 	if c.hasProgressReporter() {
 		ReportExecutionComplete(ctx, c.reporter, c.GetLabel(), Results{res},
@@ -437,6 +442,7 @@ func (c *OSCommand) reportProgressFromLogChannel(ctx context.Context, ch <-chan 
 }
 
 // setupProgressReporting sets up progress reporting channel or falls back to legacy context-based logging.
+// Returns the log channel and ticker interval. The caller is responsible for closing the returned channel.
 func (c *OSCommand) setupProgressReporting(
 	ctx context.Context, defaultInterval time.Duration,
 ) (chan<- string, time.Duration) {

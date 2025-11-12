@@ -33,12 +33,7 @@ func (b *SerialBatch) Run(ctx context.Context) Results {
 	}
 
 	// Propagate reporter to child commands
-	if b.hasProgressReporter() {
-		childReporter := CreateChildReporterForBatch(b.reporter, b.Label)
-		for _, cmd := range b.Commands {
-			cmd.SetProgressReporter(childReporter)
-		}
-	}
+	PropagateReporterToChildren(b.GetProgressReporter(), b.Label, b.Commands)
 
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""

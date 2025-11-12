@@ -32,13 +32,13 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		ReportBatchStarted(b.reporter, b.Label, "parallel")
 	}
 
-	// Propagate reporter to child commands
+	// Report that this batch is starting if we have a reporter
 	if b.hasProgressReporter() {
-		childReporter := CreateChildReporterForBatch(b.reporter, b.Label)
-		for _, cmd := range b.Commands {
-			cmd.SetProgressReporter(childReporter)
-		}
+		ReportBatchStarted(b.reporter, b.Label, "parallel")
 	}
+
+	// Propagate reporter to child commands
+	PropagateReporterToChildren(b.GetProgressReporter(), b.Label, b.Commands)
 
 	children := make(Results, 0, len(b.Commands))
 	wg := &sync.WaitGroup{}

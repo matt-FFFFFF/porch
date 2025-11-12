@@ -134,3 +134,17 @@ func CreateChildReporterForBatch(parent progress.Reporter, batchLabel string) pr
 
 	return NewChildReporter(parent, []string{batchLabel})
 }
+
+// PropagateReporterToChildren propagates a parent reporter to all child commands in a batch.
+// This is extracted to avoid duplication between SerialBatch and ParallelBatch.
+// If parent is nil, this is a no-op.
+func PropagateReporterToChildren(parent progress.Reporter, batchLabel string, commands []Runnable) {
+	if parent == nil {
+		return
+	}
+
+	childReporter := CreateChildReporterForBatch(parent, batchLabel)
+	for _, cmd := range commands {
+		cmd.SetProgressReporter(childReporter)
+	}
+}

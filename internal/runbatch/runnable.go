@@ -36,8 +36,9 @@ type Runnable interface {
 	ShouldRun(state PreviousCommandStatus) ShouldRunAction
 	// SetProgressReporter sets an optional progress reporter for real-time execution updates.
 	// If not set (nil), the command will run without progress reporting.
+	// This method must be called before Run() and must not be called concurrently with Run() or GetProgressReporter().
 	SetProgressReporter(reporter progress.Reporter)
-	// GetProgressReporter returns the progress reporter if set, nil otherwise.
+	// GetProgressReporter returns the currently set progress reporter, or nil if none is set.
 	GetProgressReporter() progress.Reporter
 }
 

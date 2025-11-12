@@ -177,6 +177,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	return Results{res}
 }
 
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (f *FunctionCommand) GetType() string {
 	return "FunctionCommand"
 }

@@ -113,6 +113,7 @@ func (b *ParallelBatch) SetProgressReporter(reporter progress.Reporter) {
 	// Note: We don't propagate here as it's done in Run() with a child reporter
 }
 
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (b *ParallelBatch) GetType() string {
 	return "ParallelBatch"
 }

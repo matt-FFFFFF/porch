@@ -97,6 +97,7 @@ func (c *BaseCommand) GetCwdRel() string {
 	return c.CwdRel
 }
 
+// SetCwdAbsolute sets the working directory to an absolute path.
 func (c *BaseCommand) SetCwdAbsolute(cwd string) error {
 	if cwd == "" {
 		return nil
@@ -228,6 +229,7 @@ func (c *BaseCommand) hasProgressReporter() bool {
 	return c.reporter != nil
 }
 
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (c *BaseCommand) GetType() string {
 	return "BaseCommand"
 }

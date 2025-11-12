@@ -32,6 +32,8 @@ func NewCommander() *Commander {
 	return c
 }
 
+const typeErrorMessage = "copycwdtotemp command can only be used within a serial or foreachdirectory commands"
+
 // CreateFromYaml creates a new runnable command and implements the commands.Commander interface.
 func (c *Commander) CreateFromYaml(
 	ctx context.Context,
@@ -40,7 +42,7 @@ func (c *Commander) CreateFromYaml(
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
-		return nil, commands.NewErrCommandCreateWithDetails(commandType, "copycwdtotemp command can only be used within a serial or foreachdirectory commands")
+		return nil, commands.NewErrCommandCreateWithDetails(commandType, typeErrorMessage)
 	}
 
 	def := new(Definition)
@@ -69,7 +71,7 @@ func (c *Commander) CreateFromHcl(
 	parent runbatch.Runnable,
 ) (runbatch.Runnable, error) {
 	if parent.GetType() != "SerialBatch" && parent.GetType() != "ForEachCommand" {
-		return nil, commands.NewErrCommandCreateWithDetails(commandType, "copycwdtotemp command can only be used within a serial or foreachdirectory commands")
+		return nil, commands.NewErrCommandCreateWithDetails(commandType, typeErrorMessage)
 	}
 
 	if hclCommand.WorkingDirectory == "" {

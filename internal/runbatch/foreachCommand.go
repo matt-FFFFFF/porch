@@ -335,10 +335,11 @@ func (f *ForEachCommand) SetCwd(cwd string) error {
 }
 
 // SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
-func (b *ForEachCommand) SetCwdAbsolute(cwd string) error {
-	return b.SetCwd(cwd)
+func (f *ForEachCommand) SetCwdAbsolute(cwd string) error {
+	return f.SetCwd(cwd)
 }
 
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (f *ForEachCommand) GetType() string {
 	return "ForEachCommand"
 }

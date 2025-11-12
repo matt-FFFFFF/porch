@@ -55,6 +55,7 @@ func NewErrCommandCreate(cmdName string) error {
 	return &ErrCommandCreate{cmdName: cmdName}
 }
 
+// NewErrCommandCreateWithDetails creates a new ErrCommandCreate error with additional details.
 func NewErrCommandCreateWithDetails(cmdName string, details string) error {
 	return &ErrCommandCreate{cmdName: cmdName, details: details}
 }

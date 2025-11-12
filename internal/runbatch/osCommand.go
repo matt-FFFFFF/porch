@@ -457,6 +457,7 @@ func (c *OSCommand) setupProgressReporting(ctx context.Context) chan<- string {
 	return ch
 }
 
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (c *OSCommand) GetType() string {
 	return "OSCommand"
 }

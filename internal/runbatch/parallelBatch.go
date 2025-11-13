@@ -68,6 +68,8 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		Label:    b.Label,
 		Children: children,
 		Status:   ResultStatusSuccess,
+		Cwd:      b.Cwd,
+		Type:     b.GetType(),
 	}}
 	if children.HasError() {
 		res[0].ExitCode = -1
@@ -100,8 +102,18 @@ func (b *ParallelBatch) SetCwd(cwd string) error {
 	return nil
 }
 
+// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
+func (b *ParallelBatch) SetCwdAbsolute(cwd string) error {
+	return b.SetCwd(cwd)
+}
+
 // SetProgressReporter sets the progress reporter and propagates it to all child commands.
 func (b *ParallelBatch) SetProgressReporter(reporter progress.Reporter) {
 	b.BaseCommand.SetProgressReporter(reporter)
 	// Note: We don't propagate here as it's done in Run() with a child reporter
+}
+
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+func (b *ParallelBatch) GetType() string {
+	return "ParallelBatch"
 }

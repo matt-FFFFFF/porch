@@ -87,13 +87,14 @@ func (m *mockRunnable) Run(ctx context.Context) runbatch.Results {
 func (m *mockRunnable) GetLabel() string                               { return m.label }
 func (m *mockRunnable) GetCwd() string                                 { return "/" }
 func (m *mockRunnable) SetCwd(cwd string) error                        { return nil }
-func (m *mockRunnable) SetCwdToSpecificAbsolute(cwd string) error      { return nil }
+func (m *mockRunnable) SetCwdAbsolute(cwd string) error                { return nil }
 func (m *mockRunnable) GetCwdRel() string                              { return "" }
 func (m *mockRunnable) InheritEnv(env map[string]string)               {}
 func (m *mockRunnable) SetParent(parent runbatch.Runnable)             {}
 func (m *mockRunnable) GetParent() runbatch.Runnable                   { return nil }
 func (m *mockRunnable) SetProgressReporter(reporter progress.Reporter) {}
 func (m *mockRunnable) GetProgressReporter() progress.Reporter         { return nil }
+func (m *mockRunnable) GetType() string                                { return "mockRunnable" }
 
 func (m *mockRunnable) ShouldRun(state runbatch.PreviousCommandStatus) runbatch.ShouldRunAction {
 	return runbatch.ShouldRunActionRun

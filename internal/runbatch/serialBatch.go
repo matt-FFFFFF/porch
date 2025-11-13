@@ -75,6 +75,8 @@ OuterLoop:
 					Label:  cmd.GetLabel(),
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipIntentional,
+					Cwd:    cmd.GetCwd(),
+					Type:   cmd.GetType(),
 				})
 
 				continue OuterLoop
@@ -97,6 +99,8 @@ OuterLoop:
 					Label:  cmd.GetLabel(),
 					Status: ResultStatusSkipped,
 					Error:  ErrSkipOnError,
+					Cwd:    cmd.GetCwd(),
+					Type:   cmd.GetType(),
 				})
 
 				continue OuterLoop
@@ -114,9 +118,10 @@ OuterLoop:
 				logger.Debug("newCwd is set, updating working directory for next commands",
 					"newCwd", newCwd,
 				)
+
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
-					if err := rb.SetCwdToSpecificAbsolute(newCwd); err != nil {
+					if err := rb.SetCwdAbsolute(newCwd); err != nil {
 						// Report error if we have a reporter
 						if b.hasProgressReporter() {
 							b.GetProgressReporter().Report(progress.Event{
@@ -134,6 +139,8 @@ OuterLoop:
 							Label:  rb.GetLabel(),
 							Status: ResultStatusError,
 							Error:  err,
+							Cwd:    rb.GetCwd(),
+							Type:   rb.GetType(),
 						})
 
 						continue OuterLoop
@@ -158,6 +165,8 @@ OuterLoop:
 		StdErr:   nil,
 		Children: results,
 		Status:   ResultStatusSuccess,
+		Cwd:      b.Cwd,
+		Type:     b.GetType(),
 	}}
 	if results.HasError() {
 		res[0].ExitCode = -1
@@ -190,9 +199,9 @@ func (b *SerialBatch) SetCwd(cwd string) error {
 	return nil
 }
 
-// SetCwdToSpecificAbsolute sets the current working directory for the batch and all its sub-commands.
-func (b *SerialBatch) SetCwdToSpecificAbsolute(cwd string) error {
-	if err := b.BaseCommand.SetCwdToSpecificAbsolute(cwd); err != nil {
+// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
+func (b *SerialBatch) SetCwdAbsolute(cwd string) error {
+	if err := b.BaseCommand.SetCwdAbsolute(cwd); err != nil {
 		return err //nolint:err113,wrapcheck
 	}
 
@@ -209,4 +218,9 @@ func (b *SerialBatch) SetCwdToSpecificAbsolute(cwd string) error {
 func (b *SerialBatch) SetProgressReporter(reporter progress.Reporter) {
 	b.BaseCommand.SetProgressReporter(reporter)
 	// Note: We don't propagate here as it's done in Run() with a child reporter
+}
+
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+func (b *SerialBatch) GetType() string {
+	return "SerialBatch"
 }

@@ -97,18 +97,10 @@ func (c *BaseCommand) GetCwdRel() string {
 	return c.CwdRel
 }
 
-// SetCwdToSpecificAbsolute sets the working directory for the command.
-// All commands MUST have an absolute cwd at all times.
-// This method requires the current cwd to be absolute and will error otherwise.
-func (c *BaseCommand) SetCwdToSpecificAbsolute(cwd string) error {
+// SetCwdAbsolute sets the working directory to an absolute path.
+func (c *BaseCommand) SetCwdAbsolute(cwd string) error {
 	if cwd == "" {
 		return nil
-	}
-
-	if !filepath.IsAbs(cwd) {
-		return fmt.Errorf(
-			"%w: new working directory %q is not absolute, all commands must have absolute cwd", ErrPathNotAbsolute, cwd,
-		)
 	}
 
 	// Current working directory must be absolute
@@ -235,4 +227,9 @@ func (c *BaseCommand) hasProgressReporter() bool {
 	defer c.reporterMu.RUnlock()
 
 	return c.reporter != nil
+}
+
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+func (c *BaseCommand) GetType() string {
+	return "BaseCommand"
 }

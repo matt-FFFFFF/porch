@@ -1,0 +1,192 @@
+name: Complex Nested Example
+description: |
+  This checks PWD propagation in complex nested scenarios.
+
+command_groups:
+  - name: first_command_group
+    commands:
+      - type: "shell"
+        name: "echo pwd g1"
+        command_line: "echo $(pwd)"
+
+  - name: terraform_tests
+    description: Run Terraform tests for root module and submodules
+    commands:
+      - type: copycwdtotemp
+        name: Copy current working directory to temp
+        cwd: "."
+
+      - type: "shell"
+        name: "echo pwd g2"
+        command_line: "echo $(pwd)"
+
+commands:
+  - type: "shell"
+    name: "echo pwd 1"
+    command_line: "echo $(pwd)"
+
+  - type: parallel
+    name: Terraform tests
+    env:
+    commands:
+      - type: foreachdirectory
+        name: submodules
+        depth: 1
+        working_directory: "./modules"
+        mode: parallel
+        skip_on_not_exist: true
+        working_directory_strategy: item_relative
+        command_group: terraform_tests
+
+      - type: serial
+        name: root module
+        command_group: terraform_tests 
+
+  - type: parallel
+    name: first level parallel
+    commands:
+
+      - type: serial
+        name: root level run
+        commands:
+          - type: copycwdtotemp
+            name: Copy current working directory to temp
+
+          - type: "shell"
+            name: "echo pwd 2"
+            command_line: "echo $(pwd)"
+
+          - type: serial
+            name: run
+            commands:
+              - type: "shell"
+                name: "echo pwd 3"
+                command_line: "echo $(pwd)"
+
+          - type: foreachdirectory
+            name: examples
+            working_directory: "./examples"
+            depth: 1
+            mode: parallel
+            skip_on_not_exist: true
+            working_directory_strategy: "item_relative"
+            runs_on_condition: always
+            commands:
+              - type: "shell"
+                name: "echo pwd 4"
+                command_line: "echo $(pwd)"
+
+          - type: foreachdirectory
+            name: modules
+            working_directory: "./modules"
+            depth: 1
+            mode: parallel
+            skip_on_not_exist: true
+            working_directory_strategy: "item_relative"
+            runs_on_condition: always
+            commands:
+              - type: "shell"
+                name: "echo pwd 5"
+                command_line: "echo $(pwd)"
+
+      - type: serial
+        name: another root level run
+        commands:
+          - type: copycwdtotemp
+            name: Copy to temp
+
+          - type: "shell"
+            name: "echo pwd 6"
+            command_line: "echo $(pwd)"
+
+      - type: serial
+        name: another root level run with nested batches
+        commands:
+          - type: copycwdtotemp
+            name: Copy to temp
+
+          - type: "shell"
+            name: "echo pwd 7"
+            command_line: "echo $(pwd)"
+
+          - type: serial
+            name: avmfix
+            commands:
+              - type: serial
+                name: root module
+                command_group: first_command_group
+
+              - type: foreachdirectory
+                name: submodules
+                working_directory: "./modules"
+                depth: 1
+                mode: serial
+                skip_on_not_exist: true
+                working_directory_strategy: "item_relative"
+                command_group: first_command_group
+
+              - type: foreachdirectory
+                name: examples
+                working_directory: "./examples"
+                depth: 1
+                mode: serial
+                skip_on_not_exist: true
+                working_directory_strategy: "item_relative"
+                command_group: first_command_group
+
+      - type: serial
+        name: Another root level run with nested doc generation and conftest
+        commands:
+          - type: copycwdtotemp
+            name: Copy to temp
+
+          - type: parallel
+            name: Generate
+            commands:
+              - type: "shell"
+                name: "echo pwd 8"
+                command_line: "echo $(pwd)"
+
+              - type: foreachdirectory
+                name: examples
+                working_directory: "./examples"
+                depth: 1
+                mode: parallel
+                skip_on_not_exist: true
+                commands:
+                  - type: "shell"
+                    name: "echo pwd 9"
+                    command_line: "echo $(pwd)"
+
+              - type: foreachdirectory
+                name: modules
+                working_directory: "./modules"
+                depth: 1
+                mode: parallel
+                skip_on_not_exist: true
+                commands:
+                  - type: "shell"
+                    name: "echo pwd 10"
+                    command_line: "echo $(pwd)"
+
+  - type: serial
+    name: Another root level run with
+    commands:
+      - type: copycwdtotemp
+        name: Copy to temp
+
+      - type: "shell"
+        name: "echo pwd 11"
+        command_line: "echo $(pwd)"
+
+      - type: foreachdirectory
+        name: examples
+        working_directory: "./examples"
+        mode: parallel
+        depth: 1
+        skip_on_not_exist: true
+        working_directory_strategy: "item_relative"
+        commands:
+          - type: "shell"
+            name: "echo pwd 12"
+            command_line: "echo $(pwd)"

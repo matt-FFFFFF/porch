@@ -354,9 +354,12 @@ commands:
     name: "Shell Command"
     command_line: "echo hello"
     working_directory: "/tmp"
-  - type: "copycwdtotemp"
-    name: "Copy Command"
-    cwd: "."
+  - type: "serial"
+    name: "Serial Command"
+    commands:
+      - type: "shell"
+        name: "Inner Shell Command"
+        command_line: "echo inner"
 `)
 
 		parent := &runbatch.SerialBatch{

@@ -134,6 +134,8 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		Label:    f.Label,
 		ExitCode: 0,
 		Status:   ResultStatusSuccess,
+		Cwd:      f.Cwd,
+		Type:     f.GetType(),
 	}
 
 	// Wait for either the function to complete or the context to be cancelled
@@ -173,4 +175,9 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	logger.Debug("Function command completed successfully", "newCwd", res.newCwd)
 
 	return Results{res}
+}
+
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+func (f *FunctionCommand) GetType() string {
+	return "FunctionCommand"
 }

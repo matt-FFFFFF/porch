@@ -110,6 +110,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	res := &Result{
 		Label:    c.Label,
 		ExitCode: 0,
+		Cwd:      c.Cwd,
+		Type:     c.GetType(),
 	}
 
 	env := os.Environ()
@@ -453,4 +455,9 @@ func (c *OSCommand) setupProgressReporting(ctx context.Context) chan<- string {
 	go c.reportProgressFromLogChannel(ctx, ch)
 
 	return ch
+}
+
+// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+func (c *OSCommand) GetType() string {
+	return "OSCommand"
 }

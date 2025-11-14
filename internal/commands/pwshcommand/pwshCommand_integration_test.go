@@ -203,10 +203,7 @@ func TestPowerShellCommandExecution_Integration(t *testing.T) {
 			}
 
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "parent-batch",
-					Cwd:   t.TempDir(),
-				},
+				BaseCommand: runbatch.NewBaseCommand("parent-batch", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 			}
 
 			// Create the command
@@ -283,10 +280,7 @@ Write-Host "Calculation result: $result"`
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)
@@ -372,10 +366,7 @@ func TestPowerShellWithEnvironmentVariables_Integration(t *testing.T) {
 			}
 
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "parent-batch",
-					Cwd:   "/",
-				},
+				BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 			}
 
 			base, err := definition.ToBaseCommand(ctx, parent)
@@ -436,10 +427,7 @@ func TestPowerShellWithWorkingDirectory_Integration(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)
@@ -487,10 +475,7 @@ func TestPowerShellTimeout_Integration(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)
@@ -578,10 +563,7 @@ func TestPowerShellFailure_Integration(t *testing.T) {
 			}
 
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "parent-batch",
-					Cwd:   "/",
-				},
+				BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 			}
 
 			base, err := definition.ToBaseCommand(ctx, parent)
@@ -627,10 +609,7 @@ func TestPowerShellWithSuccessExitCodes_Integration(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)
@@ -674,10 +653,7 @@ func TestPowerShellLongOutput_Integration(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)

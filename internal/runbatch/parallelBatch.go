@@ -68,7 +68,7 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		Label:    b.Label,
 		Children: children,
 		Status:   ResultStatusSuccess,
-		Cwd:      b.Cwd,
+		Cwd:      b.GetCwd(),
 		Type:     b.GetType(),
 	}}
 	if children.HasError() {
@@ -85,26 +85,6 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	}
 
 	return res
-}
-
-// SetCwd sets the current working directory for the batch and all its sub-commands.
-func (b *ParallelBatch) SetCwd(cwd string) error {
-	if err := b.BaseCommand.SetCwd(cwd); err != nil {
-		return err //nolint:err113,wrapcheck
-	}
-
-	for _, cmd := range b.Commands {
-		if err := cmd.SetCwd(cwd); err != nil {
-			return err //nolint:err113,wrapcheck
-		}
-	}
-
-	return nil
-}
-
-// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
-func (b *ParallelBatch) SetCwdAbsolute(cwd string) error {
-	return b.SetCwd(cwd)
 }
 
 // SetProgressReporter sets the progress reporter and propagates it to all child commands.

@@ -142,12 +142,12 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		ExitCode: 0,
 		Children: Results{},
 		Status:   ResultStatusSuccess,
-		Cwd:      f.Cwd,
+		Cwd:      f.GetCwd(),
 		Type:     f.GetType(),
 	}
 
 	// Get the items to iterate over
-	items, err := f.ItemsProvider(ctx, f.Cwd)
+	items, err := f.ItemsProvider(ctx, f.GetCwd())
 	if err != nil {
 		for _, skipErr := range f.ItemsSkipOnErrors {
 			// If the error is in the skip list, treat it as a skipped result.
@@ -224,8 +224,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
 			fmt.Sprintf("[%s]", item),
-			f.Cwd,
-			f.CwdRel,
+			f.GetCwd(),
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
@@ -262,7 +261,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 	}
 
 	base := NewBaseCommand(
-		f.Label, f.Cwd, f.CwdRel, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
+		f.Label, f.cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
 	)
 	base.SetParent(f.GetParent())
 
@@ -310,33 +309,14 @@ func NewForEachCommand(
 	base *BaseCommand,
 	provider ItemsProviderFunc,
 	mode ForEachMode,
-	commands []Runnable) *ForEachCommand {
+	commands []Runnable,
+) *ForEachCommand {
 	return &ForEachCommand{
 		BaseCommand:   base,
 		ItemsProvider: provider,
 		Commands:      commands,
 		Mode:          mode,
 	}
-}
-
-// SetCwd sets the current working directory for the batch and all its sub-commands.
-func (f *ForEachCommand) SetCwd(cwd string) error {
-	if err := f.BaseCommand.SetCwd(cwd); err != nil {
-		return err //nolint:err113,wrapcheck
-	}
-
-	for _, cmd := range f.Commands {
-		if err := cmd.SetCwd(cwd); err != nil {
-			return err //nolint:err113,wrapcheck
-		}
-	}
-
-	return nil
-}
-
-// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
-func (f *ForEachCommand) SetCwdAbsolute(cwd string) error {
-	return f.SetCwd(cwd)
 }
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).

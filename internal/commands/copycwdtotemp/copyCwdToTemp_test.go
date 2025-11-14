@@ -86,12 +86,12 @@ func TestCopyCwdToTemp(t *testing.T) {
 		// Create directory if needed
 		dir := filepath.Dir(path)
 		if dir != "." {
-			err := FS.MkdirAll(dir, 0755)
+			err := FS.MkdirAll(dir, 0o755)
 			require.NoError(t, err, "Failed to create directory: %s", dir)
 		}
 
 		// Create and write to the file
-		err := afero.WriteFile(FS, path, mapFile.Data, 0644)
+		err := afero.WriteFile(FS, path, mapFile.Data, 0o644)
 		require.NoError(t, err, "Failed to write file: %s", path)
 	}
 
@@ -102,10 +102,7 @@ func TestCopyCwdToTemp(t *testing.T) {
 	// We need to capture what temp directory was created
 	var capturedTempDir string
 
-	base := &runbatch.BaseCommand{
-		Label: "copyCwdToTemp",
-		Cwd:   cwd,
-	}
+	base := runbatch.NewBaseCommand("copyCwdToTemp", cwd, runbatch.RunOnAlways, nil, nil)
 	f := New(base)
 	results := f.Run(ctx)
 
@@ -176,10 +173,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 
-				base := &runbatch.BaseCommand{
-					Label: "copyCwdToTemp",
-					Cwd:   srcDir,
-				}
+				base := runbatch.NewBaseCommand("copyCwdToTemp", srcDir, runbatch.RunOnAlways, nil, nil)
 				f := New(base)
 				results := f.Run(ctx)
 
@@ -194,13 +188,13 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 			setupFS: func() afero.Fs {
 				baseFs := afero.NewMemMapFs()
 				// Create the directory and file structure
-				err := baseFs.MkdirAll(srcDir, 0755)
+				err := baseFs.MkdirAll(srcDir, 0o755)
 				if err != nil {
 					panic(err)
 				}
 
 				testFilePath := filepath.Join(srcDir, "file1.txt")
-				_ = afero.WriteFile(baseFs, testFilePath, []byte("content"), 0644)
+				_ = afero.WriteFile(baseFs, testFilePath, []byte("content"), 0o644)
 
 				return &errorFS{fs: baseFs, errorPath: testFilePath}
 			},
@@ -225,10 +219,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 
-				base := &runbatch.BaseCommand{
-					Label: "copyCwdToTemp",
-					Cwd:   srcDir,
-				}
+				base := runbatch.NewBaseCommand("copyCwdToTemp", srcDir, runbatch.RunOnAlways, nil, nil)
 				f := New(base)
 				results := f.Run(ctx)
 
@@ -264,10 +255,7 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				cancel() // Cancel immediately
 
-				base := &runbatch.BaseCommand{
-					Label: "copyCwdToTemp",
-					Cwd:   srcDir,
-				}
+				base := runbatch.NewBaseCommand("copyCwdToTemp", srcDir, runbatch.RunOnAlways, nil, nil)
 				f := New(base)
 				results := f.Run(ctx)
 
@@ -292,10 +280,7 @@ func TestCwdChangePropagation(t *testing.T) {
 	const newCwd = tmpDir + "	/new_cwd_path"
 
 	cwdChangingCmd := &runbatch.FunctionCommand{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "Change CWD",
-			Cwd:   tmpDir,
-		},
+		BaseCommand: runbatch.NewBaseCommand("Change CWD", tmpDir, runbatch.RunOnAlways, nil, nil),
 		Func: func(_ context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 			return runbatch.FunctionCommandReturn{
 				NewCwd: newCwd,
@@ -305,18 +290,13 @@ func TestCwdChangePropagation(t *testing.T) {
 
 	// Command that tracks its CWD
 	tracker := &cwdTrackerCommand{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "Subsequent command",
-			Cwd:   tmpDir, // Initial CWD
-		},
+		BaseCommand: runbatch.NewBaseCommand("Subsequent command", tmpDir, runbatch.RunOnAlways, nil, nil), // Initial CWD,
 	}
 
 	// Create the batch
 	batch := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "CWD Change Test Batch",
-		},
-		Commands: []runbatch.Runnable{cwdChangingCmd, tracker},
+		BaseCommand: runbatch.NewBaseCommand("CWD Change Test Batch", "", runbatch.RunOnAlways, nil, nil),
+		Commands:    []runbatch.Runnable{cwdChangingCmd, tracker},
 	}
 
 	// Set parent for proper context
@@ -328,7 +308,7 @@ func TestCwdChangePropagation(t *testing.T) {
 	batch.Run(context.Background())
 
 	// Verify the tracker received the new CWD
-	assert.Equal(t, newCwd, tracker.Cwd,
+	assert.Equal(t, newCwd, tracker.GetCwd(),
 		"The subsequent command should have received the new CWD")
 }
 
@@ -369,31 +349,22 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	}
 
 	// Create the initial directory structure
-	err := memFs.MkdirAll(initialCwd, 0755)
+	err := memFs.MkdirAll(initialCwd, 0o755)
 	require.NoError(t, err)
-	err = afero.WriteFile(memFs, filepath.Join(initialCwd, "testfile.txt"), []byte("test content"), 0644)
+	err = afero.WriteFile(memFs, filepath.Join(initialCwd, "testfile.txt"), []byte("test content"), 0o644)
 	require.NoError(t, err)
 
 	// Create our test commands
-	base := &runbatch.BaseCommand{
-		Label: "CopyCwdToTemp",
-		Cwd:   initialCwd,
-	}
+	base := runbatch.NewBaseCommand("CopyCwdToTemp", initialCwd, runbatch.RunOnAlways, nil, nil)
 	copyCwdCmd := New(base)
 	trackerCmd := &cwdTrackerCommand{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "Tracker Command",
-			Cwd:   initialCwd, // Start with the initial CWD
-		},
+		BaseCommand: runbatch.NewBaseCommand("Tracker Command", initialCwd, runbatch.RunOnAlways, nil, nil), // Start with the initial CWD,
 	}
 
 	// Create and run a serial batch with both commands
 	batch := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "Test CopyCwdToTemp Batch",
-			Cwd:   initialCwd, // Set the initial CWD for the batch
-		},
-		Commands: []runbatch.Runnable{copyCwdCmd, trackerCmd},
+		BaseCommand: runbatch.NewBaseCommand("Test CopyCwdToTemp Batch", initialCwd, runbatch.RunOnAlways, nil, nil), // Set the initial CWD for the batch,
+		Commands:    []runbatch.Runnable{copyCwdCmd, trackerCmd},
 	}
 	// Set parent for proper context
 	for _, cmd := range batch.Commands {
@@ -407,7 +378,7 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	require.NotNil(t, results)
 
 	// Verify the tracker picked up the new working directory
-	assert.Equal(t, expectedNewCwd, trackerCmd.Cwd,
+	assert.Equal(t, expectedNewCwd, trackerCmd.GetCwd(),
 		"The CopyCwdToTemp command should have set the working directory for subsequent commands")
 
 	// Verify the file was copied to the new directory

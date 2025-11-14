@@ -73,12 +73,9 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := &BaseCommand{
-				Cwd: tt.initialCwd,
-				parent: &BaseCommand{
-					Cwd: t.TempDir(),
-				},
-			}
+			parent := NewBaseCommand("parent", t.TempDir(), RunOnAlways, nil, nil)
+			cmd := NewBaseCommand("test", tt.initialCwd, RunOnAlways, nil, nil)
+			cmd.parent = parent
 			err := cmd.SetCwd(tt.newCwd)
 
 			if tt.expectError {
@@ -92,7 +89,7 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.expectedCwd, cmd.Cwd)
+			assert.Equal(t, tt.expectedCwd, cmd.GetCwd())
 		})
 	}
 }
@@ -107,13 +104,9 @@ func TestBaseCommand_SetCwd_CopyCwdToTempScenario(t *testing.T) {
 	workingDir, err := filepath.Abs("./internal")
 	require.NoError(t, err)
 
-	cmd := &BaseCommand{
-		Label: "foreachdirectory-cmd",
-		Cwd:   workingDir, // Now absolute from creation time
-		parent: &BaseCommand{
-			Cwd: t.TempDir(), // Parent command has a temp directory as its working directory
-		},
-	}
+	parent := NewBaseCommand("parent", t.TempDir(), RunOnAlways, nil, nil)
+	cmd := NewBaseCommand("foreachdirectory-cmd", workingDir, RunOnAlways, nil, nil)
+	cmd.parent = parent
 
 	// 2. copycwdtotemp runs and sets new working directory (absolute path)
 	tempDir := "/tmp/porch_abc123"
@@ -121,7 +114,7 @@ func TestBaseCommand_SetCwd_CopyCwdToTempScenario(t *testing.T) {
 
 	// 3. The working directory should now be the temp directory (absolute path replaces absolute path)
 	expectedCwd := "/tmp/porch_abc123"
-	assert.Equal(t, expectedCwd, cmd.Cwd,
+	assert.Equal(t, expectedCwd, cmd.GetCwd(),
 		"copycwdtotemp should update the absolute path to the temp directory")
 }
 
@@ -182,10 +175,10 @@ func TestBaseCommand_NewBaseCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cmd := NewBaseCommand(tt.label, tt.cwd, "", tt.runsOn, tt.runOnExitCodes, tt.env)
+			cmd := NewBaseCommand(tt.label, tt.cwd, tt.runsOn, tt.runOnExitCodes, tt.env)
 
 			assert.Equal(t, tt.expectedLabel, cmd.Label)
-			assert.Equal(t, tt.expectedCwd, cmd.Cwd)
+			assert.Equal(t, tt.expectedCwd, cmd.GetCwd())
 			assert.Equal(t, tt.expectedRunsOn, cmd.RunsOnCondition)
 			assert.Equal(t, tt.expectedExitCodes, cmd.RunsOnExitCodes)
 			assert.Len(t, cmd.Env, tt.expectedEnvLen)

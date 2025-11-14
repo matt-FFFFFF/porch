@@ -114,7 +114,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		logger.Info(fmt.Sprintf("Executing: %s", fullLabel))
 
 		// Run the function
-		fr := f.Func(ctx, f.Cwd)
+		fr := f.Func(ctx, f.GetCwd())
 
 		logger.Debug("Function command completed", "resultErr", fr.Err, "newCwd", fr.NewCwd)
 
@@ -134,7 +134,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		Label:    f.Label,
 		ExitCode: 0,
 		Status:   ResultStatusSuccess,
-		Cwd:      f.Cwd,
+		Cwd:      f.cwd,
 		Type:     f.GetType(),
 	}
 

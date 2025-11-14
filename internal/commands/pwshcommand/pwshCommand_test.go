@@ -141,10 +141,7 @@ func TestNew_UnitTests(t *testing.T) {
 			}
 
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "parent-batch",
-					Cwd:   "/",
-				},
+				BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 			}
 
 			base, err := tc.definition.ToBaseCommand(ctx, parent)
@@ -199,7 +196,7 @@ func TestNew_UnitTests(t *testing.T) {
 			assert.Equal(t, tc.definition.Name, osCmd.Label)
 
 			if tc.definition.WorkingDirectory != "" {
-				assert.Equal(t, tc.definition.WorkingDirectory, osCmd.Cwd)
+				assert.Equal(t, tc.definition.WorkingDirectory, osCmd.GetCwd())
 			}
 
 			if tc.definition.Env != nil {
@@ -222,10 +219,7 @@ func TestNew_InlineScriptCreatesTemporaryFile(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)
@@ -278,10 +272,7 @@ func TestNew_ExecutablePathSelection(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)
@@ -331,10 +322,7 @@ func TestNew_InvalidBaseDefinition(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	base, err := definition.ToBaseCommand(ctx, parent)

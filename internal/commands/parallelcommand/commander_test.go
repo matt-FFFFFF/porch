@@ -54,10 +54,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -70,7 +67,7 @@ commands:
 
 		// Check base command properties
 		assert.Equal(t, "Test Parallel Command", parallelBatch.Label)
-		assert.Equal(t, "/tmp", parallelBatch.Cwd)
+		assert.Equal(t, "/tmp", parallelBatch.GetCwd())
 		assert.Equal(t, runbatch.RunOnSuccess, parallelBatch.RunsOnCondition)
 		assert.Equal(t, map[string]string{"TEST_VAR": "test_value"}, parallelBatch.Env)
 
@@ -94,10 +91,7 @@ commands: []
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -131,10 +125,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -162,10 +153,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -193,10 +181,7 @@ commands: [
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -220,10 +205,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -249,10 +231,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -277,10 +256,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		// First verify this normally works
@@ -300,10 +276,7 @@ func TestCommander_Interface(t *testing.T) {
 		ctx := context.Background()
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		// Verify the method exists and has correct signature
@@ -363,10 +336,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -400,10 +370,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Test Parent",
-				Cwd:   t.TempDir(),
-			},
+			BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)

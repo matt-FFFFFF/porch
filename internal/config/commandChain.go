@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/goccy/go-yaml"
 	"github.com/matt-FFFFFF/porch/internal/commands"
@@ -63,17 +62,15 @@ func BuildFromYAML(ctx context.Context, factory commands.CommanderFactory, yamlD
 
 	runnables := make([]runbatch.Runnable, 0, len(def.Commands))
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, errors.Join(ErrConfigBuild, err)
-	}
-
 	// Wrap in a serial batch with the definition's metadata
 	topLevelCommand := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: def.Name,
-			Cwd:   pwd,
-		},
+		BaseCommand: runbatch.NewBaseCommand(
+			def.Name,
+			".",
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		),
 	}
 
 	for i, cmd := range def.Commands {

@@ -34,21 +34,15 @@ func (f *fakeCmd) Run(_ context.Context) Results {
 
 func TestSerialBatchRun_AllSuccess(t *testing.T) {
 	batch := &SerialBatch{
-		BaseCommand: &BaseCommand{
-			Label: "batch1",
-		},
+		BaseCommand: NewBaseCommand("batch1", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmd1",
-				},
-				exitCode: 0,
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    0,
 			},
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmd2",
-				},
-				exitCode: 0,
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    0,
 			},
 		},
 	}
@@ -62,22 +56,16 @@ func TestSerialBatchRun_AllSuccess(t *testing.T) {
 
 func TestSerialBatchRun_OneFailure(t *testing.T) {
 	batch := &SerialBatch{
-		BaseCommand: &BaseCommand{
-			Label: "batch2",
-		},
+		BaseCommand: NewBaseCommand("batch2", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmd1",
-				},
-				exitCode: 0,
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    0,
 			},
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmd2",
-				},
-				exitCode: 1,
-				err:      os.ErrPermission,
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    1,
+				err:         os.ErrPermission,
 			},
 		},
 	}
@@ -91,36 +79,26 @@ func TestSerialBatchRun_OneFailure(t *testing.T) {
 
 func TestSerialBatchRun_NestedBatch(t *testing.T) {
 	childBatch := &SerialBatch{
-		BaseCommand: &BaseCommand{
-			Label: "child",
-		},
+		BaseCommand: NewBaseCommand("child", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmdA",
-				},
-				exitCode: 0,
+				BaseCommand: NewBaseCommand("cmdA", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    0,
 			},
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmdB",
-				},
-				exitCode: 1,
-				err:      os.ErrNotExist,
+				BaseCommand: NewBaseCommand("cmdB", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    1,
+				err:         os.ErrNotExist,
 			},
 		},
 	}
 	batch := &SerialBatch{
-		BaseCommand: &BaseCommand{
-			Label: "parent",
-		},
+		BaseCommand: NewBaseCommand("parent", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
 			childBatch,
 			&fakeCmd{
-				BaseCommand: &BaseCommand{
-					Label: "cmdC",
-				},
-				exitCode: 0,
+				BaseCommand: NewBaseCommand("cmdC", t.TempDir(), RunOnAlways, nil, nil),
+				exitCode:    0,
 			},
 		},
 	}

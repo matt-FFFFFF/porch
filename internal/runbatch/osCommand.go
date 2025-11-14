@@ -78,7 +78,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger = logger.With("runnableType", "OSCommand").
 		With("label", fullLabel)
 
-	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
+	logger.Debug("command info", "path", c.Path, "cwd", c.cwd, "args", c.Args)
 
 	// Report start if we have a reporter
 	if c.hasProgressReporter() {
@@ -110,7 +110,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	res := &Result{
 		Label:    c.Label,
 		ExitCode: 0,
-		Cwd:      c.Cwd,
+		Cwd:      c.cwd,
 		Type:     c.GetType(),
 	}
 
@@ -143,7 +143,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger.Debug("starting process")
 
 	ps, err := os.StartProcess(c.Path, args, &os.ProcAttr{
-		Dir:   c.Cwd,
+		Dir:   c.GetCwd(),
 		Env:   env,
 		Files: []*os.File{os.Stdin, wOut, wErr},
 	})
@@ -172,7 +172,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	go func() {
 		defer close(stdoutDone)
 		// Read all data through the teereader to capture it
-		_, err := io.Copy(io.Discard, stdoutTeeReader)
+		_, err = io.Copy(io.Discard, stdoutTeeReader)
 		if err != nil && err != io.EOF {
 			logger.Debug("error reading stdout through teereader", "error", err)
 		}
@@ -257,7 +257,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				default: // Channel full, that's fine
 				}
 
-				if err := ps.Signal(s); err != nil {
+				if err = ps.Signal(s); err != nil {
 					logger.Debug("failed to send signal", "signal", s.String(), "error", err)
 				}
 

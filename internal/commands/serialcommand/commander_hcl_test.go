@@ -249,10 +249,7 @@ func TestCommander_CreateFromHcl(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	for _, tc := range testCases {
@@ -300,10 +297,7 @@ func TestCommander_CreateFromHcl_ContextCancellation(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	runnable, err := commander.CreateFromHcl(ctx, factory, hclCommand, parent)

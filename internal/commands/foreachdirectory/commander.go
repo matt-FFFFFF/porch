@@ -18,9 +18,11 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/schema"
 )
 
-var _ commands.Commander = (*Commander)(nil)
-var _ schema.Writer = (*Commander)(nil)
-var _ schema.Provider = (*Commander)(nil)
+var (
+	_ commands.Commander = (*Commander)(nil)
+	_ schema.Writer      = (*Commander)(nil)
+	_ schema.Provider    = (*Commander)(nil)
+)
 
 // Commander implements the commands.Commander interface for the foreachdirectory command.
 type Commander struct {
@@ -134,7 +136,6 @@ func (c *Commander) CreateFromHcl(
 	}
 
 	for _, cmd := range hclCommand.Commands {
-		cmd := cmd
 		// Check for context cancellation during command processing
 		select {
 		case <-ctx.Done():

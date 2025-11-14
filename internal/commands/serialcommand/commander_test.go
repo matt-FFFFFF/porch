@@ -48,10 +48,7 @@ commands:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -64,7 +61,7 @@ commands:
 
 		// Check base command properties
 		assert.Equal(t, "Test Serial Command", serialBatch.Label)
-		assert.Equal(t, "/tmp", serialBatch.Cwd)
+		assert.Equal(t, "/tmp", serialBatch.GetCwd())
 		assert.Equal(t, runbatch.RunOnSuccess, serialBatch.RunsOnCondition)
 		assert.Equal(t, map[string]string{"TEST_VAR": "test_value"}, serialBatch.Env)
 
@@ -87,10 +84,7 @@ name: "Empty Serial Command"
 commands: []
 `)
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -123,10 +117,18 @@ commands:
     command_line: "echo outer"
 `)
 
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Nested Serial Command",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(
+			ctx,
+			testRegistry,
+			yamlPayload,
+			runbatch.NewBaseCommand(
+				"Nested Serial Command",
+				t.TempDir(),
+				runbatch.RunOnAlways,
+				nil,
+				nil,
+			),
+		)
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -150,10 +152,13 @@ commands:
     command_line: "echo test"
 `)
 
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Minimal Command",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, runbatch.NewBaseCommand(
+			"Minimal Command",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -177,10 +182,13 @@ commands: [
   invalid yaml structure
 `)
 
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Test Command",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, runbatch.NewBaseCommand(
+			"Test Command",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		require.ErrorIs(t, err, commands.ErrYamlUnmarshal)
@@ -222,10 +230,13 @@ commands:
     some_field: "value"
 `)
 
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Test Command",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, runbatch.NewBaseCommand(
+			"Test Command",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 		assert.Nil(t, runnable)
 		require.Error(t, err)
 		require.ErrorIs(t, err, commands.ErrFailedToCreateRunnable)
@@ -247,10 +258,13 @@ commands:
 `)
 
 		// First verify this normally works
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Test Command",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, runbatch.NewBaseCommand(
+			"Test Command",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 	})
@@ -270,10 +284,13 @@ func TestCommander_Interface(t *testing.T) {
 type: serial
 name: "Test"
 commands: []
-`), &runbatch.BaseCommand{
-			Label: "Test Command",
-			Cwd:   t.TempDir(),
-		})
+`), runbatch.NewBaseCommand(
+			"Test Command",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 
 		// Should not panic and should return expected types
 		assert.IsType(t, (*runbatch.SerialBatch)(nil), runnable)
@@ -321,10 +338,13 @@ commands:
     cwd: "."
 `)
 
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Parent",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, runbatch.NewBaseCommand(
+			"Parent",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 
@@ -354,10 +374,13 @@ commands:
       CHI§LD_VAR: "child_value"
 `)
 
-		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, &runbatch.BaseCommand{
-			Label: "Parent",
-			Cwd:   t.TempDir(),
-		})
+		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, runbatch.NewBaseCommand(
+			"Parent",
+			t.TempDir(),
+			runbatch.RunOnAlways,
+			nil,
+			nil,
+		))
 		require.NoError(t, err)
 		require.NotNil(t, runnable)
 

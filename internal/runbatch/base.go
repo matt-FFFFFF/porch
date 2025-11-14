@@ -6,7 +6,6 @@ package runbatch
 import (
 	"context"
 	"errors"
-	"fmt"
 	"maps"
 	"path/filepath"
 	"slices"
@@ -26,12 +25,11 @@ var (
 // It should be embedded in other command types to provide common functionality.
 type BaseCommand struct {
 	Label           string            // Optional label for the command
-	Cwd             string            // The absolute working directory for the command
-	CwdRel          string            // The relative working directory for the command, from the source YAML file
 	RunsOnCondition RunCondition      // The condition under which the command runs
 	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
 	Env             map[string]string // Environment variables to be passed to the command
 	parent          Runnable          // The parent command or batch, if any
+	cwd             string            // The working directory for the command, can be absolute or relative. Do not access directly, use GetCwd() and SetCwd() instead.
 	reporterMu      sync.RWMutex      // Mutex to protect the reporter field
 	reporter        progress.Reporter // Optional progress reporter for real-time updates
 }
@@ -48,7 +46,7 @@ type PreviousCommandStatus struct {
 
 // NewBaseCommand creates a new BaseCommand with the specified parameters.
 func NewBaseCommand(
-	label, cwd, relPath string, runsOn RunCondition, runOnExitCodes []int, env map[string]string,
+	label, cwd string, runsOn RunCondition, runOnExitCodes []int, env map[string]string,
 ) *BaseCommand {
 	if runOnExitCodes == nil {
 		runOnExitCodes = []int{0} // Default to running on success (exit code 0)
@@ -60,8 +58,7 @@ func NewBaseCommand(
 
 	return &BaseCommand{
 		Label:           label,
-		Cwd:             cwd,
-		CwdRel:          relPath,
+		cwd:             cwd,
 		RunsOnCondition: runsOn,
 		RunsOnExitCodes: runOnExitCodes,
 		Env:             env,
@@ -88,64 +85,40 @@ func (c *BaseCommand) SetParent(parent Runnable) {
 }
 
 // GetCwd returns the current working directory for the command.
+// It resolves the working directory using the following rules:
+//   - If the receiver is nil, returns "."
+//   - If cwd is empty and no parent exists, returns "."
+//   - If cwd is empty and parent exists, inherits parent's cwd
+//   - If cwd is absolute, returns it directly
+//   - If cwd is relative and no parent exists, returns the relative path
+//   - If cwd is relative and parent exists, joins it with parent's cwd
 func (c *BaseCommand) GetCwd() string {
-	return c.Cwd
-}
-
-// GetCwdRel returns the relative working directory for the command, from the source YAML file.
-func (c *BaseCommand) GetCwdRel() string {
-	return c.CwdRel
-}
-
-// SetCwdAbsolute sets the working directory to an absolute path.
-func (c *BaseCommand) SetCwdAbsolute(cwd string) error {
-	if cwd == "" {
-		return nil
+	if c == nil {
+		return "."
 	}
 
-	// Current working directory must be absolute
-	if !filepath.IsAbs(c.Cwd) {
-		return fmt.Errorf(
-			"%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd,
-		)
+	if c.cwd == "" {
+		if c.parent == nil {
+			return "."
+		}
+
+		return c.parent.GetCwd()
 	}
 
-	c.Cwd = cwd
+	if filepath.IsAbs(c.cwd) {
+		return c.cwd
+	}
 
-	return nil
+	if c.parent == nil {
+		return c.cwd
+	}
+
+	return filepath.Join(c.parent.GetCwd(), c.cwd)
 }
 
 // SetCwd sets the working directory for the command.
-// All commands MUST have an absolute cwd at all times.
-// This method requires the current cwd to be absolute and will error otherwise.
 func (c *BaseCommand) SetCwd(cwd string) error {
-	if cwd == "" {
-		return nil
-	}
-
-	// Current working directory must be absolute
-	if !filepath.IsAbs(c.Cwd) {
-		return fmt.Errorf(
-			"%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd,
-		)
-	}
-
-	if filepath.IsAbs(cwd) {
-		// If the new cwd is absolute, we can set it directly
-		// using the relative path if it exists.
-		parent := c.GetParent()
-		if parent == nil {
-			return fmt.Errorf("%w: parent command is not set, cannot determine relative working directory", ErrSetCwd)
-		}
-
-		c.Cwd = filepath.Join(cwd, parent.GetCwdRel(), c.CwdRel)
-
-		return nil
-	}
-
-	// If the new cwd is relative, resolve it against the current absolute cwd
-	c.Cwd = filepath.Join(c.Cwd, cwd)
-
+	c.cwd = cwd
 	return nil
 }
 

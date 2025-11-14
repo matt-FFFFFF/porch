@@ -20,10 +20,8 @@ func TestFunctionCommandRun_Success(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "success function",
-		},
-		Func: successFunc,
+		BaseCommand: NewBaseCommand("success function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        successFunc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -47,10 +45,8 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "failure function",
-		},
-		Func: failFunc,
+		BaseCommand: NewBaseCommand("failure function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        failFunc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -68,10 +64,8 @@ func TestFunctionCommandRun_Failure(t *testing.T) {
 func TestFunctionCommandRun_NilFunction(t *testing.T) {
 	// Test with a nil function
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "nil function",
-		},
-		Func: nil,
+		BaseCommand: NewBaseCommand("nil function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        nil,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -94,10 +88,8 @@ func TestFunctionCommandRun_ContextCancelled(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "timeout function",
-		},
-		Func: longRunningFunc,
+		BaseCommand: NewBaseCommand("timeout function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        longRunningFunc,
 	}
 
 	// Use a short timeout that will be exceeded
@@ -120,10 +112,8 @@ func TestFunctionCommandRun_PanicHandling(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "panic function",
-		},
-		Func: panicFunc,
+		BaseCommand: NewBaseCommand("panic function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        panicFunc,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -146,10 +136,8 @@ func TestFunctionCommandRun_Slow(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "slow function",
-		},
-		Func: slowFunc,
+		BaseCommand: NewBaseCommand("slow function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        slowFunc,
 	}
 
 	// Use a timeout longer than the function execution time
@@ -173,10 +161,8 @@ func TestFunctionCommandRun_NoGoroutineLeak(t *testing.T) {
 	}
 
 	cmd := &FunctionCommand{
-		BaseCommand: &BaseCommand{
-			Label: "blocking function",
-		},
-		Func: blockingFunc,
+		BaseCommand: NewBaseCommand("blocking function", t.TempDir(), RunOnAlways, nil, nil),
+		Func:        blockingFunc,
 	}
 
 	// Create a context that will be cancelled

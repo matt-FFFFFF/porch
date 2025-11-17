@@ -49,32 +49,32 @@ func TestBaseCommand_SetCwd(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:         "empty initial cwd should error - no exceptions",
-			initialCwd:   "",
-			newCwd:       "/new/path",
-			expectError:  true,
-			errorIsValue: ErrSetCwd,
+			name:        "empty initial cwd should treat as root for absolute new cwd",
+			initialCwd:  "",
+			newCwd:      "/new/path",
+			expectedCwd: "/new/path",
+			expectError: false,
 		},
 		{
-			name:         "relative initial cwd should error - all commands must have absolute cwd",
-			initialCwd:   "relative/path",
-			newCwd:       "/new/path",
-			expectError:  true,
-			errorIsValue: ErrSetCwd,
+			name:        "relative initial cwd with absolute new cwd should replace",
+			initialCwd:  "relative/path",
+			newCwd:      "/new/path",
+			expectedCwd: "/new/path",
+			expectError: false,
 		},
 		{
-			name:         "empty initial cwd with relative new cwd should error",
-			initialCwd:   "",
-			newCwd:       "relative/path",
-			expectError:  true,
-			errorIsValue: ErrSetCwd,
+			name:        "empty initial cwd with relative new cwd should error",
+			initialCwd:  "",
+			newCwd:      "relative/path",
+			expectedCwd: "relative/path",
+			expectError: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parent := NewBaseCommand("parent", t.TempDir(), RunOnAlways, nil, nil)
-			cmd := NewBaseCommand("test", tt.initialCwd, RunOnAlways, nil, nil)
+			parent := NewBaseCommand("parent", tt.initialCwd, RunOnAlways, nil, nil)
+			cmd := NewBaseCommand("test", "", RunOnAlways, nil, nil)
 			cmd.parent = parent
 			err := cmd.SetCwd(tt.newCwd)
 

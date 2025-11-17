@@ -172,9 +172,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	go func() {
 		defer close(stdoutDone)
 		// Read all data through the teereader to capture it
-		_, err = io.Copy(io.Discard, stdoutTeeReader)
-		if err != nil && err != io.EOF {
-			logger.Debug("error reading stdout through teereader", "error", err)
+		_, subErr := io.Copy(io.Discard, stdoutTeeReader)
+		if subErr != nil && subErr != io.EOF {
+			logger.Debug("error reading stdout through teereader", "error", subErr)
 		}
 	}()
 
@@ -257,8 +257,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				default: // Channel full, that's fine
 				}
 
-				if err = ps.Signal(s); err != nil {
-					logger.Debug("failed to send signal", "signal", s.String(), "error", err)
+				if sigErr := ps.Signal(s); sigErr != nil {
+					logger.Debug("failed to send signal", "signal", s.String(), "error", sigErr)
 				}
 
 			case <-ctx.Done():

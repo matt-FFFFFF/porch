@@ -23,32 +23,20 @@ func TestCopyCwdToTempWithNewCwd(t *testing.T) {
 	}
 	cwd, _ := os.Getwd()
 	path := path.Join(cwd, "testdata/copyCwdToTemp")
-	base := &runbatch.BaseCommand{
-		Label: "copyCwdToTemp",
-		Cwd:   path,
-	}
+	base := runbatch.NewBaseCommand("copyCwdToTemp", path, runbatch.RunOnAlways, nil, nil)
 	copyCommand := New(base)
 	pwdCommand := &runbatch.OSCommand{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "pwd",
-			Cwd:   path,
-		},
+		BaseCommand: runbatch.NewBaseCommand("pwd", path, runbatch.RunOnAlways, nil, nil),
 		Path: "/bin/sh",
 		Args: []string{"-c", "pwd"},
 	}
 	checkFilesCommand := &runbatch.OSCommand{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "checkFiles",
-			Cwd:   path,
-		},
+		BaseCommand: runbatch.NewBaseCommand("checkFiles", path, runbatch.RunOnAlways, nil, nil),
 		Path: "/usr/bin/find",
 		Args: []string{"."},
 	}
 	serialCommands := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "test",
-			Cwd:   path,
-		},
+		BaseCommand: runbatch.NewBaseCommand("test", path, runbatch.RunOnAlways, nil, nil),
 		Commands: []runbatch.Runnable{
 			copyCommand,
 			pwdCommand,

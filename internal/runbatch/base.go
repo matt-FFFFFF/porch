@@ -6,7 +6,6 @@ package runbatch
 import (
 	"context"
 	"errors"
-	"fmt"
 	"maps"
 	"path/filepath"
 	"slices"
@@ -15,29 +14,39 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
-var (
-	// ErrSetCwd is returned when setting the working directory fails.
-	ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
-	// ErrPathNotAbsolute is returned when a command's working directory is not absolute.
-	ErrPathNotAbsolute = errors.New("path must be absolute, all commands must have absolute cwd")
+const (
+	// TypeBaseCommand is the type identifier for BaseCommand.
+	TypeBaseCommand = "BaseCommand"
 )
+
+// ErrSetCwd is returned when setting the working directory fails.
+var ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
 
 // BaseCommand is a struct that implements the Runnable interface.
 // It should be embedded in other command types to provide common functionality.
 type BaseCommand struct {
-	Label           string            // Optional label for the command
-	Cwd             string            // The absolute working directory for the command
-	CwdRel          string            // The relative working directory for the command, from the source YAML file
-	RunsOnCondition RunCondition      // The condition under which the command runs
-	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
-	Env             map[string]string // Environment variables to be passed to the command
-	parent          Runnable          // The parent command or batch, if any
-	reporterMu      sync.RWMutex      // Mutex to protect the reporter field
-	reporter        progress.Reporter // Optional progress reporter for real-time updates
+	// Optional label for the command
+	Label string
+	// The condition under which the command runs
+	RunsOnCondition RunCondition
+	// Specific exit codes that trigger the command to run
+	RunsOnExitCodes []int
+	// Environment variables to be passed to the command
+	Env map[string]string
+	// The parent command or batch, if any
+	parent Runnable
+	// The working directory for the command,
+	// can be absolute or relative. Use GetCwd() when when executing runnable.
+	// to ensure correct resolution from parents.
+	cwd string
+	// Mutex to protect the reporter field
+	reporterMu sync.RWMutex
+	// Optional progress reporter for real-time updates
+	reporter progress.Reporter
 }
 
-// PreviousCommandStatus holds the state of the previous command execution.
-type PreviousCommandStatus struct {
+// CommandStatus holds the state of the previous command execution.
+type CommandStatus struct {
 	// State is the result status of the previous command.
 	State ResultStatus
 	// ExitCode is the exit code of the previous command.
@@ -48,7 +57,7 @@ type PreviousCommandStatus struct {
 
 // NewBaseCommand creates a new BaseCommand with the specified parameters.
 func NewBaseCommand(
-	label, cwd, relPath string, runsOn RunCondition, runOnExitCodes []int, env map[string]string,
+	label, cwd string, runsOn RunCondition, runOnExitCodes []int, env map[string]string,
 ) *BaseCommand {
 	if runOnExitCodes == nil {
 		runOnExitCodes = []int{0} // Default to running on success (exit code 0)
@@ -60,8 +69,7 @@ func NewBaseCommand(
 
 	return &BaseCommand{
 		Label:           label,
-		Cwd:             cwd,
-		CwdRel:          relPath,
+		cwd:             cwd,
 		RunsOnCondition: runsOn,
 		RunsOnExitCodes: runOnExitCodes,
 		Env:             env,
@@ -88,65 +96,35 @@ func (c *BaseCommand) SetParent(parent Runnable) {
 }
 
 // GetCwd returns the current working directory for the command.
+// It resolves the working directory using the following rules:
+//   - If the receiver is nil, returns "."
+//   - If cwd is empty and no parent exists, returns "."
+//   - If cwd is empty and parent exists, inherits parent's cwd
+//   - If cwd is absolute, returns it directly
+//   - If cwd is relative and no parent exists, returns the relative path
+//   - If cwd is relative and parent exists, joins it with parent's cwd
 func (c *BaseCommand) GetCwd() string {
-	return c.Cwd
-}
-
-// GetCwdRel returns the relative working directory for the command, from the source YAML file.
-func (c *BaseCommand) GetCwdRel() string {
-	return c.CwdRel
-}
-
-// SetCwdAbsolute sets the working directory to an absolute path.
-func (c *BaseCommand) SetCwdAbsolute(cwd string) error {
-	if cwd == "" {
-		return nil
+	if c == nil {
+		return "."
 	}
 
-	// Current working directory must be absolute
-	if !filepath.IsAbs(c.Cwd) {
-		return fmt.Errorf(
-			"%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd,
-		)
-	}
-
-	c.Cwd = cwd
-
-	return nil
-}
-
-// SetCwd sets the working directory for the command.
-// All commands MUST have an absolute cwd at all times.
-// This method requires the current cwd to be absolute and will error otherwise.
-func (c *BaseCommand) SetCwd(cwd string) error {
-	if cwd == "" {
-		return nil
-	}
-
-	// Current working directory must be absolute
-	if !filepath.IsAbs(c.Cwd) {
-		return fmt.Errorf(
-			"%w: current working directory %q is not absolute, all commands must have absolute cwd", ErrSetCwd, c.Cwd,
-		)
-	}
-
-	if filepath.IsAbs(cwd) {
-		// If the new cwd is absolute, we can set it directly
-		// using the relative path if it exists.
-		parent := c.GetParent()
-		if parent == nil {
-			return fmt.Errorf("%w: parent command is not set, cannot determine relative working directory", ErrSetCwd)
+	if c.cwd == "" {
+		if c.parent == nil {
+			return "."
 		}
 
-		c.Cwd = filepath.Join(cwd, parent.GetCwdRel(), c.CwdRel)
-
-		return nil
+		return c.parent.GetCwd()
 	}
 
-	// If the new cwd is relative, resolve it against the current absolute cwd
-	c.Cwd = filepath.Join(c.Cwd, cwd)
+	if filepath.IsAbs(c.cwd) {
+		return c.cwd
+	}
 
-	return nil
+	if c.parent == nil {
+		return c.cwd
+	}
+
+	return filepath.Join(c.parent.GetCwd(), c.cwd)
 }
 
 // InheritEnv sets additional environment variables for the command.
@@ -165,7 +143,7 @@ func (c *BaseCommand) InheritEnv(env map[string]string) {
 
 // ShouldRun checks if the command should run based on the current state.
 // It returns a ShouldRunAction indicating whether to run, skip, or error.
-func (c *BaseCommand) ShouldRun(prev PreviousCommandStatus) ShouldRunAction {
+func (c *BaseCommand) ShouldRun(prev CommandStatus) ShouldRunAction {
 	switch c.RunsOnCondition {
 	case RunOnAlways:
 		return ShouldRunActionRun
@@ -229,7 +207,7 @@ func (c *BaseCommand) hasProgressReporter() bool {
 	return c.reporter != nil
 }
 
-// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+// GetType return the type of the runnable.
 func (c *BaseCommand) GetType() string {
-	return "BaseCommand"
+	return TypeBaseCommand
 }

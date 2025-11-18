@@ -7,6 +7,7 @@ import (
 	"context"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -225,11 +226,9 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Skip test if current OS is in the skipOS list
-			for _, skipOS := range tc.skipOS {
-				if runtime.GOOS == skipOS {
-					t.Skipf("Skipping test on %s", runtime.GOOS)
-					return
-				}
+			if slices.Contains(tc.skipOS, runtime.GOOS) {
+				t.Skipf("Skipping test on %s", runtime.GOOS)
+				return
 			}
 
 			// Setup if needed
@@ -243,7 +242,7 @@ func TestCommandLineEdgeCases_Integration(t *testing.T) {
 				defer tc.cleanupFunc(t, cleanupPath)
 			}
 
-			base := runbatch.NewBaseCommand("integration-test", "", "", runbatch.RunOnSuccess, nil, nil)
+			base := runbatch.NewBaseCommand("integration-test", "", runbatch.RunOnSuccess, nil, nil)
 
 			// Create the command
 			cmd, err := New(ctx, base, tc.command, nil, nil)
@@ -327,7 +326,7 @@ func TestCommandWithEnvironmentVariables_Integration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			base := runbatch.NewBaseCommand("env-test", "", "", runbatch.RunOnSuccess, nil, tc.env)
+			base := runbatch.NewBaseCommand("env-test", "", runbatch.RunOnSuccess, nil, tc.env)
 
 			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)
@@ -361,7 +360,7 @@ func TestCommandWithWorkingDirectory_Integration(t *testing.T) {
 	// Create a test file in the temp directory
 	testFile := "test_file.txt"
 	testContent := "test content"
-	err := os.WriteFile(tempDir+"/"+testFile, []byte(testContent), 0644)
+	err := os.WriteFile(tempDir+"/"+testFile, []byte(testContent), 0o644)
 	require.NoError(t, err)
 
 	var command, expectedOutput string
@@ -373,7 +372,7 @@ func TestCommandWithWorkingDirectory_Integration(t *testing.T) {
 		expectedOutput = testContent
 	}
 
-	base := runbatch.NewBaseCommand("cwd-test", tempDir, "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("cwd-test", tempDir, runbatch.RunOnSuccess, nil, nil)
 
 	cmd, err := New(ctx, base, command, nil, nil)
 	require.NoError(t, err)
@@ -400,7 +399,7 @@ func TestCommandTimeout_Integration(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxlog.New(ctx, ctxlog.DefaultLogger)
 
-	base := runbatch.NewBaseCommand("timeout-test", "", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("timeout-test", "", runbatch.RunOnSuccess, nil, nil)
 
 	var command string
 	if runtime.GOOS == goOSWindows {
@@ -465,14 +464,12 @@ func TestCommandFailure_Integration(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Skip test if current OS is in the skipOS list
-			for _, skipOS := range tc.skipOS {
-				if runtime.GOOS == skipOS {
-					t.Skipf("Skipping test on %s", runtime.GOOS)
-					return
-				}
+			if slices.Contains(tc.skipOS, runtime.GOOS) {
+				t.Skipf("Skipping test on %s", runtime.GOOS)
+				return
 			}
 
-			base := runbatch.NewBaseCommand("failure-test", "", "", runbatch.RunOnSuccess, nil, nil)
+			base := runbatch.NewBaseCommand("failure-test", "", runbatch.RunOnSuccess, nil, nil)
 
 			cmd, err := New(ctx, base, tc.command, nil, nil)
 			require.NoError(t, err)

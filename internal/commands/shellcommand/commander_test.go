@@ -46,10 +46,7 @@ command_line: "echo hello"
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -69,10 +66,7 @@ command_line: "ls"
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -97,10 +91,7 @@ env:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -111,7 +102,7 @@ env:
 		require.True(t, ok)
 		assert.Equal(t, "Complex Test", osCommand.Label)
 		assert.Contains(t, osCommand.Args, "echo test")
-		assert.Equal(t, "/tmp", osCommand.Cwd)
+		assert.Equal(t, "/tmp", osCommand.GetCwd())
 		assert.Equal(t, runbatch.RunOnSuccess, osCommand.RunsOnCondition)
 		assert.Contains(t, osCommand.Env, "TEST_VAR")
 		assert.Equal(t, "test_value", osCommand.Env["TEST_VAR"])
@@ -128,10 +119,7 @@ runs_on_condition: "error"
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
 		require.NoError(t, err)
@@ -151,10 +139,7 @@ runs_on_condition: "always"
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -179,10 +164,7 @@ invalid: yaml: content
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -198,10 +180,7 @@ command_line: ""
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -217,10 +196,7 @@ name: "Missing Command"
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -238,10 +214,7 @@ runs_on_condition: "invalid_condition"
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -294,10 +267,7 @@ environment: {}
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -316,10 +286,7 @@ command_line: "  echo test  "
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -339,10 +306,7 @@ command_line: "dir"
 `)
 
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "Parent Command",
-					Cwd:   "/parent",
-				},
+				BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 			}
 
 			runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -385,7 +349,7 @@ func TestDefaultShell_WindowsEdgeCases(t *testing.T) {
 // TestNew_ErrorCoverage ensures error paths are covered.
 func TestNew_ErrorCoverage(t *testing.T) {
 	ctx := context.Background()
-	base := runbatch.NewBaseCommand("test", "", "", runbatch.RunOnSuccess, nil, nil)
+	base := runbatch.NewBaseCommand("test", "", runbatch.RunOnSuccess, nil, nil)
 
 	t.Run("empty command returns error", func(t *testing.T) {
 		cmd, err := New(ctx, base, "", nil, nil)
@@ -421,10 +385,7 @@ runs_on_condition: "` + tc.condition + `"
 `)
 
 				parent := &runbatch.SerialBatch{
-					BaseCommand: &runbatch.BaseCommand{
-						Label: "Parent Command",
-						Cwd:   "/parent",
-					},
+					BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 				}
 
 				runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -452,10 +413,7 @@ env:
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)
@@ -484,10 +442,7 @@ runs_on_exit_codes: [0, 1, 2, 255]
 `)
 
 		parent := &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Label: "Parent Command",
-				Cwd:   "/parent",
-			},
+			BaseCommand: runbatch.NewBaseCommand("Parent Command", "/parent", runbatch.RunOnAlways, nil, nil),
 		}
 
 		runnable, err := commander.CreateFromYaml(ctx, testRegistry, yamlPayload, parent)

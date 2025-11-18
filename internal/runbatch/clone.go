@@ -67,7 +67,7 @@ func cloneRunnable(r Runnable) Runnable {
 func cloneBaseCommand(base *BaseCommand) *BaseCommand {
 	return &BaseCommand{
 		Label:           base.Label,
-		Cwd:             base.Cwd,
+		cwd:             base.cwd,
 		RunsOnCondition: base.RunsOnCondition,
 		RunsOnExitCodes: slices.Clone(base.RunsOnExitCodes),
 		Env:             maps.Clone(base.Env),

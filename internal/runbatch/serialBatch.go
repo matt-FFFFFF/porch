@@ -14,6 +14,11 @@ import (
 
 var _ Runnable = (*SerialBatch)(nil)
 
+const (
+	// SerialBatchType is the type identifier for SerialBatch runnables.
+	SerialBatchType = "SerialBatch"
+)
+
 // SerialBatch represents a collection of commands, which are run serially.
 type SerialBatch struct {
 	*BaseCommand
@@ -38,7 +43,7 @@ func (b *SerialBatch) Run(ctx context.Context) Results {
 	results := make(Results, 0, len(b.Commands))
 	newCwd := ""
 
-	prevState := PreviousCommandStatus{
+	prevState := CommandStatus{
 		State:    ResultStatusSuccess,
 		ExitCode: 0,
 		Err:      nil,
@@ -115,42 +120,13 @@ OuterLoop:
 			newCwd = childResults[0].newCwd
 
 			if newCwd != "" && i < len(b.Commands)-1 {
-				logger.Debug("newCwd is set, updating working directory for next commands",
+				logger.Debug("newCwd is set, updating working directory on parent command",
 					"newCwd", newCwd,
 				)
 
 				// set the newCwd for the remaining commands in the batch
-				for rb := range slices.Values(b.Commands[i+1:]) {
-					if err := rb.SetCwdAbsolute(newCwd); err != nil {
-						// Report error if we have a reporter
-						if b.hasProgressReporter() {
-							b.GetProgressReporter().Report(progress.Event{
-								CommandPath: []string{rb.GetLabel()},
-								Type:        progress.EventFailed,
-								Message:     "Error setting working directory for next command",
-								Timestamp:   time.Now(),
-								Data: progress.EventData{
-									Error: err,
-								},
-							})
-						}
-
-						results = append(results, &Result{
-							Label:  rb.GetLabel(),
-							Status: ResultStatusError,
-							Error:  err,
-							Cwd:    rb.GetCwd(),
-							Type:   rb.GetType(),
-						})
-
-						continue OuterLoop
-					}
-
-					logger.Debug("newCwd resultant working directory",
-						"commandLabel", rb.GetLabel(),
-						"cwd", rb.GetCwd(),
-					)
-				}
+				// by updating the parent serial batch cwd.
+				b.cwd = newCwd
 			}
 
 			results = slices.Concat(results, childResults)
@@ -165,7 +141,7 @@ OuterLoop:
 		StdErr:   nil,
 		Children: results,
 		Status:   ResultStatusSuccess,
-		Cwd:      b.Cwd,
+		Cwd:      b.GetCwd(),
 		Type:     b.GetType(),
 	}}
 	if results.HasError() {
@@ -184,43 +160,13 @@ OuterLoop:
 	return res
 }
 
-// SetCwd sets the current working directory for the batch and all its sub-commands.
-func (b *SerialBatch) SetCwd(cwd string) error {
-	if err := b.BaseCommand.SetCwd(cwd); err != nil {
-		return err //nolint:err113,wrapcheck
-	}
-
-	for _, cmd := range b.Commands {
-		if err := cmd.SetCwd(cwd); err != nil {
-			return err //nolint:err113,wrapcheck
-		}
-	}
-
-	return nil
-}
-
-// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
-func (b *SerialBatch) SetCwdAbsolute(cwd string) error {
-	if err := b.BaseCommand.SetCwdAbsolute(cwd); err != nil {
-		return err //nolint:err113,wrapcheck
-	}
-
-	for _, cmd := range b.Commands {
-		if err := cmd.SetCwd(cwd); err != nil {
-			return err //nolint:err113,wrapcheck
-		}
-	}
-
-	return nil
-}
-
 // SetProgressReporter sets the progress reporter and propagates it to all child commands.
 func (b *SerialBatch) SetProgressReporter(reporter progress.Reporter) {
 	b.BaseCommand.SetProgressReporter(reporter)
 	// Note: We don't propagate here as it's done in Run() with a child reporter
 }
 
-// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+// GetType returns the type of the runnable.
 func (b *SerialBatch) GetType() string {
-	return "SerialBatch"
+	return SerialBatchType
 }

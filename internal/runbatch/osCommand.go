@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	// OSCommandType is the type identifier for OSCommand runnables.
+	OSCommandType                          = "OSCommand"
 	maxBufferSize                          = 8 * 1024 * 1024 // 8MB
 	maxLastLineLength                      = 120
 	defaultTickerSeconds                   = 10 // Default ticker interval for process status updates
@@ -78,7 +80,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger = logger.With("runnableType", "OSCommand").
 		With("label", fullLabel)
 
-	logger.Debug("command info", "path", c.Path, "cwd", c.Cwd, "args", c.Args)
+	logger.Debug("command info", "path", c.Path, "cwd", c.GetCwd(), "args", c.Args)
 
 	// Report start if we have a reporter
 	if c.hasProgressReporter() {
@@ -110,7 +112,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	res := &Result{
 		Label:    c.Label,
 		ExitCode: 0,
-		Cwd:      c.Cwd,
+		Cwd:      c.GetCwd(),
 		Type:     c.GetType(),
 	}
 
@@ -143,7 +145,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger.Debug("starting process")
 
 	ps, err := os.StartProcess(c.Path, args, &os.ProcAttr{
-		Dir:   c.Cwd,
+		Dir:   c.GetCwd(),
 		Env:   env,
 		Files: []*os.File{os.Stdin, wOut, wErr},
 	})
@@ -172,9 +174,9 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	go func() {
 		defer close(stdoutDone)
 		// Read all data through the teereader to capture it
-		_, err := io.Copy(io.Discard, stdoutTeeReader)
-		if err != nil && err != io.EOF {
-			logger.Debug("error reading stdout through teereader", "error", err)
+		_, subErr := io.Copy(io.Discard, stdoutTeeReader)
+		if subErr != nil && subErr != io.EOF {
+			logger.Debug("error reading stdout through teereader", "error", subErr)
 		}
 	}()
 
@@ -257,8 +259,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 				default: // Channel full, that's fine
 				}
 
-				if err := ps.Signal(s); err != nil {
-					logger.Debug("failed to send signal", "signal", s.String(), "error", err)
+				if sigErr := ps.Signal(s); sigErr != nil {
+					logger.Debug("failed to send signal", "signal", s.String(), "error", sigErr)
 				}
 
 			case <-ctx.Done():
@@ -459,5 +461,5 @@ func (c *OSCommand) setupProgressReporting(ctx context.Context) chan<- string {
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (c *OSCommand) GetType() string {
-	return "OSCommand"
+	return OSCommandType
 }

@@ -86,7 +86,7 @@ func (m *mockRunnable) Run(ctx context.Context) runbatch.Results {
 }
 func (m *mockRunnable) GetLabel() string                               { return m.label }
 func (m *mockRunnable) GetCwd() string                                 { return "/" }
-func (m *mockRunnable) SetCwd(cwd string) error                        { return nil }
+func (m *mockRunnable) PrependCwd(cwd string) error                    { return nil }
 func (m *mockRunnable) SetCwdAbsolute(cwd string) error                { return nil }
 func (m *mockRunnable) GetCwdRel() string                              { return "" }
 func (m *mockRunnable) InheritEnv(env map[string]string)               {}
@@ -96,7 +96,7 @@ func (m *mockRunnable) SetProgressReporter(reporter progress.Reporter) {}
 func (m *mockRunnable) GetProgressReporter() progress.Reporter         { return nil }
 func (m *mockRunnable) GetType() string                                { return "mockRunnable" }
 
-func (m *mockRunnable) ShouldRun(state runbatch.PreviousCommandStatus) runbatch.ShouldRunAction {
+func (m *mockRunnable) ShouldRun(state runbatch.CommandStatus) runbatch.ShouldRunAction {
 	return runbatch.ShouldRunActionRun
 }
 
@@ -249,10 +249,7 @@ func TestCommander_CreateFromHcl(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	for _, tc := range testCases {
@@ -300,14 +297,10 @@ func TestCommander_CreateFromHcl_ContextCancellation(t *testing.T) {
 	}
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "parent-batch",
-			Cwd:   "/",
-		},
+		BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 	}
 
 	runnable, err := commander.CreateFromHcl(ctx, factory, hclCommand, parent)
-
 	// Should handle context cancellation gracefully
 	if err != nil {
 		assert.Contains(t, err.Error(), "cancelled")

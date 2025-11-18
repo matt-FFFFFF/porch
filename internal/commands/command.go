@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"path/filepath"
 	"slices"
 
 	"github.com/matt-FFFFFF/porch/internal/config/hcl"
@@ -78,26 +77,13 @@ func (d *BaseDefinition) ToBaseCommand(
 		return nil, errors.Join(ErrYamlUnmarshal, err)
 	}
 
-	base := &runbatch.BaseCommand{
-		Label:           d.Name,
-		RunsOnCondition: ro,
-		RunsOnExitCodes: slices.Clone(d.RunsOnExitCodes),
-		Env:             maps.Clone(d.Env),
-	}
-
-	base.SetParent(parent)
-
-	// Process the working directory
-	workingDir, relWorkingDir, err := processWorkingDirectory(
+	base := runbatch.NewBaseCommand(
+		d.Name,
 		d.WorkingDirectory,
-		parent.GetCwd(),
-	)
-	if err != nil {
-		return nil, errors.Join(ErrPath, err)
-	}
-
-	base.Cwd = workingDir
-	base.CwdRel = relWorkingDir
+		ro,
+		slices.Clone(d.RunsOnExitCodes),
+		maps.Clone(d.Env))
+	base.SetParent(parent)
 
 	return base, nil
 }
@@ -121,53 +107,15 @@ func HclCommandToBaseCommand(
 		return nil, errors.Join(ErrHclConfig, err)
 	}
 
-	base := &runbatch.BaseCommand{
-		Label:           hclCommand.Name,
-		RunsOnCondition: runsOn,
-		RunsOnExitCodes: hclCommand.RunsOnExitCodes,
-		Env:             hclCommand.Env,
-	}
+	base := runbatch.NewBaseCommand(
+		hclCommand.Name,
+		hclCommand.WorkingDirectory,
+		runsOn,
+		slices.Clone(hclCommand.RunsOnExitCodes),
+		maps.Clone(hclCommand.Env),
+	)
 
 	base.SetParent(parent)
 
-	// Process the working directory
-	workingDir, relWorkingDir, err := processWorkingDirectory(
-		hclCommand.WorkingDirectory,
-		parent.GetCwd(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	base.Cwd = workingDir
-	base.CwdRel = relWorkingDir
-
 	return base, nil
-}
-
-// processWorkingDirectory processes the working directory for a command.
-// It returns the absolute path and the relative working directory.
-func processWorkingDirectory(
-	workingDirectory, parentWorkingDirectory string,
-) (string, string, error) {
-	if workingDirectory == "" {
-		return parentWorkingDirectory, "", nil
-	}
-
-	workingDirectory = filepath.Clean(workingDirectory)
-
-	// If it's an absolute path, use it directly
-	if filepath.IsAbs(workingDirectory) {
-		return workingDirectory, "", nil
-	}
-
-	// Otherwise, resolve it relative to the parent's cwd
-	joined := filepath.Join(parentWorkingDirectory, workingDirectory)
-
-	absPath, err := filepath.Abs(joined)
-	if err != nil {
-		return "", "", errors.Join(ErrPath, err)
-	}
-
-	return absPath, workingDirectory, nil
 }

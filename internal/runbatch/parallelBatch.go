@@ -14,6 +14,11 @@ import (
 
 var _ Runnable = (*ParallelBatch)(nil)
 
+const (
+	// ParallelBatchType is the type identifier for ParallelBatch runnables.
+	ParallelBatchType = "ParallelBatch"
+)
+
 // ParallelBatch represents a collection of commands, which can be run in parallel.
 type ParallelBatch struct {
 	*BaseCommand
@@ -68,7 +73,7 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		Label:    b.Label,
 		Children: children,
 		Status:   ResultStatusSuccess,
-		Cwd:      b.Cwd,
+		Cwd:      b.GetCwd(),
 		Type:     b.GetType(),
 	}}
 	if children.HasError() {
@@ -87,26 +92,6 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	return res
 }
 
-// SetCwd sets the current working directory for the batch and all its sub-commands.
-func (b *ParallelBatch) SetCwd(cwd string) error {
-	if err := b.BaseCommand.SetCwd(cwd); err != nil {
-		return err //nolint:err113,wrapcheck
-	}
-
-	for _, cmd := range b.Commands {
-		if err := cmd.SetCwd(cwd); err != nil {
-			return err //nolint:err113,wrapcheck
-		}
-	}
-
-	return nil
-}
-
-// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
-func (b *ParallelBatch) SetCwdAbsolute(cwd string) error {
-	return b.SetCwd(cwd)
-}
-
 // SetProgressReporter sets the progress reporter and propagates it to all child commands.
 func (b *ParallelBatch) SetProgressReporter(reporter progress.Reporter) {
 	b.BaseCommand.SetProgressReporter(reporter)
@@ -115,5 +100,5 @@ func (b *ParallelBatch) SetProgressReporter(reporter progress.Reporter) {
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (b *ParallelBatch) GetType() string {
-	return "ParallelBatch"
+	return ParallelBatchType
 }

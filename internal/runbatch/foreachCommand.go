@@ -19,6 +19,8 @@ var _ Runnable = (*ForEachCommand)(nil)
 const (
 	// ItemEnvVar is the environment variable name used to store the current item in the iteration.
 	ItemEnvVar = "ITEM"
+	// ForEachCommandType is the type identifier for ForEachCommand runnables.
+	ForEachCommandType = "ForEachCommand"
 )
 
 const (
@@ -142,12 +144,12 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		ExitCode: 0,
 		Children: Results{},
 		Status:   ResultStatusSuccess,
-		Cwd:      f.Cwd,
+		Cwd:      f.GetCwd(),
 		Type:     f.GetType(),
 	}
 
 	// Get the items to iterate over
-	items, err := f.ItemsProvider(ctx, f.Cwd)
+	items, err := f.ItemsProvider(ctx, f.GetCwd())
 	if err != nil {
 		for _, skipErr := range f.ItemsSkipOnErrors {
 			// If the error is in the skip list, treat it as a skipped result.
@@ -224,8 +226,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
 			fmt.Sprintf("[%s]", item),
-			f.Cwd,
-			f.CwdRel,
+			"",
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
@@ -248,21 +249,17 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 		switch f.CwdStrategy {
 		case CwdStrategyItemRelative:
-			if err := serialBatch.SetCwd(item); err != nil {
-				return Results{{
-					Label:    f.Label,
-					ExitCode: -1,
-					Error:    fmt.Errorf("%w: %v", ErrSetCwd, err),
-					Status:   ResultStatusError,
-				}}
-			}
+			serialBatch.cwd = item
 		}
 
 		foreachCommands[i] = serialBatch
 	}
 
+	// This is the runnable that will execute all of the foreach commands in the specified mode.
+	// We copy the cwd from the forach command here, each of the child serial batches may have
+	// a cwd set for that item.
 	base := NewBaseCommand(
-		f.Label, f.Cwd, f.CwdRel, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
+		f.Label, f.cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
 	)
 	base.SetParent(f.GetParent())
 
@@ -310,7 +307,8 @@ func NewForEachCommand(
 	base *BaseCommand,
 	provider ItemsProviderFunc,
 	mode ForEachMode,
-	commands []Runnable) *ForEachCommand {
+	commands []Runnable,
+) *ForEachCommand {
 	return &ForEachCommand{
 		BaseCommand:   base,
 		ItemsProvider: provider,
@@ -319,27 +317,7 @@ func NewForEachCommand(
 	}
 }
 
-// SetCwd sets the current working directory for the batch and all its sub-commands.
-func (f *ForEachCommand) SetCwd(cwd string) error {
-	if err := f.BaseCommand.SetCwd(cwd); err != nil {
-		return err //nolint:err113,wrapcheck
-	}
-
-	for _, cmd := range f.Commands {
-		if err := cmd.SetCwd(cwd); err != nil {
-			return err //nolint:err113,wrapcheck
-		}
-	}
-
-	return nil
-}
-
-// SetCwdAbsolute sets the current working directory for the batch and all its sub-commands.
-func (f *ForEachCommand) SetCwdAbsolute(cwd string) error {
-	return f.SetCwd(cwd)
-}
-
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (f *ForEachCommand) GetType() string {
-	return "ForEachCommand"
+	return ForEachCommandType
 }

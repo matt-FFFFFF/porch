@@ -13,6 +13,11 @@ import (
 
 var _ Runnable = (*FunctionCommand)(nil)
 
+const (
+	// FunctionCommandType is the type identifier for FunctionCommand runnables.
+	FunctionCommandType = "FunctionCommand"
+)
+
 // ErrFunctionCmdPanic is the error returned when a function command panics.
 // It is constructed with the value that caused the panic.
 type ErrFunctionCmdPanic struct {
@@ -89,6 +94,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 				logger.Error("Function command panicked", "panic", r)
 
 				var err error
+
 				switch x := r.(type) {
 				case error:
 					err = errors.Join(NewErrFunctionCmdPanic(x), err)
@@ -114,7 +120,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		logger.Info(fmt.Sprintf("Executing: %s", fullLabel))
 
 		// Run the function
-		fr := f.Func(ctx, f.Cwd)
+		fr := f.Func(ctx, f.GetCwd())
 
 		logger.Debug("Function command completed", "resultErr", fr.Err, "newCwd", fr.NewCwd)
 
@@ -134,7 +140,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		Label:    f.Label,
 		ExitCode: 0,
 		Status:   ResultStatusSuccess,
-		Cwd:      f.Cwd,
+		Cwd:      f.GetCwd(),
 		Type:     f.GetType(),
 	}
 
@@ -179,5 +185,5 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (f *FunctionCommand) GetType() string {
-	return "FunctionCommand"
+	return FunctionCommandType
 }

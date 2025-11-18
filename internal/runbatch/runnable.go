@@ -14,33 +14,35 @@ type Runnable interface {
 	// Run executes the command or batch and returns the results.
 	// It should handle context cancellation and passing signals to any spawned process.
 	Run(context.Context) Results
+
 	// GetCwd returns the current working directory for the command or batch.
 	GetCwd() string
-	// SetCwd sets the working directory for the command or batch.
-	// It should be called before Run() to ensure the command or batch runs in the correct directory.
-	SetCwd(string) error
-	// SetCwdAbsolute sets the working directory to an absolute path.
-	SetCwdAbsolute(string) error
-	// GetCwdRel returns the relative working directory for the command or batch, from the source YAML file.
-	GetCwdRel() string
+
 	// InheritEnv sets the environment variables for the command or batch.
 	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)
+
 	// GetLabel returns the label or description of the command or batch.
 	GetLabel() string
+
 	// GetParent returns the parent for this command or batch.
 	GetParent() Runnable
+
 	// SetParent sets the parent for this command or batch.
 	SetParent(Runnable)
+
 	// ShouldRun returns true if the command or batch should be run.
-	ShouldRun(state PreviousCommandStatus) ShouldRunAction
+	ShouldRun(state CommandStatus) ShouldRunAction
+
 	// SetProgressReporter sets an optional progress reporter for real-time execution updates.
 	// If not set (nil), the command will run without progress reporting.
 	// This method is thread-safe but should be called before Run() for proper behavior.
 	SetProgressReporter(reporter progress.Reporter)
+
 	// GetProgressReporter returns the currently set progress reporter, or nil if none is set.
 	// This method is thread-safe.
 	GetProgressReporter() progress.Reporter
+
 	// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 	GetType() string
 }

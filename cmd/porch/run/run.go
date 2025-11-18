@@ -31,7 +31,6 @@ const (
 	outputSuccessDetailsFlag    = "output-success-details"
 	parallelismFlag             = "parallelism"
 	tuiFlag                     = "tui"
-	writeFlag                   = "write"
 	configTimeoutFlag           = "config-timeout"
 	configTimeoutSecondsDefault = 30
 	cliExitStr                  = ""
@@ -195,11 +194,8 @@ func actionFunc(ctx context.Context, cmd *cli.Command) error {
 		topRunnable = runnables[0]
 	default:
 		topRunnable = &runbatch.SerialBatch{
-			BaseCommand: &runbatch.BaseCommand{
-				Cwd:   ".",
-				Label: "Aggregate",
-			},
-			Commands: runnables,
+			BaseCommand: runbatch.NewBaseCommand("Aggregate", ".", runbatch.RunOnAlways, nil, nil),
+			Commands:    runnables,
 		}
 	}
 

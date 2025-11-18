@@ -96,10 +96,7 @@ commands:
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "Test Parent",
-					Cwd:   absCwd,
-				},
+				BaseCommand: runbatch.NewBaseCommand("Test Parent", absCwd, runbatch.RunOnAlways, nil, nil),
 			}
 			yamlPayload := fmt.Sprintf(yamlPayloadFmt, tc.mode, tc.includeHidden)
 			runnable, err := commander.CreateFromYaml(t.Context(), f, []byte(yamlPayload), parent)
@@ -110,7 +107,7 @@ commands:
 			assert.Equal(t, "For Each Directory", forEachCommand.Label)
 
 			pwd, _ := os.Getwd()
-			relPath, _ := filepath.Rel(pwd, forEachCommand.Cwd)
+			relPath, _ := filepath.Rel(pwd, forEachCommand.GetCwd())
 			assert.Equal(t, "testdata/foreachdir", relPath)
 			require.Equalf(
 				t,
@@ -171,10 +168,7 @@ commands:
 	)
 
 	parent := &runbatch.SerialBatch{
-		BaseCommand: &runbatch.BaseCommand{
-			Label: "Test Parent",
-			Cwd:   t.TempDir(),
-		},
+		BaseCommand: runbatch.NewBaseCommand("Test Parent", t.TempDir(), runbatch.RunOnAlways, nil, nil),
 	}
 
 	runnable, err := commander.CreateFromYaml(t.Context(), f, []byte(yamlPayload), parent)

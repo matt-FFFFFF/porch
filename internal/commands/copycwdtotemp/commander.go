@@ -15,9 +15,11 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/schema"
 )
 
-var _ commands.Commander = (*Commander)(nil)
-var _ schema.Provider = (*Commander)(nil)
-var _ schema.Writer = (*Commander)(nil)
+var (
+	_ commands.Commander = (*Commander)(nil)
+	_ schema.Provider    = (*Commander)(nil)
+	_ schema.Writer      = (*Commander)(nil)
+)
 
 // Commander is a struct that implements the commands.Commander interface.
 type Commander struct {
@@ -111,7 +113,7 @@ func (c *Commander) GetCommandDescription() string {
 }
 
 // GetExampleDefinition returns an example definition for YAML generation.
-func (c *Commander) GetExampleDefinition() interface{} {
+func (c *Commander) GetExampleDefinition() any {
 	return &Definition{
 		BaseDefinition: commands.BaseDefinition{
 			Type: commandType,

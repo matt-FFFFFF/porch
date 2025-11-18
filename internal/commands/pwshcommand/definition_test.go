@@ -137,10 +137,7 @@ func TestDefinition_Validate(t *testing.T) {
 			assert.Equal(t, "pwsh", tt.definition.Type)
 
 			parent := &runbatch.SerialBatch{
-				BaseCommand: &runbatch.BaseCommand{
-					Label: "parent-batch",
-					Cwd:   "/",
-				},
+				BaseCommand: runbatch.NewBaseCommand("parent-batch", "/", runbatch.RunOnAlways, nil, nil),
 			}
 
 			// Test ToBaseCommand if it exists

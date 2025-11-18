@@ -1,3 +1,8 @@
++++
+title = "TUI Implementation Details"
+weight = 2
++++
+
 # Porch TUI (Terminal User Interface) Implementation
 
 ## Overview

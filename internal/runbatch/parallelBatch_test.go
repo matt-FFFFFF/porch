@@ -34,12 +34,18 @@ func (f *fakeParallelCmd) Run(_ context.Context) Results {
 
 func TestParallelBatchRun_AllSuccess(t *testing.T) {
 	batch := &ParallelBatch{
-		BaseCommand: &BaseCommand{
-			Label: "parallel-batch-success",
-		},
+		BaseCommand: NewBaseCommand("parallel-batch-success", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
-			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd1"}, delay: 10 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd2"}, delay: 20 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       10 * time.Millisecond,
+				exitCode:    0,
+			},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       20 * time.Millisecond,
+				exitCode:    0,
+			},
 		},
 	}
 	ctx := context.Background()
@@ -56,17 +62,15 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 
 func TestParallelBatchRun_OneFailure(t *testing.T) {
 	batch := &ParallelBatch{
-		BaseCommand: &BaseCommand{
-			Label: "parallel-batch-fail",
-		},
+		BaseCommand: NewBaseCommand("parallel-batch-fail", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
 			&fakeParallelCmd{
-				BaseCommand: &BaseCommand{Label: "cmd1"},
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
 				delay:       10 * time.Millisecond,
 				exitCode:    0,
 			},
 			&fakeParallelCmd{
-				BaseCommand: &BaseCommand{Label: "cmd2"},
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
 				delay:       10 * time.Millisecond,
 				exitCode:    1,
 				err:         os.ErrPermission,
@@ -92,12 +96,18 @@ func TestParallelBatchRun_OneFailure(t *testing.T) {
 
 func TestParallelBatchRun_Parallelism(t *testing.T) {
 	batch := &ParallelBatch{
-		BaseCommand: &BaseCommand{
-			Label: "parallel-batch-parallelism",
-		},
+		BaseCommand: NewBaseCommand("parallel-batch-parallelism", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
-			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd1"}, delay: 100 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{BaseCommand: &BaseCommand{Label: "cmd2"}, delay: 100 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       100 * time.Millisecond,
+				exitCode:    0,
+			},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       100 * time.Millisecond,
+				exitCode:    0,
+			},
 		},
 	}
 	ctx := context.Background()
@@ -118,26 +128,19 @@ func TestParallelBatch_InheritsCwdFromSerialPredecessors(t *testing.T) {
 	require.NoError(t, os.MkdirAll(testDir, 0o755))
 
 	pb := &ParallelBatch{
-		BaseCommand: &BaseCommand{
-			Label: "parallel-batch",
-			Cwd:   testDir, // This simulates the cwd being updated by SerialBatch
-		},
+		BaseCommand: NewBaseCommand("parallel-batch", testDir, RunOnAlways, nil, nil),
 	}
 	// Create a parallel batch that has been updated with a new cwd (simulating what SerialBatch does)
+	cmd1 := NewBaseCommand("cmd1", tempDir, RunOnAlways, nil, nil)
+	cmd1.parent = pb
+	cmd2 := NewBaseCommand("cmd2", filepath.Join(tempDir, "relative"), RunOnAlways, nil, nil)
+	cmd2.parent = pb
 	pb.Commands = []Runnable{
 		&MockCommand{
-			BaseCommand: &BaseCommand{
-				Label:  "cmd1",
-				Cwd:    tempDir, // Commands should start with absolute paths (as resolved at creation)
-				parent: pb,      // Set parent to ensure proper context
-			},
+			BaseCommand: cmd1, // Commands should start with absolute paths (as resolved at creation)
 		},
 		&MockCommand{
-			BaseCommand: &BaseCommand{
-				Label:  "cmd2",
-				Cwd:    filepath.Join(tempDir, "relative"), // Relative paths should already be resolved to absolute
-				parent: pb,                                 // Set parent to ensure proper context
-			},
+			BaseCommand: cmd2, // Relative paths should already be resolved to absolute
 		},
 	}
 
@@ -151,13 +154,13 @@ func TestParallelBatch_InheritsCwdFromSerialPredecessors(t *testing.T) {
 	assert.Equal(t, ResultStatusSuccess, results[0].Status)
 
 	// Check that the parallel batch commands received the correct cwd after SetCwd was called
-	cmd1 := pb.Commands[0].(*MockCommand)
-	assert.Equal(t, tempDir, cmd1.Cwd) // Command cwd should prefer the testDir
+	mockCmd1 := pb.Commands[0].(*MockCommand)
+	assert.Equal(t, tempDir, mockCmd1.GetCwd()) // Command cwd should prefer the testDir
 
-	cmd2 := pb.Commands[1].(*MockCommand)
+	mockCmd2 := pb.Commands[1].(*MockCommand)
 	// The relative path was already resolved to absolute, so SetCwd should preserve it
 	expectedPath := filepath.Join(tempDir, "relative")
-	assert.Equal(t, expectedPath, cmd2.Cwd)
+	assert.Equal(t, expectedPath, mockCmd2.GetCwd())
 }
 
 func TestParallelBatch_CommandsDoNotInheritCwdFromSiblings(t *testing.T) {
@@ -167,25 +170,18 @@ func TestParallelBatch_CommandsDoNotInheritCwdFromSiblings(t *testing.T) {
 
 	// Create a parallel batch with commands that might change cwd
 	parallelBatch := &ParallelBatch{
-		BaseCommand: &BaseCommand{
-			Label: "parallel-batch",
-			Cwd:   tempDir,
-		},
+		BaseCommand: NewBaseCommand("parallel-batch", tempDir, RunOnAlways, nil, nil),
 	}
+	pbCmd1 := NewBaseCommand("cmd1", tempDir, RunOnAlways, nil, nil)
+	pbCmd1.parent = parallelBatch
+	pbCmd2 := NewBaseCommand("cmd2", tempDir, RunOnAlways, nil, nil)
+	pbCmd2.parent = parallelBatch
 	parallelBatch.Commands = []Runnable{
 		&MockCommand{
-			BaseCommand: &BaseCommand{
-				Label:  "cmd1",
-				Cwd:    tempDir,       // Commands should have absolute paths
-				parent: parallelBatch, // Set parent to ensure proper context
-			},
+			BaseCommand: pbCmd1, // Commands should have absolute paths
 		},
 		&MockCommand{
-			BaseCommand: &BaseCommand{
-				Label:  "cmd2",
-				Cwd:    tempDir,       // Commands should have absolute paths
-				parent: parallelBatch, // Set parent to ensure proper context
-			},
+			BaseCommand: pbCmd2, // Commands should have absolute paths
 		},
 	}
 
@@ -199,11 +195,11 @@ func TestParallelBatch_CommandsDoNotInheritCwdFromSiblings(t *testing.T) {
 	assert.Equal(t, ResultStatusSuccess, results[0].Status)
 
 	// Both commands should have the same initial cwd, not affected by each other
-	cmd1 := parallelBatch.Commands[0].(*MockCommand)
-	cmd2 := parallelBatch.Commands[1].(*MockCommand)
+	mockCmd1 := parallelBatch.Commands[0].(*MockCommand)
+	mockCmd2 := parallelBatch.Commands[1].(*MockCommand)
 
-	assert.Equal(t, tempDir, cmd1.Cwd)
-	assert.Equal(t, tempDir, cmd2.Cwd)
+	assert.Equal(t, tempDir, mockCmd1.GetCwd())
+	assert.Equal(t, tempDir, mockCmd2.GetCwd())
 }
 
 // MockCommand is a test implementation of Runnable.

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Advanced Topics :: Porch Documentation</title>
+    <link>http://localhost:8080/porch/advanced/index.html</link>
+    <description>Advanced Topics This section covers advanced features and implementation details of Porch.&#xA;Topics Circular Dependency Detection - Understanding command group validation TUI Implementation - Technical details of the TUI system</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:8080/porch/advanced/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Circular Dependency Detection</title>
+      <link>http://localhost:8080/porch/advanced/circular-dependency-detection/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/advanced/circular-dependency-detection/index.html</guid>
+      <description>Circular Dependency Detection Overview The porch configuration system now includes robust circular dependency detection to prevent infinite loops in command group references. This feature helps catch configuration errors early and provides clear error messages to help debug issues.&#xA;Features 1. Circular Dependency Detection The system detects several types of circular dependencies:</description>
+    </item>
+    <item>
+      <title>TUI Implementation Details</title>
+      <link>http://localhost:8080/porch/advanced/tui-implementation/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/advanced/tui-implementation/index.html</guid>
+      <description>Porch TUI (Terminal User Interface) Implementation Overview The Porch orchestration tool now includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. This enhancement offers better visibility into complex workflows compared to traditional text-based output.&#xA;Features Implemented ✅ Core TUI Infrastructure Event-driven progress system: Real-time progress events flow from executing commands to the TUI Channel-based reporters: Thread-safe progress reporting with proper resource cleanup Hierarchical progress contexts: Commands can report progress with full command path context ✅ Interactive TUI Display Real-time command tree: Shows the hierarchical structure of executing commands Status indicators: Visual icons for command states (⏳ pending, ⚡ running, ✅ success, ❌ failed) Live timing: Shows elapsed time for running and completed commands Keyboard controls: ‘q’ to quit, ‘r’ to refresh ✅ Progressive Command Support Progressive shell commands: Shell commands now support real-time progress reporting Progressive batch commands: Serial and parallel batches propagate progress events Backward compatibility: Existing commands work unchanged; TUI is opt-in ✅ CLI Integration TUI flag: --tui, -t, or --interactive enables the TUI mode Graceful fallback: If TUI can’t initialize, falls back to standard mode Clean shutdown: Proper cleanup of TUI and progress resources Usage Basic TUI Usage # Run with TUI ./porch run -f config.yaml --tui # Alternative flags ./porch run -f config.yaml -t ./porch run -f config.yaml --interactive # Standard mode (unchanged) ./porch run -f config.yaml Example YAML Configuration The TUI works with any existing Porch YAML configuration. Here’s an example that showcases the TUI features:</description>
+    </item>
+  </channel>
+</rss>

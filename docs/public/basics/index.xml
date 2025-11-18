@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Getting Started :: Porch Documentation</title>
+    <link>http://localhost:8080/porch/basics/index.html</link>
+    <description>Getting Started with Porch This section covers the fundamental concepts you need to understand before building workflows with Porch.&#xA;Why Use Porch? Porch was designed to solve several common challenges in command orchestration:&#xA;Portability Run the same workflows across different environments:</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:8080/porch/basics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Path Inheritance</title>
+      <link>http://localhost:8080/porch/basics/path-inheritance/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/basics/path-inheritance/index.html</guid>
+      <description>Path Inheritance One of Porch’s most powerful features is its intelligent handling of working directories through path inheritance. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.&#xA;How It Works Porch uses a recursive dynamic programming approach to resolve working directories. Each command’s working directory is determined by combining its own working_directory setting with its parent’s resolved directory.</description>
+    </item>
+    <item>
+      <title>Flow Control</title>
+      <link>http://localhost:8080/porch/basics/flow-control/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/basics/flow-control/index.html</guid>
+      <description>Flow Control Porch provides sophisticated flow control mechanisms to handle complex execution scenarios, including conditional execution, error handling, and intentional skipping.&#xA;Conditional Execution Every command in Porch can specify when it should run using the runs_on_condition attribute. This allows you to create workflows that adapt to the results of previous commands.</description>
+    </item>
+  </channel>
+</rss>

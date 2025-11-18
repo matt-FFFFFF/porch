@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Output Control :: Porch Documentation</title>
+    <link>http://localhost:8080/porch/output/index.html</link>
+    <description>Controlling Output Porch provides several ways to control the output and logging behavior of your workflows. This includes environment variables for logging, command-line flags for output formatting, and color control.&#xA;Log Levels Porch uses structured logging with different log levels. Control the log level using the LOG_LEVEL environment variable.</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:8080/porch/output/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

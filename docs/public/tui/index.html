@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr" itemscope itemtype="http://schema.org/Article" data-r-output-format="html">
+  <head><script src="/porch/livereload.js?mindelay=10&amp;v=2&amp;port=8080&amp;path=porch/livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <meta name="generator" content="Hugo 0.141.0">
+    <meta name="generator" content="Relearn 8.2.0+b7d3f09cb0991a52021cd134e59753b065aa0e7e">
+    <meta name="description" content="Terminal User Interface (TUI) Porch includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. The TUI offers better visibility into complex workflows compared to traditional text-based output.
+Enabling the TUI Use one of these flags to enable the TUI:">
+    <meta name="author" content="matt-FFFFFF">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Terminal User Interface (TUI) :: Porch Documentation">
+    <meta name="twitter:description" content="Terminal User Interface (TUI) Porch includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. The TUI offers better visibility into complex workflows compared to traditional text-based output.
+Enabling the TUI Use one of these flags to enable the TUI:">
+    <meta property="og:url" content="http://localhost:8080/porch/tui/index.html">
+    <meta property="og:site_name" content="Porch Documentation">
+    <meta property="og:title" content="Terminal User Interface (TUI) :: Porch Documentation">
+    <meta property="og:description" content="Terminal User Interface (TUI) Porch includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. The TUI offers better visibility into complex workflows compared to traditional text-based output.
+Enabling the TUI Use one of these flags to enable the TUI:">
+    <meta property="og:locale" content="en_us">
+    <meta property="og:type" content="website">
+    <meta itemprop="name" content="Terminal User Interface (TUI) :: Porch Documentation">
+    <meta itemprop="description" content="Terminal User Interface (TUI) Porch includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. The TUI offers better visibility into complex workflows compared to traditional text-based output.
+Enabling the TUI Use one of these flags to enable the TUI:">
+    <meta itemprop="wordCount" content="958">
+    <title>Terminal User Interface (TUI) :: Porch Documentation</title>
+    <link href="/porch/tui/index.xml" rel="alternate" type="application/rss+xml" title="Terminal User Interface (TUI) :: Porch Documentation">
+    <link href="/porch/css/auto-complete/auto-complete.min.css?1763505338" rel="stylesheet">
+    <script src="/porch/js/auto-complete/auto-complete.min.js?1763505338" defer></script>
+    <script src="/porch/js/search-lunr.js?1763505338" defer></script>
+    <script src="/porch/js/search.js?1763505338" defer></script>
+    <script>
+      window.relearn = window.relearn || {};
+      window.relearn.index_js_url="/porch/searchindex.en.js?1763505338";
+    </script>
+    <script src="/porch/js/lunr/lunr.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.stemmer.support.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.multi.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.en.min.js?1763505338" defer></script>
+    <script>
+      window.relearn = window.relearn || {};
+      window.relearn.contentLangs=['en'];
+    </script>
+    <link href="/porch/fonts/fontawesome/css/fontawesome-all.min.css?1763505338" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;"><noscript><link href="/porch/fonts/fontawesome/css/fontawesome-all.min.css?1763505338" rel="stylesheet"></noscript>
+    <link href="/porch/css/perfect-scrollbar/perfect-scrollbar.min.css?1763505338" rel="stylesheet">
+    <link href="/porch/css/theme.css?1763505338" rel="stylesheet">
+    <link href="/porch/css/format-html.css?1763505338" rel="stylesheet" id="R-format-style">
+    <script>
+      window.relearn = window.relearn || {};
+      // configuration
+      window.relearn.min = ``;
+      window.relearn.path='\/tui\/index.html';
+      window.relearn.relBasePath='..';
+      window.relearn.relBaseUri='..\/..';
+      window.relearn.absBaseUri='http:\/\/localhost:8080\/porch';
+      window.relearn.disableInlineCopyToClipboard=false;
+      window.relearn.enableBlockCodeWrap=true;
+      // legal
+      window.relearn.getItem = (s,n) => {return s.getItem(n)};
+      window.relearn.setItem = (s,n,v) => {return s.setItem(n,v)};
+      window.relearn.removeItem = (s,n) => {return s.removeItem(n)};
+      // translations
+      window.T_Copy_to_clipboard = `Copy text to clipboard`;
+      window.T_Copied_to_clipboard = `Text copied to clipboard!`;
+      window.T_Link_copied_to_clipboard = `Link copied to clipboard!`;
+      window.T_Reset_view = `Reset view`;
+      window.T_View_reset = `View reset!`;
+      window.T_No_results_found = `No results found for "{0}"`;
+      window.T_N_results_found = `{1} results found for "{0}"`;
+      window.T_Browser_unsupported_feature = `This browser doesn't support this feature`;
+      // variant stuff
+      window.relearn.themevariants = [ 'auto' ];
+      window.relearn.customvariantname = "my-custom-variant";
+      window.relearn.changeVariant = function(variant) {
+        var oldVariant = document.documentElement.dataset.rThemeVariant;
+        window.relearn.setItem(window.localStorage, window.relearn.absBaseUri + "/variant", variant);
+        document.documentElement.dataset.rThemeVariant = variant;
+        if (oldVariant != variant) {
+          document.dispatchEvent( new CustomEvent('themeVariantLoaded', { detail: { variant, oldVariant } }) );
+          window.relearn.markVariant();
+        }
+      }
+      window.relearn.markVariant = function() {
+        var variant = window.relearn.getItem(window.localStorage, window.relearn.absBaseUri + "/variant");
+        document.querySelectorAll(".R-variantswitcher select").forEach((select) => {select.value = variant;});
+      }
+      window.relearn.initVariant = function() {
+        var variant = window.relearn.getItem(window.localStorage, window.relearn.absBaseUri + "/variant") ?? "";
+        if( variant == window.relearn.customvariantname ){
+        }else if( !variant || !window.relearn.themevariants.includes(variant) ){
+          variant = window.relearn.themevariants[0];
+          window.relearn.setItem(window.localStorage, window.relearn.absBaseUri + "/variant", variant);
+        }
+        document.documentElement.dataset.rThemeVariant = variant;
+      }
+      window.relearn.initVariant();
+      window.relearn.markVariant();
+    </script>
+  </head>
+  <body class="mobile-support html" data-url="/porch/tui/index.html">
+    <div id="R-body" class="default-animation">
+      <div id="R-body-overlay"></div>
+      <nav id="R-topbar">
+        <div class="topbar-wrapper">
+          <div class="topbar-sidebar-divider"></div>
+          <div class="topbar-area topbar-area-start" data-area="start">
+            <div class="topbar-button topbar-button-sidebar" data-content-empty="disable" data-width-s="show" data-width-m="hide" data-width-l="hide">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleNav()" type="button" title="Menu (CTRL&#43;ALT&#43;n)"><i class="fa-fw fas fa-bars"></i></button></span>
+            </div>
+            <div class="topbar-button topbar-button-toc" data-content-empty="hide" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleTopbarFlyout(this)" type="button" title="Table of Contents (CTRL&#43;ALT&#43;t)"><i class="fa-fw fas fa-list-alt"></i></button></span>
+              <div class="topbar-content">
+                <div class="topbar-content-wrapper">
+<nav class="TableOfContents">
+  <ul>
+    <li><a href="#enabling-the-tui">Enabling the TUI</a></li>
+    <li><a href="#features">Features</a>
+      <ul>
+        <li><a href="#real-time-command-tree">Real-Time Command Tree</a></li>
+        <li><a href="#status-indicators">Status Indicators</a></li>
+        <li><a href="#keyboard-controls">Keyboard Controls</a></li>
+      </ul>
+    </li>
+    <li><a href="#example-tui-output">Example TUI Output</a></li>
+    <li><a href="#when-to-use-the-tui">When to Use the TUI</a>
+      <ul>
+        <li><a href="#best-use-cases">Best Use Cases</a></li>
+        <li><a href="#when-not-to-use-the-tui">When NOT to Use the TUI</a></li>
+      </ul>
+    </li>
+    <li><a href="#architecture">Architecture</a>
+      <ul>
+        <li><a href="#progress-event-system">Progress Event System</a></li>
+        <li><a href="#event-types">Event Types</a></li>
+      </ul>
+    </li>
+    <li><a href="#progressive-commands">Progressive Commands</a>
+      <ul>
+        <li><a href="#progressive-shell-commands">Progressive Shell Commands</a></li>
+        <li><a href="#progressive-batch-commands">Progressive Batch Commands</a></li>
+      </ul>
+    </li>
+    <li><a href="#graceful-fallback">Graceful Fallback</a></li>
+    <li><a href="#resource-management">Resource Management</a>
+      <ul>
+        <li><a href="#clean-shutdown">Clean Shutdown</a></li>
+      </ul>
+    </li>
+    <li><a href="#combining-with-output-flags">Combining with Output Flags</a></li>
+    <li><a href="#thread-safety">Thread Safety</a></li>
+    <li><a href="#example-workflows">Example Workflows</a>
+      <ul>
+        <li><a href="#development-workflow">Development Workflow</a></li>
+        <li><a href="#cicd-pipeline-monitoring">CI/CD Pipeline Monitoring</a></li>
+        <li><a href="#debugging-failed-workflow">Debugging Failed Workflow</a></li>
+      </ul>
+    </li>
+    <li><a href="#best-practices">Best Practices</a></li>
+    <li><a href="#limitations">Limitations</a></li>
+    <li><a href="#technical-details">Technical Details</a>
+      <ul>
+        <li><a href="#dependencies">Dependencies</a></li>
+        <li><a href="#implementation">Implementation</a></li>
+        <li><a href="#testing">Testing</a></li>
+      </ul>
+    </li>
+    <li><a href="#backward-compatibility">Backward Compatibility</a></li>
+    <li><a href="#related">Related</a></li>
+  </ul>
+</nav>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype="http://schema.org/BreadcrumbList"><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><a itemprop="item" href="/porch/index.html"><span itemprop="name">Porch Documentation</span></a><meta itemprop="position" content="1">&nbsp;>&nbsp;</li><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><span itemprop="name">Terminal User Interface (TUI)</span><meta itemprop="position" content="2"></li>
+          </ol>
+          <div class="topbar-area topbar-area-end" data-area="end">
+            <div class="topbar-button topbar-button-prev" data-content-empty="disable" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><a href="/porch/output/index.html" title="Output Control (🡐)"><i class="fa-fw fas fa-chevron-left"></i></a></span>
+            </div>
+            <div class="topbar-button topbar-button-next" data-content-empty="disable" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><a href="/porch/advanced/index.html" title="Advanced Topics (🡒)"><i class="fa-fw fas fa-chevron-right"></i></a></span>
+            </div>
+            <div class="topbar-button topbar-button-more" data-content-empty="hide" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleTopbarFlyout(this)" type="button" title="More"><i class="fa-fw fas fa-ellipsis-v"></i></button></span>
+              <div class="topbar-content">
+                <div class="topbar-content-wrapper">
+                  <div class="topbar-area topbar-area-more" data-area="more">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div id="R-main-overlay"></div>
+      <main id="R-body-inner" class="highlightable tui" tabindex="-1">
+        <div class="flex-block-wrapper">
+<article class="default">
+  <header class="headline">
+  </header>
+
+<h1 id="terminal-user-interface-tui">Terminal User Interface (TUI)</h1>
+
+<h1 id="terminal-user-interface-tui">Terminal User Interface (TUI)<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h1>
+<p>Porch includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. The TUI offers better visibility into complex workflows compared to traditional text-based output.</p>
+<p><a href="#R-image-5d9308bcdfcf29b38874cc2494385ced" class="lightbox-link"><img alt="TUI Example" class="lazy lightbox figure-image" loading="lazy" src="/images/tui-example.png" style="height: auto;width: auto;"></a>
+<a href="javascript:history.back();" class="lightbox-back" id="R-image-5d9308bcdfcf29b38874cc2494385ced"><img alt="TUI Example" class="lazy lightbox lightbox-image" loading="lazy" src="/images/tui-example.png"></a></p>
+<h2 id="enabling-the-tui">Enabling the TUI<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>Use one of these flags to enable the TUI:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Using --tui flag</span>
+</span></span><span style="display:flex;"><span>porch run -f workflow.yaml --tui
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Using -t shorthand</span>
+</span></span><span style="display:flex;"><span>porch run -f workflow.yaml -t
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Using --interactive flag</span>
+</span></span><span style="display:flex;"><span>porch run -f workflow.yaml --interactive</span></span></code></pre></div>
+<h2 id="features">Features<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="real-time-command-tree">Real-Time Command Tree<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>The TUI displays a hierarchical tree structure showing:</p>
+<ul>
+<li><strong>Command names</strong>: Clear identification of each command</li>
+<li><strong>Status indicators</strong>: Visual icons showing command state</li>
+<li><strong>Execution timing</strong>: Live elapsed time for running and completed commands</li>
+<li><strong>Progress updates</strong>: Real-time progress as commands execute</li>
+</ul>
+<h3 id="status-indicators">Status Indicators<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<table>
+  <thead>
+      <tr>
+          <th>Icon</th>
+          <th>Status</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>⏳</td>
+          <td>Pending</td>
+          <td>Command waiting to execute</td>
+      </tr>
+      <tr>
+          <td>⚡</td>
+          <td>Running</td>
+          <td>Command currently executing</td>
+      </tr>
+      <tr>
+          <td>✅</td>
+          <td>Success</td>
+          <td>Command completed successfully</td>
+      </tr>
+      <tr>
+          <td>❌</td>
+          <td>Failed</td>
+          <td>Command failed with error</td>
+      </tr>
+      <tr>
+          <td>⊘</td>
+          <td>Skipped</td>
+          <td>Command intentionally skipped</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="keyboard-controls">Keyboard Controls<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<table>
+  <thead>
+      <tr>
+          <th>Key</th>
+          <th>Action</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>q</code></td>
+          <td>Quit the TUI and stop workflow</td>
+      </tr>
+      <tr>
+          <td><code>r</code></td>
+          <td>Refresh the display</td>
+      </tr>
+      <tr>
+          <td><code>↑</code>/<code>↓</code></td>
+          <td>Scroll through command tree (if needed)</td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="example-tui-output">Example TUI Output<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0"><code>Build Pipeline                                                    ⚡ 5.2s
+
+  ✅ Setup Environment                                           0.1s
+  ⚡ Quality Checks                                              3.8s
+    ⚡ Unit Tests                                                2.1s
+    ✅ Linting                                                   1.2s
+    ⚡ Security Scan                                             0.5s
+  ⏳ Build and Package
+    ⏳ Build Application
+    ⏳ Create Archive
+
+[q] Quit  [r] Refresh</code></pre></div>
+<h2 id="when-to-use-the-tui">When to Use the TUI<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="best-use-cases">Best Use Cases<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p><strong>Long-running workflows</strong>: Monitor progress of builds, tests, or deployments</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>porch run -f ci-pipeline.yaml --tui</span></span></code></pre></div>
+<p><strong>Complex parallel execution</strong>: See which parallel tasks are still running</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>porch run -f parallel-tests.yaml --tui</span></span></code></pre></div>
+<p><strong>Interactive debugging</strong>: Watch workflow execution in real-time</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>porch run -f workflow.yaml --tui</span></span></code></pre></div>
+<p><strong>Development</strong>: Get immediate feedback during workflow development</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>porch run -f new-workflow.yaml --tui</span></span></code></pre></div>
+<h3 id="when-not-to-use-the-tui">When NOT to Use the TUI<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p><strong>CI/CD pipelines</strong>: Use standard output for log collection</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># CI/CD - Don&#39;t use --tui</span>
+</span></span><span style="display:flex;"><span>NO_COLOR<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> porch run -f workflow.yaml --out results</span></span></code></pre></div>
+<p><strong>Scripting</strong>: When output needs to be parsed</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Scripting - Don&#39;t use --tui  </span>
+</span></span><span style="display:flex;"><span>porch run -f workflow.yaml --out results.json</span></span></code></pre></div>
+<p><strong>Background jobs</strong>: TUI requires interactive terminal</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Background - Don&#39;t use --tui</span>
+</span></span><span style="display:flex;"><span>nohup porch run -f workflow.yaml --out results &amp;</span></span></code></pre></div>
+<h2 id="architecture">Architecture<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>The TUI is built on the <a href="https://github.com/charmbracelet/bubbletea" rel="external">Bubble Tea</a> framework and uses a sophisticated event-driven architecture:</p>
+<h3 id="progress-event-system">Progress Event System<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0"><code>Commands → Reporter → Events → TUI Display</code></pre></div>
+<ol>
+<li><strong>Commands</strong>: Execute while emitting progress events</li>
+<li><strong>Reporter</strong>: Thread-safe event routing via channels</li>
+<li><strong>Events</strong>: Structured event data (started, progress, output, completed, failed)</li>
+<li><strong>TUI Display</strong>: Real-time tree view updates</li>
+</ol>
+<h3 id="event-types">Event Types<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>The TUI responds to several event types:</p>
+<ul>
+<li><strong>Started</strong>: Command begins execution</li>
+<li><strong>Progress</strong>: Command reports progress update</li>
+<li><strong>Output</strong>: Command produces stdout/stderr</li>
+<li><strong>Completed</strong>: Command finishes successfully</li>
+<li><strong>Failed</strong>: Command fails with error</li>
+<li><strong>Skipped</strong>: Command intentionally skipped</li>
+</ul>
+<h2 id="progressive-commands">Progressive Commands<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>Commands that support real-time progress reporting:</p>
+<h3 id="progressive-shell-commands">Progressive Shell Commands<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Shell commands report when they start and complete:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Long Running Build&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm run build&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># TUI shows: ⏳ → ⚡ Running (with timer) → ✅ or ❌</span></span></span></code></pre></div>
+<h3 id="progressive-batch-commands">Progressive Batch Commands<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Serial and parallel batches propagate progress from child commands:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Tests&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Unit Tests&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Integration Tests&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm run test:integration&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># TUI shows both tests running concurrently with individual timers</span></span></span></code></pre></div>
+<h2 id="graceful-fallback">Graceful Fallback<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>If the TUI cannot initialize (e.g., not a TTY, terminal not supported):</p>
+<ul>
+<li>Porch automatically falls back to standard output mode</li>
+<li>No error is raised</li>
+<li>Workflow continues normally with text output</li>
+</ul>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># TUI fallback example</span>
+</span></span><span style="display:flex;"><span>porch run -f workflow.yaml --tui 2&gt;&amp;<span style="color:#ae81ff">1</span> | tee log.txt
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Falls back to standard output because stdout is redirected</span></span></span></code></pre></div>
+<h2 id="resource-management">Resource Management<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>The TUI properly manages resources:</p>
+<ul>
+<li><strong>Goroutines</strong>: Cleaned up on exit</li>
+<li><strong>Channels</strong>: Properly closed after use</li>
+<li><strong>Terminal</strong>: Restored to normal mode on exit</li>
+<li><strong>Context</strong>: Respects cancellation signals</li>
+</ul>
+<h3 id="clean-shutdown">Clean Shutdown<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Press <code>q</code> or <code>Ctrl+C</code> to quit:</p>
+<ul>
+<li>TUI closes gracefully</li>
+<li>Running commands receive cancellation signal</li>
+<li>Terminal is restored to normal state</li>
+<li>Partial results are displayed</li>
+</ul>
+<h2 id="combining-with-output-flags">Combining with Output Flags<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>TUI can be combined with result saving:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Use TUI for monitoring, save results for later</span>
+</span></span><span style="display:flex;"><span>porch run -f workflow.yaml --tui --out results
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Review results later without TUI</span>
+</span></span><span style="display:flex;"><span>porch show results --stdout --success</span></span></code></pre></div>
+<h2 id="thread-safety">Thread Safety<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>The TUI implementation is thread-safe:</p>
+<ul>
+<li>Progress reporters use proper synchronization</li>
+<li>Command tree updates are mutex-protected</li>
+<li>All tests pass with <code>-race</code> flag</li>
+</ul>
+<h2 id="example-workflows">Example Workflows<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="development-workflow">Development Workflow<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Watch tests run in real-time</span>
+</span></span><span style="display:flex;"><span>porch run -f test-workflow.yaml --tui</span></span></code></pre></div>
+<h3 id="cicd-pipeline-monitoring">CI/CD Pipeline Monitoring<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Monitor deployment locally</span>
+</span></span><span style="display:flex;"><span>porch run -f deploy.yaml --tui
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># In CI/CD (no TUI)</span>
+</span></span><span style="display:flex;"><span>porch run -f deploy.yaml --out deployment-results</span></span></code></pre></div>
+<h3 id="debugging-failed-workflow">Debugging Failed Workflow<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Run with TUI to see where it fails</span>
+</span></span><span style="display:flex;"><span>porch run -f broken-workflow.yaml --tui
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># See which command fails in real-time</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Press &#39;q&#39; to quit if needed</span></span></span></code></pre></div>
+<h2 id="best-practices">Best Practices<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<ol>
+<li><strong>Use for interactive sessions</strong>: Perfect for local development and debugging</li>
+<li><strong>Skip in CI/CD</strong>: Use standard output mode for automated environments</li>
+<li><strong>Save results</strong>: Combine <code>--tui</code> with <code>--out</code> to save results</li>
+<li><strong>Monitor long workflows</strong>: TUI is ideal for workflows that take several minutes</li>
+<li><strong>Watch parallel execution</strong>: See which parallel tasks complete first</li>
+</ol>
+<h2 id="limitations">Limitations<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<ol>
+<li><strong>Terminal required</strong>: Must run in an interactive terminal</li>
+<li><strong>No piping</strong>: Output redirection disables TUI (fallback to standard mode)</li>
+<li><strong>Screen space</strong>: Very large command trees may require scrolling</li>
+<li><strong>Single workflow</strong>: TUI shows one workflow at a time</li>
+</ol>
+<h2 id="technical-details">Technical Details<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="dependencies">Dependencies<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>The TUI uses these libraries:</p>
+<ul>
+<li><strong>Bubble Tea</strong>: TUI framework</li>
+<li><strong>Lipgloss</strong>: Terminal styling</li>
+<li><strong>Charmbracelet</strong>: Terminal utilities</li>
+</ul>
+<h3 id="implementation">Implementation<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Key components:</p>
+<ul>
+<li><code>internal/tui/model.go</code>: Main TUI state and Bubble Tea model</li>
+<li><code>internal/tui/runner.go</code>: Orchestrates TUI and command execution</li>
+<li><code>internal/progress/</code>: Progress event system</li>
+<li><code>internal/runbatch/progressive.go</code>: Progressive command implementations</li>
+</ul>
+<h3 id="testing">Testing<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Comprehensive test coverage:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Run TUI tests</span>
+</span></span><span style="display:flex;"><span>go test ./internal/tui/...
+</span></span><span style="display:flex;"><span>go test ./internal/progress/...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Run with race detector</span>
+</span></span><span style="display:flex;"><span>go test -race ./internal/...</span></span></code></pre></div>
+<h2 id="backward-compatibility">Backward Compatibility<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>The TUI is fully backward compatible:</p>
+<ul>
+<li>Existing workflows work unchanged</li>
+<li>TUI is opt-in via flags</li>
+<li>Non-TUI mode behavior is identical</li>
+<li>Progressive features are additive</li>
+</ul>
+<h2 id="related">Related<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<ul>
+<li><a href="/porch/output/index.html">Output Control</a> - Configure logging and output</li>
+<li><a href="/porch/basics/flow-control/index.html">Flow Control</a> - Understanding command execution</li>
+<li><a href="/porch/commands/index.html">Commands</a> - All command types support the TUI</li>
+</ul>
+
+  <footer class="footline">
+  </footer>
+</article>
+        </div>
+      </main>
+    </div>
+    <aside id="R-sidebar" class="default-animation">
+      <div id="R-header-topbar" class="default-animation"></div>
+      <div id="R-header-wrapper" class="default-animation">
+        <div id="R-header" class="default-animation">
+          <a id="R-logo" class="R-default" href="/porch/index.html">
+            <div class="logo-title">Porch Documentation</div>
+          </a>
+        </div>
+        <search><form action="/porch/search/index.html" method="get">
+          <div class="searchbox default-animation">
+            <button class="search-detail" type="submit" title="Search (CTRL+ALT+f)"><i class="fas fa-search"></i></button>
+            <label class="a11y-only" for="R-search-by">Search</label>
+            <input data-search-input id="R-search-by" name="search-by" class="search-by" type="search" placeholder="Search...">
+            <button class="search-clear" type="button" data-search-clear="" title="Clear search"><i class="fas fa-times" title="Clear search"></i></button>
+          </div>
+        </form></search>
+      </div>
+      <div id="R-homelinks" class="default-animation">
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-homelinks">
+          <ul class="space collapsible-menu">
+          </ul>
+        </div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-headercontrols">
+          <ul class="">
+          </ul>
+        </div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+      </div>
+      <div id="R-content-wrapper" class="highlightable">
+        <div class="R-sidebarmenu R-shortcutmenu-main">
+          <ul class="enlarge morespace collapsible-menu">
+            <li class="" data-nav-url="/porch/basics/index.html"><a class="padding" href="/porch/basics/index.html">Getting Started<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-0b672522ed89c7ef2dda1a5f8d779fdb" class="collapsible-menu"></ul></li>
+            <li class="" data-nav-url="/porch/commands/index.html"><a class="padding" href="/porch/commands/index.html">Commands<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-118e8fa4eebe2c925610d50578ae00e0" class="collapsible-menu"></ul></li>
+            <li class="" data-nav-url="/porch/output/index.html"><a class="padding" href="/porch/output/index.html">Output Control<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="active " data-nav-url="/porch/tui/index.html"><a class="padding" href="/porch/tui/index.html">Terminal User Interface (TUI)<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/advanced/index.html"><a class="padding" href="/porch/advanced/index.html">Advanced Topics<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-ab6684576aada2b2c1ce071df63f2853" class="collapsible-menu"></ul></li>
+          </ul>
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-shortcuts">
+          <ul class="space collapsible-menu">
+          </ul>
+        </div>
+        <div id="R-footer-margin"></div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-footercontrols">
+          <ul class="">
+            <li class="R-historyclearer">
+              <div class="padding menu-control">
+                <i class="fa-fw fas fa-history"></i>
+                <span>&nbsp;</span>
+                <div class="control-style">
+                  <button>Clear History</button>
+                </div>
+                <div class="clear"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+<div id="R-footer"><p>Built with <a href="https://github.com/McShelby/hugo-theme-relearn" title="love"><i class="fas fa-heart"></i></a> by <a href="https://gohugo.io/">Hugo</a></p></div>
+      </div>
+    </aside>
+    <script src="/porch/js/perfect-scrollbar/perfect-scrollbar.min.js?1763505338" defer></script>
+    <script src="/porch/js/theme.js?1763505338" defer></script>
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+  </body>
+</html>

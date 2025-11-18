@@ -1,0 +1,24 @@
+baseURL = 'https://matt-FFFFFF.github.io/porch/'
+languageCode = 'en-us'
+title = 'Porch Documentation'
+theme = 'relearn'
+
+[params]
+  description = "A Portable Process Orchestration Framework"
+  author = "matt-FFFFFF"
+  showVisitedLinks = true
+  disableBreadcrumb = false
+  disableNextPrev = false
+  disableLandingPageButton = true
+  titleSeparator = "::"
+  themeVariant = "auto"
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    style = "monokai"

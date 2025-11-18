@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr" itemscope itemtype="http://schema.org/Article" data-r-output-format="html">
+  <head><script src="/porch/livereload.js?mindelay=10&amp;v=2&amp;port=8080&amp;path=porch/livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <meta name="generator" content="Hugo 0.141.0">
+    <meta name="generator" content="Relearn 8.2.0+b7d3f09cb0991a52021cd134e59753b065aa0e7e">
+    <meta name="description" content="Path Inheritance One of Porch’s most powerful features is its intelligent handling of working directories through path inheritance. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.
+How It Works Porch uses a recursive dynamic programming approach to resolve working directories. Each command’s working directory is determined by combining its own working_directory setting with its parent’s resolved directory.">
+    <meta name="author" content="matt-FFFFFF">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Path Inheritance :: Porch Documentation">
+    <meta name="twitter:description" content="Path Inheritance One of Porch’s most powerful features is its intelligent handling of working directories through path inheritance. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.
+How It Works Porch uses a recursive dynamic programming approach to resolve working directories. Each command’s working directory is determined by combining its own working_directory setting with its parent’s resolved directory.">
+    <meta property="og:url" content="http://localhost:8080/porch/basics/path-inheritance/index.html">
+    <meta property="og:site_name" content="Porch Documentation">
+    <meta property="og:title" content="Path Inheritance :: Porch Documentation">
+    <meta property="og:description" content="Path Inheritance One of Porch’s most powerful features is its intelligent handling of working directories through path inheritance. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.
+How It Works Porch uses a recursive dynamic programming approach to resolve working directories. Each command’s working directory is determined by combining its own working_directory setting with its parent’s resolved directory.">
+    <meta property="og:locale" content="en_us">
+    <meta property="og:type" content="article">
+    <meta property="article:section" content="Getting Started">
+    <meta itemprop="name" content="Path Inheritance :: Porch Documentation">
+    <meta itemprop="description" content="Path Inheritance One of Porch’s most powerful features is its intelligent handling of working directories through path inheritance. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.
+How It Works Porch uses a recursive dynamic programming approach to resolve working directories. Each command’s working directory is determined by combining its own working_directory setting with its parent’s resolved directory.">
+    <meta itemprop="wordCount" content="716">
+    <title>Path Inheritance :: Porch Documentation</title>
+    <link href="/porch/css/auto-complete/auto-complete.min.css?1763505338" rel="stylesheet">
+    <script src="/porch/js/auto-complete/auto-complete.min.js?1763505338" defer></script>
+    <script src="/porch/js/search-lunr.js?1763505338" defer></script>
+    <script src="/porch/js/search.js?1763505338" defer></script>
+    <script>
+      window.relearn = window.relearn || {};
+      window.relearn.index_js_url="/porch/searchindex.en.js?1763505338";
+    </script>
+    <script src="/porch/js/lunr/lunr.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.stemmer.support.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.multi.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.en.min.js?1763505338" defer></script>
+    <script>
+      window.relearn = window.relearn || {};
+      window.relearn.contentLangs=['en'];
+    </script>
+    <link href="/porch/fonts/fontawesome/css/fontawesome-all.min.css?1763505338" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;"><noscript><link href="/porch/fonts/fontawesome/css/fontawesome-all.min.css?1763505338" rel="stylesheet"></noscript>
+    <link href="/porch/css/perfect-scrollbar/perfect-scrollbar.min.css?1763505338" rel="stylesheet">
+    <link href="/porch/css/theme.css?1763505338" rel="stylesheet">
+    <link href="/porch/css/format-html.css?1763505338" rel="stylesheet" id="R-format-style">
+    <script>
+      window.relearn = window.relearn || {};
+      // configuration
+      window.relearn.min = ``;
+      window.relearn.path='\/basics\/path-inheritance\/index.html';
+      window.relearn.relBasePath='..\/..';
+      window.relearn.relBaseUri='..\/..\/..';
+      window.relearn.absBaseUri='http:\/\/localhost:8080\/porch';
+      window.relearn.disableInlineCopyToClipboard=false;
+      window.relearn.enableBlockCodeWrap=true;
+      // legal
+      window.relearn.getItem = (s,n) => {return s.getItem(n)};
+      window.relearn.setItem = (s,n,v) => {return s.setItem(n,v)};
+      window.relearn.removeItem = (s,n) => {return s.removeItem(n)};
+      // translations
+      window.T_Copy_to_clipboard = `Copy text to clipboard`;
+      window.T_Copied_to_clipboard = `Text copied to clipboard!`;
+      window.T_Link_copied_to_clipboard = `Link copied to clipboard!`;
+      window.T_Reset_view = `Reset view`;
+      window.T_View_reset = `View reset!`;
+      window.T_No_results_found = `No results found for "{0}"`;
+      window.T_N_results_found = `{1} results found for "{0}"`;
+      window.T_Browser_unsupported_feature = `This browser doesn't support this feature`;
+      // variant stuff
+      window.relearn.themevariants = [ 'auto' ];
+      window.relearn.customvariantname = "my-custom-variant";
+      window.relearn.changeVariant = function(variant) {
+        var oldVariant = document.documentElement.dataset.rThemeVariant;
+        window.relearn.setItem(window.localStorage, window.relearn.absBaseUri + "/variant", variant);
+        document.documentElement.dataset.rThemeVariant = variant;
+        if (oldVariant != variant) {
+          document.dispatchEvent( new CustomEvent('themeVariantLoaded', { detail: { variant, oldVariant } }) );
+          window.relearn.markVariant();
+        }
+      }
+      window.relearn.markVariant = function() {
+        var variant = window.relearn.getItem(window.localStorage, window.relearn.absBaseUri + "/variant");
+        document.querySelectorAll(".R-variantswitcher select").forEach((select) => {select.value = variant;});
+      }
+      window.relearn.initVariant = function() {
+        var variant = window.relearn.getItem(window.localStorage, window.relearn.absBaseUri + "/variant") ?? "";
+        if( variant == window.relearn.customvariantname ){
+        }else if( !variant || !window.relearn.themevariants.includes(variant) ){
+          variant = window.relearn.themevariants[0];
+          window.relearn.setItem(window.localStorage, window.relearn.absBaseUri + "/variant", variant);
+        }
+        document.documentElement.dataset.rThemeVariant = variant;
+      }
+      window.relearn.initVariant();
+      window.relearn.markVariant();
+    </script>
+  </head>
+  <body class="mobile-support html" data-url="/porch/basics/path-inheritance/index.html">
+    <div id="R-body" class="default-animation">
+      <div id="R-body-overlay"></div>
+      <nav id="R-topbar">
+        <div class="topbar-wrapper">
+          <div class="topbar-sidebar-divider"></div>
+          <div class="topbar-area topbar-area-start" data-area="start">
+            <div class="topbar-button topbar-button-sidebar" data-content-empty="disable" data-width-s="show" data-width-m="hide" data-width-l="hide">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleNav()" type="button" title="Menu (CTRL&#43;ALT&#43;n)"><i class="fa-fw fas fa-bars"></i></button></span>
+            </div>
+            <div class="topbar-button topbar-button-toc" data-content-empty="hide" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleTopbarFlyout(this)" type="button" title="Table of Contents (CTRL&#43;ALT&#43;t)"><i class="fa-fw fas fa-list-alt"></i></button></span>
+              <div class="topbar-content">
+                <div class="topbar-content-wrapper">
+<nav class="TableOfContents">
+  <ul>
+    <li><a href="#how-it-works">How It Works</a>
+      <ul>
+        <li><a href="#resolution-rules">Resolution Rules</a></li>
+      </ul>
+    </li>
+    <li><a href="#default-behavior-relative-paths">Default Behavior: Relative Paths</a>
+      <ul>
+        <li><a href="#example-relative-paths">Example: Relative Paths</a></li>
+      </ul>
+    </li>
+    <li><a href="#breaking-inheritance-absolute-paths">Breaking Inheritance: Absolute Paths</a>
+      <ul>
+        <li><a href="#example-absolute-paths">Example: Absolute Paths</a></li>
+      </ul>
+    </li>
+    <li><a href="#practical-examples">Practical Examples</a>
+      <ul>
+        <li><a href="#monorepo-structure">Monorepo Structure</a></li>
+        <li><a href="#nested-serial-execution">Nested Serial Execution</a></li>
+        <li><a href="#temporary-directory-workflow">Temporary Directory Workflow</a></li>
+      </ul>
+    </li>
+    <li><a href="#key-takeaways">Key Takeaways</a></li>
+    <li><a href="#implementation-details">Implementation Details</a></li>
+  </ul>
+</nav>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype="http://schema.org/BreadcrumbList"><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><a itemprop="item" href="/porch/index.html"><span itemprop="name">Porch Documentation</span></a><meta itemprop="position" content="1">&nbsp;>&nbsp;</li><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><a itemprop="item" href="/porch/basics/index.html"><span itemprop="name">Getting Started</span></a><meta itemprop="position" content="2">&nbsp;>&nbsp;</li><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><span itemprop="name">Path Inheritance</span><meta itemprop="position" content="3"></li>
+          </ol>
+          <div class="topbar-area topbar-area-end" data-area="end">
+            <div class="topbar-button topbar-button-prev" data-content-empty="disable" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><a href="/porch/basics/index.html" title="Getting Started (🡐)"><i class="fa-fw fas fa-chevron-left"></i></a></span>
+            </div>
+            <div class="topbar-button topbar-button-next" data-content-empty="disable" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><a href="/porch/basics/flow-control/index.html" title="Flow Control (🡒)"><i class="fa-fw fas fa-chevron-right"></i></a></span>
+            </div>
+            <div class="topbar-button topbar-button-more" data-content-empty="hide" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleTopbarFlyout(this)" type="button" title="More"><i class="fa-fw fas fa-ellipsis-v"></i></button></span>
+              <div class="topbar-content">
+                <div class="topbar-content-wrapper">
+                  <div class="topbar-area topbar-area-more" data-area="more">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div id="R-main-overlay"></div>
+      <main id="R-body-inner" class="highlightable basics" tabindex="-1">
+        <div class="flex-block-wrapper">
+<article class="default">
+  <header class="headline">
+  </header>
+
+<h1 id="path-inheritance">Path Inheritance</h1>
+
+<h1 id="path-inheritance">Path Inheritance<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h1>
+<p>One of Porch&rsquo;s most powerful features is its intelligent handling of working directories through <strong>path inheritance</strong>. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.</p>
+<h2 id="how-it-works">How It Works<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>Porch uses a <strong>recursive dynamic programming approach</strong> to resolve working directories. Each command&rsquo;s working directory is determined by combining its own <code>working_directory</code> setting with its parent&rsquo;s resolved directory.</p>
+<h3 id="resolution-rules">Resolution Rules<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>The <code>GetCwd()</code> method resolves working directories using these rules:</p>
+<ol>
+<li><strong>Nil receiver</strong>: Returns <code>&quot;.&quot;</code></li>
+<li><strong>Empty cwd, no parent</strong>: Returns <code>&quot;.&quot;</code></li>
+<li><strong>Empty cwd, has parent</strong>: Inherits parent&rsquo;s cwd</li>
+<li><strong>Absolute path</strong>: Returns the path directly (no inheritance)</li>
+<li><strong>Relative path, no parent</strong>: Returns the relative path</li>
+<li><strong>Relative path, has parent</strong>: Joins with parent&rsquo;s cwd using <code>filepath.Join()</code></li>
+</ol>
+<p>This creates a hierarchical resolution system where child commands automatically inherit their parent&rsquo;s working directory unless they specify otherwise.</p>
+<h2 id="default-behavior-relative-paths">Default Behavior: Relative Paths<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>By default, Porch uses <strong>relative paths</strong> for working directories. This means:</p>
+<ul>
+<li>Child commands inherit the parent&rsquo;s working directory</li>
+<li>Relative paths are resolved against the parent&rsquo;s directory</li>
+<li>The working directory &ldquo;flows down&rdquo; through the command hierarchy</li>
+</ul>
+<h3 id="example-relative-paths">Example: Relative Paths<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Workflow&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Steps&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./project&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Install Dependencies&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm install&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in ./project (inherited)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Subpackage&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;packages/core&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm run build&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in ./project/packages/core (joined with parent)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Tests&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;../..&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in . (relative to ./project)</span></span></span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li>The first command runs in <code>./project</code></li>
+<li>The second command runs in <code>./project/packages/core</code></li>
+<li>The third command runs in <code>.</code> (going up two levels from <code>./project</code>)</li>
+</ul>
+<h2 id="breaking-inheritance-absolute-paths">Breaking Inheritance: Absolute Paths<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>If you specify a command with an <strong>absolute path</strong>, it will not inherit from the parent. The absolute path is used directly.</p>
+<h3 id="example-absolute-paths">Example: Absolute Paths<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Multi-Project Build&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build All Projects&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./frontend&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Frontend&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm run build&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in ./frontend (inherited)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Backend&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;/home/user/projects/backend&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;go build&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in /home/user/projects/backend (absolute path)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Package Frontend&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;tar -czf dist.tar.gz dist/&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in ./frontend (back to inherited path)</span></span></span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li>First command: Uses <code>./frontend</code> (inherited)</li>
+<li>Second command: Uses <code>/home/user/projects/backend</code> (absolute, breaks inheritance)</li>
+<li>Third command: Uses <code>./frontend</code> (back to inherited path)</li>
+</ul>
+<h2 id="practical-examples">Practical Examples<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="monorepo-structure">Monorepo Structure<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Monorepo Tests&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Test Each Package&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./packages&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Package Tests&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Each iteration runs in ./packages/&lt;package-name&gt;</span></span></span></code></pre></div>
+<h3 id="nested-serial-execution">Nested Serial Execution<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Deployment Pipeline&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./dist&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Prepare&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Clean&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;rm -rf *&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in ./dist</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Copy Assets&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;../src/assets&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;cp -r . ../../dist/&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Runs in ./src/assets</span></span></span></code></pre></div>
+<h3 id="temporary-directory-workflow">Temporary Directory Workflow<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Isolated Build&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;copycwdtotemp&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Copy to Temp&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./src&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Creates temp dir and copies ./src there</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Sets absolute path to temp dir</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build in Isolation&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;make build&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Runs in the temp directory (absolute path from copycwdtotemp)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Copy Back Results&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;/original/path/dist&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;cp ../build/* .&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Runs in absolute path, independent of temp dir</span></span></span></code></pre></div>
+<h2 id="key-takeaways">Key Takeaways<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<ol>
+<li><strong>Relative paths are inherited</strong>: Child commands inherit parent&rsquo;s working directory</li>
+<li><strong>Absolute paths break inheritance</strong>: Use absolute paths when you need to &ldquo;escape&rdquo; the hierarchy</li>
+<li><strong>Empty paths inherit</strong>: If you don&rsquo;t specify a working directory, you get the parent&rsquo;s</li>
+<li><strong>Path joining is automatic</strong>: Relative paths are joined with parent&rsquo;s path using <code>filepath.Join()</code></li>
+<li><strong>Resolution is recursive</strong>: The algorithm walks up the command tree to resolve the final path</li>
+</ol>
+<p>This design makes it easy to:</p>
+<ul>
+<li>Build hierarchical workflows with natural directory context</li>
+<li>Override paths when needed with absolute paths</li>
+<li>Keep workflows portable using relative paths</li>
+<li>Avoid repetitive path specifications</li>
+</ul>
+<h2 id="implementation-details">Implementation Details<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>The path resolution is implemented in <code>internal/runbatch/base.go</code>:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseCommand</span>) <span style="color:#a6e22e">GetCwd</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;.&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cwd</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">parent</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;.&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">parent</span>.<span style="color:#a6e22e">GetCwd</span>()
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">IsAbs</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cwd</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cwd</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">parent</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cwd</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">filepath</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">parent</span>.<span style="color:#a6e22e">GetCwd</span>(), <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cwd</span>)
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<p>This recursive approach ensures efficient path resolution while maintaining clarity and simplicity.</p>
+
+  <footer class="footline">
+  </footer>
+</article>
+        </div>
+      </main>
+    </div>
+    <aside id="R-sidebar" class="default-animation">
+      <div id="R-header-topbar" class="default-animation"></div>
+      <div id="R-header-wrapper" class="default-animation">
+        <div id="R-header" class="default-animation">
+          <a id="R-logo" class="R-default" href="/porch/index.html">
+            <div class="logo-title">Porch Documentation</div>
+          </a>
+        </div>
+        <search><form action="/porch/search/index.html" method="get">
+          <div class="searchbox default-animation">
+            <button class="search-detail" type="submit" title="Search (CTRL+ALT+f)"><i class="fas fa-search"></i></button>
+            <label class="a11y-only" for="R-search-by">Search</label>
+            <input data-search-input id="R-search-by" name="search-by" class="search-by" type="search" placeholder="Search...">
+            <button class="search-clear" type="button" data-search-clear="" title="Clear search"><i class="fas fa-times" title="Clear search"></i></button>
+          </div>
+        </form></search>
+      </div>
+      <div id="R-homelinks" class="default-animation">
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-homelinks">
+          <ul class="space collapsible-menu">
+          </ul>
+        </div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-headercontrols">
+          <ul class="">
+          </ul>
+        </div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+      </div>
+      <div id="R-content-wrapper" class="highlightable">
+        <div class="R-sidebarmenu R-shortcutmenu-main">
+          <ul class="enlarge morespace collapsible-menu">
+            <li class="parent " data-nav-url="/porch/basics/index.html"><a class="padding" href="/porch/basics/index.html">Getting Started<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-0b672522ed89c7ef2dda1a5f8d779fdb" class="collapsible-menu">
+            <li class="active " data-nav-url="/porch/basics/path-inheritance/index.html"><a class="padding" href="/porch/basics/path-inheritance/index.html">Path Inheritance<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/basics/flow-control/index.html"><a class="padding" href="/porch/basics/flow-control/index.html">Flow Control<i class="fa-fw fas fa-check read-icon"></i></a></li></ul></li>
+            <li class="" data-nav-url="/porch/commands/index.html"><a class="padding" href="/porch/commands/index.html">Commands<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-118e8fa4eebe2c925610d50578ae00e0" class="collapsible-menu"></ul></li>
+            <li class="" data-nav-url="/porch/output/index.html"><a class="padding" href="/porch/output/index.html">Output Control<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/tui/index.html"><a class="padding" href="/porch/tui/index.html">Terminal User Interface (TUI)<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/advanced/index.html"><a class="padding" href="/porch/advanced/index.html">Advanced Topics<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-ab6684576aada2b2c1ce071df63f2853" class="collapsible-menu"></ul></li>
+          </ul>
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-shortcuts">
+          <ul class="space collapsible-menu">
+          </ul>
+        </div>
+        <div id="R-footer-margin"></div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-footercontrols">
+          <ul class="">
+            <li class="R-historyclearer">
+              <div class="padding menu-control">
+                <i class="fa-fw fas fa-history"></i>
+                <span>&nbsp;</span>
+                <div class="control-style">
+                  <button>Clear History</button>
+                </div>
+                <div class="clear"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+<div id="R-footer"><p>Built with <a href="https://github.com/McShelby/hugo-theme-relearn" title="love"><i class="fas fa-heart"></i></a> by <a href="https://gohugo.io/">Hugo</a></p></div>
+      </div>
+    </aside>
+    <script src="/porch/js/perfect-scrollbar/perfect-scrollbar.min.js?1763505338" defer></script>
+    <script src="/porch/js/theme.js?1763505338" defer></script>
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+  </body>
+</html>

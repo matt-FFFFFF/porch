@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Commands :: Porch Documentation</title>
+    <link>http://localhost:8080/porch/commands/index.html</link>
+    <description>Command Types Porch provides six built-in command types for different execution patterns. Each command type serves a specific purpose and has its own configuration options.&#xA;Overview Command Type Purpose Execution Mode Shell Execute shell commands Single PowerShell Execute PowerShell scripts Single Serial Run commands sequentially Container Parallel Run commands concurrently Container ForEach Directory Execute commands in multiple directories Container Copy to Temp Copy working directory to temporary location Utility Single Commands Single commands execute a single task:</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:8080/porch/commands/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Shell Command</title>
+      <link>http://localhost:8080/porch/commands/shell/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/commands/shell/index.html</guid>
+      <description>Shell Command The shell command executes shell commands with full environment control and configurable exit code handling.&#xA;Attributes Required type: &#34;shell&#34;: Identifies this as a shell command name: Descriptive name for the command command_line: The shell command to execute Optional working_directory: Directory to execute the command in (inherits from parent if not specified) env: Environment variables as key-value pairs runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution success_exit_codes: Exit codes indicating success (defaults to [0]) skip_exit_codes: Exit codes that skip remaining commands Basic Example name: &#34;Simple Build&#34; commands: - type: &#34;shell&#34; name: &#34;Build Application&#34; command_line: &#34;go build -o app .&#34; Complete Example name: &#34;Advanced Shell Command&#34; commands: - type: &#34;shell&#34; name: &#34;Build Go Application&#34; command_line: &#34;go build -ldflags=&#39;-s -w&#39; -o dist/app .&#34; working_directory: &#34;/path/to/project&#34; env: CGO_ENABLED: &#34;0&#34; GOOS: &#34;linux&#34; GOARCH: &#34;amd64&#34; success_exit_codes: [0] skip_exit_codes: [2] runs_on_condition: &#34;success&#34; Environment Variables Environment variables are inherited from:</description>
+    </item>
+    <item>
+      <title>PowerShell Command</title>
+      <link>http://localhost:8080/porch/commands/pwsh/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/commands/pwsh/index.html</guid>
+      <description>PowerShell Command The pwsh command executes PowerShell scripts with full environment control and configurable exit code handling. It works on Windows, Linux, and macOS.&#xA;Attributes Required type: &#34;pwsh&#34;: Identifies this as a PowerShell command name: Descriptive name for the command script OR script_file: PowerShell script content or path to script file (mutually exclusive) Optional working_directory: Directory to execute the command in env: Environment variables as key-value pairs runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution success_exit_codes: Exit codes indicating success (defaults to [0]) skip_exit_codes: Exit codes that skip remaining commands Inline Script Example name: &#34;PowerShell Inline&#34; commands: - type: &#34;pwsh&#34; name: &#34;Run PowerShell Script&#34; script: | Write-Host &#34;Starting PowerShell script...&#34; # Your PowerShell commands here Write-Host &#34;PowerShell script completed.&#34; Script File Example name: &#34;PowerShell File&#34; commands: - type: &#34;pwsh&#34; name: &#34;Run PowerShell File&#34; script_file: &#34;./scripts/deploy.ps1&#34; working_directory: &#34;/app&#34; Complete Example name: &#34;Advanced PowerShell Command&#34; commands: - type: &#34;pwsh&#34; name: &#34;Build and Deploy&#34; script: | Write-Host &#34;Building application...&#34; dotnet build -c Release Write-Host &#34;Running tests...&#34; dotnet test if ($LASTEXITCODE -ne 0) { Write-Error &#34;Tests failed&#34; exit 1 } Write-Host &#34;Deployment successful&#34; working_directory: &#34;/path/to/project&#34; env: DEPLOY_ENV: &#34;production&#34; API_KEY: &#34;secret-key&#34; success_exit_codes: [0] runs_on_condition: &#34;success&#34; Script vs Script File Use script for inline PowerShell code:</description>
+    </item>
+    <item>
+      <title>Serial Command</title>
+      <link>http://localhost:8080/porch/commands/serial/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/commands/serial/index.html</guid>
+      <description>Serial Command The serial command executes a list of commands sequentially, where each command waits for the previous one to complete before starting.&#xA;Attributes Required type: &#34;serial&#34;: Identifies this as a serial batch command name: Descriptive name for the command batch Optional working_directory: Directory inherited by all child commands env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Build Pipeline&#34; commands: - type: &#34;serial&#34; name: &#34;Build Steps&#34; commands: - type: &#34;shell&#34; name: &#34;Install Dependencies&#34; command_line: &#34;npm install&#34; - type: &#34;shell&#34; name: &#34;Build&#34; command_line: &#34;npm run build&#34; - type: &#34;shell&#34; name: &#34;Test&#34; command_line: &#34;npm test&#34; Execution Flow In serial execution:</description>
+    </item>
+    <item>
+      <title>Parallel Command</title>
+      <link>http://localhost:8080/porch/commands/parallel/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/commands/parallel/index.html</guid>
+      <description>Parallel Command The parallel command executes a list of commands concurrently, allowing independent tasks to run simultaneously for optimal performance.&#xA;Attributes Required type: &#34;parallel&#34;: Identifies this as a parallel batch command name: Descriptive name for the command batch Optional working_directory: Directory inherited by all child commands env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Parallel Tests&#34; commands: - type: &#34;parallel&#34; name: &#34;Run All Tests&#34; commands: - type: &#34;shell&#34; name: &#34;Unit Tests&#34; command_line: &#34;go test ./...&#34; - type: &#34;shell&#34; name: &#34;Linting&#34; command_line: &#34;golangci-lint run&#34; - type: &#34;shell&#34; name: &#34;Security Scan&#34; command_line: &#34;gosec ./...&#34; Execution Flow In parallel execution:</description>
+    </item>
+    <item>
+      <title>ForEach Directory Command</title>
+      <link>http://localhost:8080/porch/commands/foreachdirectory/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/commands/foreachdirectory/index.html</guid>
+      <description>ForEach Directory Command The foreachdirectory command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.&#xA;Attributes Required type: &#34;foreachdirectory&#34;: Identifies this as a foreach directory command name: Descriptive name for the command mode: Execution mode (parallel or serial) depth: Directory traversal depth (0 for unlimited, 1 for immediate children only) include_hidden: Whether to include hidden directories (true or false) working_directory_strategy: How to set working directory (none, item_relative) Optional working_directory: Base directory to start traversal from env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute in each directory (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Test All Modules&#34; commands: - type: &#34;foreachdirectory&#34; name: &#34;Run Module Tests&#34; working_directory: &#34;./packages&#34; mode: &#34;parallel&#34; depth: 1 include_hidden: false working_directory_strategy: &#34;item_relative&#34; commands: - type: &#34;shell&#34; name: &#34;Test Package&#34; command_line: &#34;npm test&#34; Working Directory Strategy item_relative Sets the working directory to each found directory relative to the current directory:</description>
+    </item>
+    <item>
+      <title>Copy to Temp Command</title>
+      <link>http://localhost:8080/porch/commands/copycwdtotemp/index.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:8080/porch/commands/copycwdtotemp/index.html</guid>
+      <description>Copy to Temp Command The copycwdtotemp command copies the current working directory to a temporary location for isolated execution. This is useful for testing, building, or any operations that should not affect the source directory.&#xA;Attributes Required type: &#34;copycwdtotemp&#34;: Identifies this as a copy to temp command name: Descriptive name for the command Optional working_directory: Directory to copy (defaults to current working directory) env: Environment variables runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution Basic Example name: &#34;Isolated Build&#34; commands: - type: &#34;copycwdtotemp&#34; name: &#34;Create Isolated Environment&#34; working_directory: &#34;.&#34; How It Works When copycwdtotemp executes:</description>
+    </item>
+  </channel>
+</rss>

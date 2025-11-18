@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr" itemscope itemtype="http://schema.org/Article" data-r-output-format="html">
+  <head><script src="/porch/livereload.js?mindelay=10&amp;v=2&amp;port=8080&amp;path=porch/livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <meta name="generator" content="Hugo 0.141.0">
+    <meta name="generator" content="Relearn 8.2.0+b7d3f09cb0991a52021cd134e59753b065aa0e7e">
+    <meta name="description" content="ForEach Directory Command The foreachdirectory command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.
+Attributes Required type: &#34;foreachdirectory&#34;: Identifies this as a foreach directory command name: Descriptive name for the command mode: Execution mode (parallel or serial) depth: Directory traversal depth (0 for unlimited, 1 for immediate children only) include_hidden: Whether to include hidden directories (true or false) working_directory_strategy: How to set working directory (none, item_relative) Optional working_directory: Base directory to start traversal from env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute in each directory (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Test All Modules&#34; commands: - type: &#34;foreachdirectory&#34; name: &#34;Run Module Tests&#34; working_directory: &#34;./packages&#34; mode: &#34;parallel&#34; depth: 1 include_hidden: false working_directory_strategy: &#34;item_relative&#34; commands: - type: &#34;shell&#34; name: &#34;Test Package&#34; command_line: &#34;npm test&#34; Working Directory Strategy item_relative Sets the working directory to each found directory relative to the current directory:">
+    <meta name="author" content="matt-FFFFFF">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ForEach Directory Command :: Porch Documentation">
+    <meta name="twitter:description" content="ForEach Directory Command The foreachdirectory command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.
+Attributes Required type: &#34;foreachdirectory&#34;: Identifies this as a foreach directory command name: Descriptive name for the command mode: Execution mode (parallel or serial) depth: Directory traversal depth (0 for unlimited, 1 for immediate children only) include_hidden: Whether to include hidden directories (true or false) working_directory_strategy: How to set working directory (none, item_relative) Optional working_directory: Base directory to start traversal from env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute in each directory (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Test All Modules&#34; commands: - type: &#34;foreachdirectory&#34; name: &#34;Run Module Tests&#34; working_directory: &#34;./packages&#34; mode: &#34;parallel&#34; depth: 1 include_hidden: false working_directory_strategy: &#34;item_relative&#34; commands: - type: &#34;shell&#34; name: &#34;Test Package&#34; command_line: &#34;npm test&#34; Working Directory Strategy item_relative Sets the working directory to each found directory relative to the current directory:">
+    <meta property="og:url" content="http://localhost:8080/porch/commands/foreachdirectory/index.html">
+    <meta property="og:site_name" content="Porch Documentation">
+    <meta property="og:title" content="ForEach Directory Command :: Porch Documentation">
+    <meta property="og:description" content="ForEach Directory Command The foreachdirectory command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.
+Attributes Required type: &#34;foreachdirectory&#34;: Identifies this as a foreach directory command name: Descriptive name for the command mode: Execution mode (parallel or serial) depth: Directory traversal depth (0 for unlimited, 1 for immediate children only) include_hidden: Whether to include hidden directories (true or false) working_directory_strategy: How to set working directory (none, item_relative) Optional working_directory: Base directory to start traversal from env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute in each directory (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Test All Modules&#34; commands: - type: &#34;foreachdirectory&#34; name: &#34;Run Module Tests&#34; working_directory: &#34;./packages&#34; mode: &#34;parallel&#34; depth: 1 include_hidden: false working_directory_strategy: &#34;item_relative&#34; commands: - type: &#34;shell&#34; name: &#34;Test Package&#34; command_line: &#34;npm test&#34; Working Directory Strategy item_relative Sets the working directory to each found directory relative to the current directory:">
+    <meta property="og:locale" content="en_us">
+    <meta property="og:type" content="article">
+    <meta property="article:section" content="Commands">
+    <meta itemprop="name" content="ForEach Directory Command :: Porch Documentation">
+    <meta itemprop="description" content="ForEach Directory Command The foreachdirectory command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.
+Attributes Required type: &#34;foreachdirectory&#34;: Identifies this as a foreach directory command name: Descriptive name for the command mode: Execution mode (parallel or serial) depth: Directory traversal depth (0 for unlimited, 1 for immediate children only) include_hidden: Whether to include hidden directories (true or false) working_directory_strategy: How to set working directory (none, item_relative) Optional working_directory: Base directory to start traversal from env: Environment variables inherited by all child commands runs_on_condition: When to run (success, error, always, exit-codes) runs_on_exit_codes: Specific exit codes that trigger execution commands: List of commands to execute in each directory (either this or command_group) command_group: Reference to a named command group (either this or commands) Basic Example name: &#34;Test All Modules&#34; commands: - type: &#34;foreachdirectory&#34; name: &#34;Run Module Tests&#34; working_directory: &#34;./packages&#34; mode: &#34;parallel&#34; depth: 1 include_hidden: false working_directory_strategy: &#34;item_relative&#34; commands: - type: &#34;shell&#34; name: &#34;Test Package&#34; command_line: &#34;npm test&#34; Working Directory Strategy item_relative Sets the working directory to each found directory relative to the current directory:">
+    <meta itemprop="wordCount" content="883">
+    <title>ForEach Directory Command :: Porch Documentation</title>
+    <link href="/porch/css/auto-complete/auto-complete.min.css?1763505338" rel="stylesheet">
+    <script src="/porch/js/auto-complete/auto-complete.min.js?1763505338" defer></script>
+    <script src="/porch/js/search-lunr.js?1763505338" defer></script>
+    <script src="/porch/js/search.js?1763505338" defer></script>
+    <script>
+      window.relearn = window.relearn || {};
+      window.relearn.index_js_url="/porch/searchindex.en.js?1763505338";
+    </script>
+    <script src="/porch/js/lunr/lunr.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.stemmer.support.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.multi.min.js?1763505338" defer></script>
+    <script src="/porch/js/lunr/lunr.en.min.js?1763505338" defer></script>
+    <script>
+      window.relearn = window.relearn || {};
+      window.relearn.contentLangs=['en'];
+    </script>
+    <link href="/porch/fonts/fontawesome/css/fontawesome-all.min.css?1763505338" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;"><noscript><link href="/porch/fonts/fontawesome/css/fontawesome-all.min.css?1763505338" rel="stylesheet"></noscript>
+    <link href="/porch/css/perfect-scrollbar/perfect-scrollbar.min.css?1763505338" rel="stylesheet">
+    <link href="/porch/css/theme.css?1763505338" rel="stylesheet">
+    <link href="/porch/css/format-html.css?1763505338" rel="stylesheet" id="R-format-style">
+    <script>
+      window.relearn = window.relearn || {};
+      // configuration
+      window.relearn.min = ``;
+      window.relearn.path='\/commands\/foreachdirectory\/index.html';
+      window.relearn.relBasePath='..\/..';
+      window.relearn.relBaseUri='..\/..\/..';
+      window.relearn.absBaseUri='http:\/\/localhost:8080\/porch';
+      window.relearn.disableInlineCopyToClipboard=false;
+      window.relearn.enableBlockCodeWrap=true;
+      // legal
+      window.relearn.getItem = (s,n) => {return s.getItem(n)};
+      window.relearn.setItem = (s,n,v) => {return s.setItem(n,v)};
+      window.relearn.removeItem = (s,n) => {return s.removeItem(n)};
+      // translations
+      window.T_Copy_to_clipboard = `Copy text to clipboard`;
+      window.T_Copied_to_clipboard = `Text copied to clipboard!`;
+      window.T_Link_copied_to_clipboard = `Link copied to clipboard!`;
+      window.T_Reset_view = `Reset view`;
+      window.T_View_reset = `View reset!`;
+      window.T_No_results_found = `No results found for "{0}"`;
+      window.T_N_results_found = `{1} results found for "{0}"`;
+      window.T_Browser_unsupported_feature = `This browser doesn't support this feature`;
+      // variant stuff
+      window.relearn.themevariants = [ 'auto' ];
+      window.relearn.customvariantname = "my-custom-variant";
+      window.relearn.changeVariant = function(variant) {
+        var oldVariant = document.documentElement.dataset.rThemeVariant;
+        window.relearn.setItem(window.localStorage, window.relearn.absBaseUri + "/variant", variant);
+        document.documentElement.dataset.rThemeVariant = variant;
+        if (oldVariant != variant) {
+          document.dispatchEvent( new CustomEvent('themeVariantLoaded', { detail: { variant, oldVariant } }) );
+          window.relearn.markVariant();
+        }
+      }
+      window.relearn.markVariant = function() {
+        var variant = window.relearn.getItem(window.localStorage, window.relearn.absBaseUri + "/variant");
+        document.querySelectorAll(".R-variantswitcher select").forEach((select) => {select.value = variant;});
+      }
+      window.relearn.initVariant = function() {
+        var variant = window.relearn.getItem(window.localStorage, window.relearn.absBaseUri + "/variant") ?? "";
+        if( variant == window.relearn.customvariantname ){
+        }else if( !variant || !window.relearn.themevariants.includes(variant) ){
+          variant = window.relearn.themevariants[0];
+          window.relearn.setItem(window.localStorage, window.relearn.absBaseUri + "/variant", variant);
+        }
+        document.documentElement.dataset.rThemeVariant = variant;
+      }
+      window.relearn.initVariant();
+      window.relearn.markVariant();
+    </script>
+  </head>
+  <body class="mobile-support html" data-url="/porch/commands/foreachdirectory/index.html">
+    <div id="R-body" class="default-animation">
+      <div id="R-body-overlay"></div>
+      <nav id="R-topbar">
+        <div class="topbar-wrapper">
+          <div class="topbar-sidebar-divider"></div>
+          <div class="topbar-area topbar-area-start" data-area="start">
+            <div class="topbar-button topbar-button-sidebar" data-content-empty="disable" data-width-s="show" data-width-m="hide" data-width-l="hide">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleNav()" type="button" title="Menu (CTRL&#43;ALT&#43;n)"><i class="fa-fw fas fa-bars"></i></button></span>
+            </div>
+            <div class="topbar-button topbar-button-toc" data-content-empty="hide" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleTopbarFlyout(this)" type="button" title="Table of Contents (CTRL&#43;ALT&#43;t)"><i class="fa-fw fas fa-list-alt"></i></button></span>
+              <div class="topbar-content">
+                <div class="topbar-content-wrapper">
+<nav class="TableOfContents">
+  <ul>
+    <li><a href="#attributes">Attributes</a>
+      <ul>
+        <li><a href="#required">Required</a></li>
+        <li><a href="#optional">Optional</a></li>
+      </ul>
+    </li>
+    <li><a href="#basic-example">Basic Example</a></li>
+    <li><a href="#working-directory-strategy">Working Directory Strategy</a>
+      <ul>
+        <li><a href="#item_relative"><code>item_relative</code></a></li>
+        <li><a href="#none"><code>none</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#environment-variable-item">Environment Variable: ITEM</a></li>
+    <li><a href="#execution-modes">Execution Modes</a>
+      <ul>
+        <li><a href="#parallel-mode">Parallel Mode</a></li>
+        <li><a href="#serial-mode">Serial Mode</a></li>
+      </ul>
+    </li>
+    <li><a href="#depth-control">Depth Control</a>
+      <ul>
+        <li><a href="#depth-1---immediate-children-only">Depth 1 - Immediate Children Only</a></li>
+        <li><a href="#depth-0---unlimited-recursion">Depth 0 - Unlimited Recursion</a></li>
+      </ul>
+    </li>
+    <li><a href="#complete-example">Complete Example</a></li>
+    <li><a href="#skip-pattern">Skip Pattern</a></li>
+    <li><a href="#hidden-directories">Hidden Directories</a></li>
+    <li><a href="#best-practices">Best Practices</a></li>
+    <li><a href="#common-use-cases">Common Use Cases</a>
+      <ul>
+        <li><a href="#monorepo-package-testing">Monorepo Package Testing</a></li>
+        <li><a href="#multi-service-deployment">Multi-Service Deployment</a></li>
+      </ul>
+    </li>
+    <li><a href="#related">Related</a></li>
+  </ul>
+</nav>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ol class="topbar-breadcrumbs breadcrumbs highlightable" itemscope itemtype="http://schema.org/BreadcrumbList"><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><a itemprop="item" href="/porch/index.html"><span itemprop="name">Porch Documentation</span></a><meta itemprop="position" content="1">&nbsp;>&nbsp;</li><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><a itemprop="item" href="/porch/commands/index.html"><span itemprop="name">Commands</span></a><meta itemprop="position" content="2">&nbsp;>&nbsp;</li><li itemscope itemtype="https://schema.org/ListItem" itemprop="itemListElement" class=""><span itemprop="name">ForEach Directory Command</span><meta itemprop="position" content="3"></li>
+          </ol>
+          <div class="topbar-area topbar-area-end" data-area="end">
+            <div class="topbar-button topbar-button-prev" data-content-empty="disable" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><a href="/porch/commands/parallel/index.html" title="Parallel Command (🡐)"><i class="fa-fw fas fa-chevron-left"></i></a></span>
+            </div>
+            <div class="topbar-button topbar-button-next" data-content-empty="disable" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><a href="/porch/commands/copycwdtotemp/index.html" title="Copy to Temp Command (🡒)"><i class="fa-fw fas fa-chevron-right"></i></a></span>
+            </div>
+            <div class="topbar-button topbar-button-more" data-content-empty="hide" data-width-s="show" data-width-m="show" data-width-l="show">
+<span class="btn cstyle button link noborder notitle interactive"><button onclick="toggleTopbarFlyout(this)" type="button" title="More"><i class="fa-fw fas fa-ellipsis-v"></i></button></span>
+              <div class="topbar-content">
+                <div class="topbar-content-wrapper">
+                  <div class="topbar-area topbar-area-more" data-area="more">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div id="R-main-overlay"></div>
+      <main id="R-body-inner" class="highlightable commands" tabindex="-1">
+        <div class="flex-block-wrapper">
+<article class="default">
+  <header class="headline">
+  </header>
+
+<h1 id="foreach-directory-command">ForEach Directory Command</h1>
+
+<h1 id="foreach-directory-command">ForEach Directory Command<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h1>
+<p>The <code>foreachdirectory</code> command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.</p>
+<h2 id="attributes">Attributes<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="required">Required<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<ul>
+<li><strong><code>type: &quot;foreachdirectory&quot;</code></strong>: Identifies this as a foreach directory command</li>
+<li><strong><code>name</code></strong>: Descriptive name for the command</li>
+<li><strong><code>mode</code></strong>: Execution mode (<code>parallel</code> or <code>serial</code>)</li>
+<li><strong><code>depth</code></strong>: Directory traversal depth (0 for unlimited, 1 for immediate children only)</li>
+<li><strong><code>include_hidden</code></strong>: Whether to include hidden directories (<code>true</code> or <code>false</code>)</li>
+<li><strong><code>working_directory_strategy</code></strong>: How to set working directory (<code>none</code>, <code>item_relative</code>)</li>
+</ul>
+<h3 id="optional">Optional<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<ul>
+<li><strong><code>working_directory</code></strong>: Base directory to start traversal from</li>
+<li><strong><code>env</code></strong>: Environment variables inherited by all child commands</li>
+<li><strong><code>runs_on_condition</code></strong>: When to run (<code>success</code>, <code>error</code>, <code>always</code>, <code>exit-codes</code>)</li>
+<li><strong><code>runs_on_exit_codes</code></strong>: Specific exit codes that trigger execution</li>
+<li><strong><code>commands</code></strong>: List of commands to execute in each directory (either this or <code>command_group</code>)</li>
+<li><strong><code>command_group</code></strong>: Reference to a named command group (either this or <code>commands</code>)</li>
+</ul>
+<h2 id="basic-example">Basic Example<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Test All Modules&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Module Tests&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./packages&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Test Package&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span></span></span></code></pre></div>
+<h2 id="working-directory-strategy">Working Directory Strategy<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="item_relative"><code>item_relative</code><span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Sets the working directory to each found directory relative to the current directory:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Each Module&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./modules&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;go build&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># Runs in ./modules/module1, ./modules/module2, etc.</span></span></span></code></pre></div>
+<h3 id="none"><code>none</code><span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Does not change the working directory; commands run in the parent&rsquo;s working directory:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process Directories&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./data&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;none&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process Directory&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;process-dir.sh $ITEM&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># $ITEM contains the directory path</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># Command runs in ./data (not in each subdirectory)</span></span></span></code></pre></div>
+<h2 id="environment-variable-item">Environment Variable: ITEM<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>For each directory iteration, an environment variable <code>ITEM</code> is set to the path of the current directory:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;List Directories&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./projects&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;none&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Show Directory&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;echo &#39;Processing: $ITEM&#39;&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># $ITEM will be &#34;project1&#34;, &#34;project2&#34;, etc.</span></span></span></code></pre></div>
+<h2 id="execution-modes">Execution Modes<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="parallel-mode">Parallel Mode<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Process all directories concurrently:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Parallel Module Tests&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./packages&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Tests&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># All packages tested simultaneously</span></span></span></code></pre></div>
+<h3 id="serial-mode">Serial Mode<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<p>Process directories one at a time:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Serial Module Builds&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./packages&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Package&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm run build&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Packages built one after another</span></span></span></code></pre></div>
+<h2 id="depth-control">Depth Control<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="depth-1---immediate-children-only">Depth 1 - Immediate Children Only<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Top Level Only&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./src&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;process.sh&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Only processes ./src/dir1, ./src/dir2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Does NOT process ./src/dir1/subdir</span></span></span></code></pre></div>
+<h3 id="depth-0---unlimited-recursion">Depth 0 - Unlimited Recursion<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;All Directories&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./src&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Find Go Modules&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;test -f go.mod &amp;&amp; go test ./...&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Processes all directories at any depth</span></span></span></code></pre></div>
+<h2 id="complete-example">Complete Example<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Monorepo Testing&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">description</span>: <span style="color:#e6db74">&#34;Test all modules in a monorepo structure&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Test All Modules&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./modules&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Check for Tests&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          if [ ! -d ./tests ]; then
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            echo &#34;No tests found in $(pwd)&#34; 1&gt;&amp;2
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            exit 99
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          fi</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">skip_exit_codes</span>: [<span style="color:#ae81ff">99</span>]
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Install Dependencies&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm install&#34;</span>
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Tests&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span>
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Module&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm run build&#34;</span></span></span></code></pre></div>
+<h2 id="skip-pattern">Skip Pattern<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>Use skip codes to skip directories without certain criteria:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Go Modules&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./services&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Check for go.mod&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        if [ ! -f go.mod ]; then
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          echo &#34;No go.mod in $ITEM, skipping&#34; 1&gt;&amp;2
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          exit 100
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        fi</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">skip_exit_codes</span>: [<span style="color:#ae81ff">100</span>]
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;go build ./...&#34;</span></span></span></code></pre></div>
+<h2 id="hidden-directories">Hidden Directories<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<p>Control whether hidden directories (starting with <code>.</code>) are included:</p>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># Include hidden directories</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process All&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;.&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">true</span>  <span style="color:#75715e"># Includes .git, .github, etc.</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;process.sh&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Exclude hidden directories (recommended)</span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process Visible Only&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;.&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>  <span style="color:#75715e"># Skips .git, .github, etc.</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Process&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;process.sh&#34;</span></span></span></code></pre></div>
+<h2 id="best-practices">Best Practices<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<ol>
+<li><strong>Use depth: 1 when possible</strong>: Prevents unexpected deep recursion</li>
+<li><strong>Set include_hidden: false</strong>: Avoid processing system directories</li>
+<li><strong>Use skip codes</strong>: Skip directories that don&rsquo;t meet criteria</li>
+<li><strong>Choose appropriate mode</strong>: Parallel for speed, serial for order</li>
+<li><strong>Use item_relative strategy</strong>: Most common and intuitive behavior</li>
+<li><strong>Access $ITEM variable</strong>: Use the ITEM environment variable in commands</li>
+</ol>
+<h2 id="common-use-cases">Common Use Cases<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<h3 id="monorepo-package-testing">Monorepo Package Testing<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Test All Packages&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./packages&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;parallel&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Run Package Tests&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;npm test&#34;</span></span></span></code></pre></div>
+<h3 id="multi-service-deployment">Multi-Service Deployment<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h3>
+<div class="highlight actionbar-wrapper wrap-code" dir="auto"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;foreachdirectory&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Deploy All Services&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory</span>: <span style="color:#e6db74">&#34;./services&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#34;serial&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">depth</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_hidden</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">working_directory_strategy</span>: <span style="color:#e6db74">&#34;item_relative&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">commands</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Build Docker Image&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;docker build -t $ITEM .&#34;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#34;shell&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;Deploy Service&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">command_line</span>: <span style="color:#e6db74">&#34;kubectl apply -f deployment.yaml&#34;</span></span></span></code></pre></div>
+<h2 id="related">Related<span class="btn cstyle anchor copyanchor scrollanchor link noborder notitle interactive"><button type="button" title="Copy link to clipboard"><i class="fa-fw fas fa-link fa-lg"></i></button></span></h2>
+<ul>
+<li><a href="/porch/basics/path-inheritance/index.html">Path Inheritance</a> - Working directory resolution</li>
+<li><a href="/porch/commands/parallel/index.html">Parallel Command</a> - Concurrent execution</li>
+<li><a href="/porch/commands/serial/index.html">Serial Command</a> - Sequential execution</li>
+<li><a href="/porch/basics/flow-control/index.html">Flow Control</a> - Skip codes and conditional execution</li>
+</ul>
+
+  <footer class="footline">
+  </footer>
+</article>
+        </div>
+      </main>
+    </div>
+    <aside id="R-sidebar" class="default-animation">
+      <div id="R-header-topbar" class="default-animation"></div>
+      <div id="R-header-wrapper" class="default-animation">
+        <div id="R-header" class="default-animation">
+          <a id="R-logo" class="R-default" href="/porch/index.html">
+            <div class="logo-title">Porch Documentation</div>
+          </a>
+        </div>
+        <search><form action="/porch/search/index.html" method="get">
+          <div class="searchbox default-animation">
+            <button class="search-detail" type="submit" title="Search (CTRL+ALT+f)"><i class="fas fa-search"></i></button>
+            <label class="a11y-only" for="R-search-by">Search</label>
+            <input data-search-input id="R-search-by" name="search-by" class="search-by" type="search" placeholder="Search...">
+            <button class="search-clear" type="button" data-search-clear="" title="Clear search"><i class="fas fa-times" title="Clear search"></i></button>
+          </div>
+        </form></search>
+      </div>
+      <div id="R-homelinks" class="default-animation">
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-homelinks">
+          <ul class="space collapsible-menu">
+          </ul>
+        </div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-headercontrols">
+          <ul class="">
+          </ul>
+        </div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+      </div>
+      <div id="R-content-wrapper" class="highlightable">
+        <div class="R-sidebarmenu R-shortcutmenu-main">
+          <ul class="enlarge morespace collapsible-menu">
+            <li class="" data-nav-url="/porch/basics/index.html"><a class="padding" href="/porch/basics/index.html">Getting Started<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-0b672522ed89c7ef2dda1a5f8d779fdb" class="collapsible-menu"></ul></li>
+            <li class="parent " data-nav-url="/porch/commands/index.html"><a class="padding" href="/porch/commands/index.html">Commands<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-118e8fa4eebe2c925610d50578ae00e0" class="collapsible-menu">
+            <li class="" data-nav-url="/porch/commands/shell/index.html"><a class="padding" href="/porch/commands/shell/index.html">Shell Command<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/commands/pwsh/index.html"><a class="padding" href="/porch/commands/pwsh/index.html">PowerShell Command<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/commands/serial/index.html"><a class="padding" href="/porch/commands/serial/index.html">Serial Command<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/commands/parallel/index.html"><a class="padding" href="/porch/commands/parallel/index.html">Parallel Command<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="active " data-nav-url="/porch/commands/foreachdirectory/index.html"><a class="padding" href="/porch/commands/foreachdirectory/index.html">ForEach Directory Command<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/commands/copycwdtotemp/index.html"><a class="padding" href="/porch/commands/copycwdtotemp/index.html">Copy to Temp Command<i class="fa-fw fas fa-check read-icon"></i></a></li></ul></li>
+            <li class="" data-nav-url="/porch/output/index.html"><a class="padding" href="/porch/output/index.html">Output Control<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/tui/index.html"><a class="padding" href="/porch/tui/index.html">Terminal User Interface (TUI)<i class="fa-fw fas fa-check read-icon"></i></a></li>
+            <li class="" data-nav-url="/porch/advanced/index.html"><a class="padding" href="/porch/advanced/index.html">Advanced Topics<i class="fa-fw fas fa-check read-icon"></i></a><ul id="R-subsections-ab6684576aada2b2c1ce071df63f2853" class="collapsible-menu"></ul></li>
+          </ul>
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-shortcuts">
+          <ul class="space collapsible-menu">
+          </ul>
+        </div>
+        <div id="R-footer-margin"></div>
+        <div class="R-menu-divider default-animation">
+          <hr class="padding">
+        </div>
+        <div class="R-sidebarmenu R-shortcutmenu-footercontrols">
+          <ul class="">
+            <li class="R-historyclearer">
+              <div class="padding menu-control">
+                <i class="fa-fw fas fa-history"></i>
+                <span>&nbsp;</span>
+                <div class="control-style">
+                  <button>Clear History</button>
+                </div>
+                <div class="clear"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+<div id="R-footer"><p>Built with <a href="https://github.com/McShelby/hugo-theme-relearn" title="love"><i class="fas fa-heart"></i></a> by <a href="https://gohugo.io/">Hugo</a></p></div>
+      </div>
+    </aside>
+    <script src="/porch/js/perfect-scrollbar/perfect-scrollbar.min.js?1763505338" defer></script>
+    <script src="/porch/js/theme.js?1763505338" defer></script>
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+  </body>
+</html>

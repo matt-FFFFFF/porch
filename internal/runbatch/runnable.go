@@ -18,11 +18,6 @@ type Runnable interface {
 	// GetCwd returns the current working directory for the command or batch.
 	GetCwd() string
 
-	// PrependCwd sets the working directory for the command or batch.
-	// If the existing cwd is absolute, it remains unchanged.
-	// It should be called before Run() to ensure the command or batch runs in the correct directory.
-	PrependCwd(string) error
-
 	// InheritEnv sets the environment variables for the command or batch.
 	// It should not overwrite the existing environment variables, but rather add to them.
 	InheritEnv(map[string]string)

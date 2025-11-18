@@ -36,8 +36,16 @@ func TestParallelBatchRun_AllSuccess(t *testing.T) {
 	batch := &ParallelBatch{
 		BaseCommand: NewBaseCommand("parallel-batch-success", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
-			&fakeParallelCmd{BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil), delay: 10 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil), delay: 20 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       10 * time.Millisecond,
+				exitCode:    0,
+			},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       20 * time.Millisecond,
+				exitCode:    0,
+			},
 		},
 	}
 	ctx := context.Background()
@@ -90,8 +98,16 @@ func TestParallelBatchRun_Parallelism(t *testing.T) {
 	batch := &ParallelBatch{
 		BaseCommand: NewBaseCommand("parallel-batch-parallelism", t.TempDir(), RunOnAlways, nil, nil),
 		Commands: []Runnable{
-			&fakeParallelCmd{BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil), delay: 100 * time.Millisecond, exitCode: 0},
-			&fakeParallelCmd{BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil), delay: 100 * time.Millisecond, exitCode: 0},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd1", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       100 * time.Millisecond,
+				exitCode:    0,
+			},
+			&fakeParallelCmd{
+				BaseCommand: NewBaseCommand("cmd2", t.TempDir(), RunOnAlways, nil, nil),
+				delay:       100 * time.Millisecond,
+				exitCode:    0,
+			},
 		},
 	}
 	ctx := context.Background()

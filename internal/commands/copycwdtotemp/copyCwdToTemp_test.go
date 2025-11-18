@@ -358,12 +358,14 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	base := runbatch.NewBaseCommand("CopyCwdToTemp", "", runbatch.RunOnAlways, nil, nil)
 	copyCwdCmd := New(base)
 	trackerCmd := &cwdTrackerCommand{
-		BaseCommand: runbatch.NewBaseCommand("Tracker Command", "", runbatch.RunOnAlways, nil, nil), // Start with the initial CWD,
+		// Start with the initial CWD
+		BaseCommand: runbatch.NewBaseCommand("Tracker Command", "", runbatch.RunOnAlways, nil, nil),
 	}
 
 	// Create and run a serial batch with both commands
+	// Set the initial CWD for the batch
 	batch := &runbatch.SerialBatch{
-		BaseCommand: runbatch.NewBaseCommand("Test CopyCwdToTemp Batch", initialCwd, runbatch.RunOnAlways, nil, nil), // Set the initial CWD for the batch,
+		BaseCommand: runbatch.NewBaseCommand("Test CopyCwdToTemp Batch", initialCwd, runbatch.RunOnAlways, nil, nil),
 		Commands:    []runbatch.Runnable{copyCwdCmd, trackerCmd},
 	}
 

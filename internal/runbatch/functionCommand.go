@@ -94,6 +94,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 				logger.Error("Function command panicked", "panic", r)
 
 				var err error
+
 				switch x := r.(type) {
 				case error:
 					err = errors.Join(NewErrFunctionCmdPanic(x), err)

@@ -127,18 +127,6 @@ func (c *BaseCommand) GetCwd() string {
 	return filepath.Join(c.parent.GetCwd(), c.cwd)
 }
 
-// PrependCwd prepends the working directory for the command.
-// If the existing cwd is absolute, it will be retained.
-func (c *BaseCommand) PrependCwd(cwd string) error {
-	if filepath.IsAbs(c.cwd) {
-		return nil
-	}
-
-	c.cwd = filepath.Join(cwd, c.cwd)
-
-	return nil
-}
-
 // InheritEnv sets additional environment variables for the command.
 func (c *BaseCommand) InheritEnv(env map[string]string) {
 	if len(c.Env) == 0 {

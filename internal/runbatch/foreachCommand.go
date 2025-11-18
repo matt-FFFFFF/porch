@@ -226,7 +226,7 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		newEnv[ItemEnvVar] = item
 		base := NewBaseCommand(
 			fmt.Sprintf("[%s]", item),
-			f.cwd,
+			"",
 			f.RunsOnCondition,
 			f.RunsOnExitCodes,
 			newEnv,
@@ -249,23 +249,17 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 		switch f.CwdStrategy {
 		case CwdStrategyItemRelative:
-			if err := serialBatch.PrependCwd(item); err != nil {
-				return Results{{
-					Label:    f.Label,
-					ExitCode: -1,
-					Error:    fmt.Errorf("%w: %v", ErrSetCwd, err),
-					Status:   ResultStatusError,
-				}}
-			}
+			serialBatch.cwd = item
 		}
 
 		foreachCommands[i] = serialBatch
 	}
 
 	// This is the runnable that will execute all of the foreach commands in the specified mode.
-	// We do not need to set the cwd here as we did so in the serial batches above.
+	// We copy the cwd from the forach command here, each of the child serial batches may have
+	// a cwd set for that item.
 	base := NewBaseCommand(
-		f.Label, "", f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
+		f.Label, f.cwd, f.RunsOnCondition, f.RunsOnExitCodes, maps.Clone(f.Env),
 	)
 	base.SetParent(f.GetParent())
 

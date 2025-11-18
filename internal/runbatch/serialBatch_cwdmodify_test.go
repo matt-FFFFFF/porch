@@ -131,7 +131,7 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 	// Verify the last command picked up the most recent cwd change
 	assert.Equal(t, tmpDir, cmd1.runWith)
 	assert.Equal(t, "/path/1/subdir", cmd2.runWith)
-	assert.Equal(t, "/path/2", cmd3.runWith)
+	assert.Equal(t, "/path/2", cmd4.runWith)
 }
 
 // TestSerialBatchCwdNoChange tests that when no command changes the working directory,

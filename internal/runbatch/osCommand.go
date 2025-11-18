@@ -78,7 +78,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger = logger.With("runnableType", "OSCommand").
 		With("label", fullLabel)
 
-	logger.Debug("command info", "path", c.Path, "cwd", c.cwd, "args", c.Args)
+	logger.Debug("command info", "path", c.Path, "cwd", c.GetCwd(), "args", c.Args)
 
 	// Report start if we have a reporter
 	if c.hasProgressReporter() {

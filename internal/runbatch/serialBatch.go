@@ -5,6 +5,7 @@ package runbatch
 
 import (
 	"context"
+	"path/filepath"
 	"slices"
 	"time"
 
@@ -121,7 +122,7 @@ OuterLoop:
 
 				// set the newCwd for the remaining commands in the batch
 				for rb := range slices.Values(b.Commands[i+1:]) {
-					if err := rb.SetCwd(newCwd); err != nil {
+					if err := rb.PrependCwd(newCwd); err != nil {
 						// Report error if we have a reporter
 						if b.hasProgressReporter() {
 							b.GetProgressReporter().Report(progress.Event{
@@ -193,4 +194,12 @@ func (b *SerialBatch) SetProgressReporter(reporter progress.Reporter) {
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (b *SerialBatch) GetType() string {
 	return "SerialBatch"
+}
+
+func updateCwd(newCwd, currentCwd string) string {
+	if filepath.IsAbs(currentCwd) {
+		return currentCwd
+	}
+
+	return filepath.Join(newCwd, currentCwd)
 }

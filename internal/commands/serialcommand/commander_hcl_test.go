@@ -86,7 +86,7 @@ func (m *mockRunnable) Run(ctx context.Context) runbatch.Results {
 }
 func (m *mockRunnable) GetLabel() string                               { return m.label }
 func (m *mockRunnable) GetCwd() string                                 { return "/" }
-func (m *mockRunnable) SetCwd(cwd string) error                        { return nil }
+func (m *mockRunnable) PrependCwd(cwd string) error                    { return nil }
 func (m *mockRunnable) SetCwdAbsolute(cwd string) error                { return nil }
 func (m *mockRunnable) GetCwdRel() string                              { return "" }
 func (m *mockRunnable) InheritEnv(env map[string]string)               {}
@@ -301,7 +301,6 @@ func TestCommander_CreateFromHcl_ContextCancellation(t *testing.T) {
 	}
 
 	runnable, err := commander.CreateFromHcl(ctx, factory, hclCommand, parent)
-
 	// Should handle context cancellation gracefully
 	if err != nil {
 		assert.Contains(t, err.Error(), "cancelled")

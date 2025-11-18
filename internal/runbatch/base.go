@@ -14,6 +14,11 @@ import (
 	"github.com/matt-FFFFFF/porch/internal/progress"
 )
 
+const (
+	// TypeBaseCommand is the type identifier for BaseCommand.
+	TypeBaseCommand = "BaseCommand"
+)
+
 var (
 	// ErrSetCwd is returned when setting the working directory fails.
 	ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
@@ -24,14 +29,24 @@ var (
 // BaseCommand is a struct that implements the Runnable interface.
 // It should be embedded in other command types to provide common functionality.
 type BaseCommand struct {
-	Label           string            // Optional label for the command
-	RunsOnCondition RunCondition      // The condition under which the command runs
-	RunsOnExitCodes []int             // Specific exit codes that trigger the command to run
-	Env             map[string]string // Environment variables to be passed to the command
-	parent          Runnable          // The parent command or batch, if any
-	cwd             string            // The working directory for the command, can be absolute or relative. Do not access directly, use GetCwd() and SetCwd() instead.
-	reporterMu      sync.RWMutex      // Mutex to protect the reporter field
-	reporter        progress.Reporter // Optional progress reporter for real-time updates
+	// Optional label for the command
+	Label string
+	// The condition under which the command runs
+	RunsOnCondition RunCondition
+	// Specific exit codes that trigger the command to run
+	RunsOnExitCodes []int
+	// Environment variables to be passed to the command
+	Env map[string]string
+	// The parent command or batch, if any
+	parent Runnable
+	// The working directory for the command,
+	// can be absolute or relative. Use GetCwd() when when executing runnable.
+	// to ensure correct resolution from parents.
+	cwd string
+	// Mutex to protect the reporter field
+	reporterMu sync.RWMutex
+	// Optional progress reporter for real-time updates
+	reporter progress.Reporter
 }
 
 // PreviousCommandStatus holds the state of the previous command execution.
@@ -116,9 +131,15 @@ func (c *BaseCommand) GetCwd() string {
 	return filepath.Join(c.parent.GetCwd(), c.cwd)
 }
 
-// SetCwd sets the working directory for the command.
-func (c *BaseCommand) SetCwd(cwd string) error {
-	c.cwd = cwd
+// PrependCwd prepends the working directory for the command.
+// If the existing cwd is absolute, it will be retained.
+func (c *BaseCommand) PrependCwd(cwd string) error {
+	if filepath.IsAbs(c.cwd) {
+		return nil
+	}
+
+	c.cwd = filepath.Join(cwd, c.cwd)
+
 	return nil
 }
 
@@ -202,7 +223,7 @@ func (c *BaseCommand) hasProgressReporter() bool {
 	return c.reporter != nil
 }
 
-// GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
+// GetType return the type of the runnable.
 func (c *BaseCommand) GetType() string {
-	return "BaseCommand"
+	return TypeBaseCommand
 }

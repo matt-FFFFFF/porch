@@ -432,7 +432,7 @@ func TestBaseDefinition_Mutability(t *testing.T) {
 
 		// Modify the returned BaseCommand
 		baseCmd.Label = "Modified"
-		baseCmd.SetCwd("/modified")
+		baseCmd.PrependCwd("/modified")
 		baseCmd.Env["NEW_KEY"] = "new_value"
 		baseCmd.RunsOnExitCodes[0] = 999
 

@@ -7,6 +7,79 @@
 It was designed to solve the problem of orchestrating complex command workflows in a portable and easy-to-use manner.
 Its portability means that you can confidently run the same workflows locally, in CI/CD pipelines, or on any server without worrying about compatibility issues.
 
+## ✨ Key Features
+
+- **Serial & Parallel Execution**: Run commands sequentially or concurrently
+- **YAML-Based Workflows**: Define workflows using simple, readable syntax
+- **Working Directory Management**: Control execution context with per-command working directories
+- **Comprehensive Error Handling**: Graceful signal handling, context propagation, skip controls
+- **Real-time TUI**: Terminal user interface for live command progress monitoring
+- **Extensible Architecture**: Plugin-based commands, custom commanders, provider system
+
+## 📦 Installation
+
+### Install from Go modules
+
+```bash
+go install github.com/matt-FFFFFF/porch@latest
+```
+
+### Build from source
+
+```bash
+git clone https://github.com/matt-FFFFFF/porch.git
+cd porch
+make build
+```
+
+## 🚀 Quick Start
+
+Create a YAML file defining your command workflow:
+
+```yaml
+name: "Build and Test Workflow"
+description: "Complete CI/CD pipeline example"
+commands:
+  - type: "shell"
+    name: "Setup Environment"
+    command_line: "echo 'Setting up build environment...'"
+
+  - type: "parallel"
+    name: "Quality Checks"
+    commands:
+      - type: "shell"
+        name: "Run Tests"
+        command_line: "go test ./..."
+
+      - type: "shell"
+        name: "Run Linter"
+        command_line: "golangci-lint run"
+```
+
+Execute the workflow:
+
+```bash
+porch run -f workflow.yaml
+```
+
+## 📚 Documentation
+
+For comprehensive documentation, including:
+- Getting started guide and core concepts
+- Path inheritance and working directory resolution
+- Flow control (conditional execution, skip codes, error handling)
+- Complete command type reference (shell, pwsh, serial, parallel, foreachdirectory, copycwdtotemp)
+- Output control (LOG_LEVEL, stdout/stderr, color configuration)
+- Terminal User Interface (TUI) guide
+
+Visit the full documentation site:
+
+**🔗 [https://matt-FFFFFF.github.io/porch/](https://matt-FFFFFF.github.io/porch/)**
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## ✨ Features
 
 ### 🚀 **Command Orchestration**

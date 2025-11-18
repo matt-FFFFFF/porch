@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	// OSCommandType is the type identifier for OSCommand runnables.
+	OSCommandType                          = "OSCommand"
 	maxBufferSize                          = 8 * 1024 * 1024 // 8MB
 	maxLastLineLength                      = 120
 	defaultTickerSeconds                   = 10 // Default ticker interval for process status updates
@@ -110,7 +112,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	res := &Result{
 		Label:    c.Label,
 		ExitCode: 0,
-		Cwd:      c.cwd,
+		Cwd:      c.GetCwd(),
 		Type:     c.GetType(),
 	}
 
@@ -459,5 +461,5 @@ func (c *OSCommand) setupProgressReporting(ctx context.Context) chan<- string {
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (c *OSCommand) GetType() string {
-	return "OSCommand"
+	return OSCommandType
 }

@@ -189,7 +189,7 @@ func TestNew_WhitespaceOnlyCommand(t *testing.T) {
 }
 
 func TestDefaultShell(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	if runtime.GOOS == GOOSWindows { // nolint:nestif
 		t.Run("windows default shell", func(t *testing.T) {
@@ -245,6 +245,7 @@ func TestDefaultShell(t *testing.T) {
 
 		t.Run("unix without SHELL env var", func(t *testing.T) {
 			originalShell := os.Getenv("SHELL")
+
 			os.Unsetenv("SHELL")
 
 			defer func() {
@@ -259,6 +260,7 @@ func TestDefaultShell(t *testing.T) {
 
 		t.Run("unix with empty SHELL env var", func(t *testing.T) {
 			originalShell := os.Getenv("SHELL")
+
 			os.Setenv("SHELL", "")
 
 			defer func() {

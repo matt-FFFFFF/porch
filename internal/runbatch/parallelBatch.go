@@ -14,6 +14,11 @@ import (
 
 var _ Runnable = (*ParallelBatch)(nil)
 
+const (
+	// ParallelBatchType is the type identifier for ParallelBatch runnables.
+	ParallelBatchType = "ParallelBatch"
+)
+
 // ParallelBatch represents a collection of commands, which can be run in parallel.
 type ParallelBatch struct {
 	*BaseCommand
@@ -95,5 +100,5 @@ func (b *ParallelBatch) SetProgressReporter(reporter progress.Reporter) {
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (b *ParallelBatch) GetType() string {
-	return "ParallelBatch"
+	return ParallelBatchType
 }

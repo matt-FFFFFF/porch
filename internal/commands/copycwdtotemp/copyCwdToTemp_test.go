@@ -277,10 +277,10 @@ func TestCopyCwdToTemp_ErrorHandling(t *testing.T) {
 
 // the behavior.
 func TestCwdChangePropagation(t *testing.T) {
-	const newCwd = tmpDir + "	/new_cwd_path"
+	const newCwd = tmpDir + "/new_cwd_path"
 
 	cwdChangingCmd := &runbatch.FunctionCommand{
-		BaseCommand: runbatch.NewBaseCommand("Change CWD", tmpDir, runbatch.RunOnAlways, nil, nil),
+		BaseCommand: runbatch.NewBaseCommand("Change CWD", ".", runbatch.RunOnAlways, nil, nil),
 		Func: func(_ context.Context, _ string, _ ...string) runbatch.FunctionCommandReturn {
 			return runbatch.FunctionCommandReturn{
 				NewCwd: newCwd,
@@ -290,7 +290,7 @@ func TestCwdChangePropagation(t *testing.T) {
 
 	// Command that tracks its CWD
 	tracker := &cwdTrackerCommand{
-		BaseCommand: runbatch.NewBaseCommand("Subsequent command", tmpDir, runbatch.RunOnAlways, nil, nil), // Initial CWD,
+		BaseCommand: runbatch.NewBaseCommand("Subsequent command", ".", runbatch.RunOnAlways, nil, nil), // Initial CWD,
 	}
 
 	// Create the batch
@@ -355,10 +355,10 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create our test commands
-	base := runbatch.NewBaseCommand("CopyCwdToTemp", initialCwd, runbatch.RunOnAlways, nil, nil)
+	base := runbatch.NewBaseCommand("CopyCwdToTemp", "", runbatch.RunOnAlways, nil, nil)
 	copyCwdCmd := New(base)
 	trackerCmd := &cwdTrackerCommand{
-		BaseCommand: runbatch.NewBaseCommand("Tracker Command", initialCwd, runbatch.RunOnAlways, nil, nil), // Start with the initial CWD,
+		BaseCommand: runbatch.NewBaseCommand("Tracker Command", "", runbatch.RunOnAlways, nil, nil), // Start with the initial CWD,
 	}
 
 	// Create and run a serial batch with both commands
@@ -366,6 +366,7 @@ func TestCopyCwdTempIntegration(t *testing.T) {
 		BaseCommand: runbatch.NewBaseCommand("Test CopyCwdToTemp Batch", initialCwd, runbatch.RunOnAlways, nil, nil), // Set the initial CWD for the batch,
 		Commands:    []runbatch.Runnable{copyCwdCmd, trackerCmd},
 	}
+
 	// Set parent for proper context
 	for _, cmd := range batch.Commands {
 		cmd.SetParent(batch)

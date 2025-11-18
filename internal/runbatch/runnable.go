@@ -37,7 +37,7 @@ type Runnable interface {
 	SetParent(Runnable)
 
 	// ShouldRun returns true if the command or batch should be run.
-	ShouldRun(state PreviousCommandStatus) ShouldRunAction
+	ShouldRun(state CommandStatus) ShouldRunAction
 
 	// SetProgressReporter sets an optional progress reporter for real-time execution updates.
 	// If not set (nil), the command will run without progress reporting.

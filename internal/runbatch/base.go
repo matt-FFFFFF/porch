@@ -19,12 +19,8 @@ const (
 	TypeBaseCommand = "BaseCommand"
 )
 
-var (
-	// ErrSetCwd is returned when setting the working directory fails.
-	ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
-	// ErrPathNotAbsolute is returned when a command's working directory is not absolute.
-	ErrPathNotAbsolute = errors.New("path must be absolute, all commands must have absolute cwd")
-)
+// ErrSetCwd is returned when setting the working directory fails.
+var ErrSetCwd = errors.New("failed to set working directory, please check the path and permissions")
 
 // BaseCommand is a struct that implements the Runnable interface.
 // It should be embedded in other command types to provide common functionality.
@@ -49,8 +45,8 @@ type BaseCommand struct {
 	reporter progress.Reporter
 }
 
-// PreviousCommandStatus holds the state of the previous command execution.
-type PreviousCommandStatus struct {
+// CommandStatus holds the state of the previous command execution.
+type CommandStatus struct {
 	// State is the result status of the previous command.
 	State ResultStatus
 	// ExitCode is the exit code of the previous command.
@@ -159,7 +155,7 @@ func (c *BaseCommand) InheritEnv(env map[string]string) {
 
 // ShouldRun checks if the command should run based on the current state.
 // It returns a ShouldRunAction indicating whether to run, skip, or error.
-func (c *BaseCommand) ShouldRun(prev PreviousCommandStatus) ShouldRunAction {
+func (c *BaseCommand) ShouldRun(prev CommandStatus) ShouldRunAction {
 	switch c.RunsOnCondition {
 	case RunOnAlways:
 		return ShouldRunActionRun

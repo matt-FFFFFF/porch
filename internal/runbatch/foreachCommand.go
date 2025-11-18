@@ -19,6 +19,8 @@ var _ Runnable = (*ForEachCommand)(nil)
 const (
 	// ItemEnvVar is the environment variable name used to store the current item in the iteration.
 	ItemEnvVar = "ITEM"
+	// ForEachCommandType is the type identifier for ForEachCommand runnables.
+	ForEachCommandType = "ForEachCommand"
 )
 
 const (
@@ -323,5 +325,5 @@ func NewForEachCommand(
 
 // GetType returns the type of the runnable (e.g., "Command", "SerialBatch", "ParallelBatch", etc.).
 func (f *ForEachCommand) GetType() string {
-	return "ForEachCommand"
+	return ForEachCommandType
 }

@@ -88,28 +88,37 @@ func TestSerialBatchCwdPropagation(t *testing.T) {
 // TestSerialBatchCwdMultipleChanges tests that when multiple commands change their working
 // directory, the latest change is always propagated to subsequent commands.
 func TestSerialBatchCwdMultipleChanges(t *testing.T) {
+	tmpDir := t.TempDir()
 	// Setup commands
+	// The first commadn sets an absolute path, which will override the batch's initial cwd.
 	cmd1 := &cwdCapturingCmd{
 		BaseCommand: NewBaseCommand("cmd1", ".", RunOnAlways, nil, nil),
 		exitCode:    0,
 		newCwd:      "/path/1",
 		status:      ResultStatusSuccess,
 	}
+	// The second command sets a relative path, which will be resolved against the first command's new cwd.
 	cmd2 := &cwdCapturingCmd{
-		BaseCommand: NewBaseCommand("cmd2", ".", RunOnAlways, nil, nil),
+		BaseCommand: NewBaseCommand("cmd2", "subdir", RunOnAlways, nil, nil),
+		exitCode:    0,
+		status:      ResultStatusSuccess,
+	}
+	// The third command sets another absolute path. This will be ignored as the command now has an absolute path set.
+	cmd3 := &cwdCapturingCmd{
+		BaseCommand: NewBaseCommand("cmd3", ".", RunOnAlways, nil, nil),
 		exitCode:    0,
 		newCwd:      "/path/2",
 		status:      ResultStatusSuccess,
 	}
-	cmd3 := &cwdCapturingCmd{
-		BaseCommand: NewBaseCommand("cmd3", ".", RunOnAlways, nil, nil),
+	cmd4 := &cwdCapturingCmd{
+		BaseCommand: NewBaseCommand("cmd4", ".", RunOnAlways, nil, nil),
 		exitCode:    0,
 		status:      ResultStatusSuccess,
 	}
 
 	batch := &SerialBatch{
-		BaseCommand: NewBaseCommand("batch_with_multiple_cwd_changes", t.TempDir(), RunOnAlways, nil, nil),
-		Commands:    []Runnable{cmd1, cmd2, cmd3},
+		BaseCommand: NewBaseCommand("batch_with_multiple_cwd_changes", tmpDir, RunOnAlways, nil, nil),
+		Commands:    []Runnable{cmd1, cmd2, cmd3, cmd4},
 	}
 
 	for _, cmd := range batch.Commands {
@@ -117,11 +126,11 @@ func TestSerialBatchCwdMultipleChanges(t *testing.T) {
 	}
 
 	// Run the batch
-	_ = batch.Run(context.Background())
+	_ = batch.Run(t.Context())
 
 	// Verify the last command picked up the most recent cwd change
-	assert.Equal(t, ".", cmd1.runWith)
-	assert.Equal(t, "/path/1", cmd2.runWith)
+	assert.Equal(t, tmpDir, cmd1.runWith)
+	assert.Equal(t, "/path/1/subdir", cmd2.runWith)
 	assert.Equal(t, "/path/2", cmd3.runWith)
 }
 

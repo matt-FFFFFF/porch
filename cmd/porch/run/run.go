@@ -31,7 +31,6 @@ const (
 	outputSuccessDetailsFlag    = "output-success-details"
 	parallelismFlag             = "parallelism"
 	tuiFlag                     = "tui"
-	writeFlag                   = "write"
 	configTimeoutFlag           = "config-timeout"
 	configTimeoutSecondsDefault = 30
 	cliExitStr                  = ""

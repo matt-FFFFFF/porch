@@ -96,7 +96,7 @@ func (m *mockRunnable) SetProgressReporter(reporter progress.Reporter) {}
 func (m *mockRunnable) GetProgressReporter() progress.Reporter         { return nil }
 func (m *mockRunnable) GetType() string                                { return "mockRunnable" }
 
-func (m *mockRunnable) ShouldRun(state runbatch.PreviousCommandStatus) runbatch.ShouldRunAction {
+func (m *mockRunnable) ShouldRun(state runbatch.CommandStatus) runbatch.ShouldRunAction {
 	return runbatch.ShouldRunActionRun
 }
 

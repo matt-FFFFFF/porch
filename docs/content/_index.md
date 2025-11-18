@@ -1,5 +1,6 @@
 +++
 title = "Porch Documentation"
+description = "A Portable Process Orchestration Framework"
 +++
 
 # Porch - A Portable Process Orchestration Framework

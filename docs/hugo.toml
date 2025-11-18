@@ -4,8 +4,6 @@ title = 'Porch Documentation'
 theme = 'relearn'
 
 [params]
-  description = "A Portable Process Orchestration Framework"
-  author = "matt-FFFFFF"
   showVisitedLinks = true
   disableBreadcrumb = false
   disableNextPrev = false
@@ -13,8 +11,11 @@ theme = 'relearn'
   titleSeparator = "::"
   themeVariant = "auto"
 
+[params.author]
+  name = "matt-FFFFFF"
+
 [outputs]
-  home = ["HTML", "RSS", "JSON"]
+  home = ["HTML", "RSS"]
 
 [markup]
   [markup.goldmark]

@@ -16,7 +16,7 @@ Porch resolves working directories using these rules:
 1. The top level workflow directory is ".", the current directory where Porch is run.
 2. If the command's `working_directory` is empty, it will use the parent's resolved directory.
 3. If the command's `working_directory` is an absolute path, it will use that path directly.
-4. If the command's `working_directory` is a relative path and has no parent, it will be joined to its parent's resolved directory.
+4. If the command's `working_directory` is a relative path and has a parent, it will be joined to its parent's resolved directory.
 
 This creates a hierarchical resolution system where child commands automatically inherit their parent's working directory unless they specify otherwise.
 

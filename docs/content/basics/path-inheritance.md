@@ -11,7 +11,7 @@ Porch uses a **recursive dynamic programming approach** to resolve working direc
 
 ### Resolution Rules
 
-Porch resolves resolves working directories using these rules:
+Porch resolves working directories using these rules:
 
 1. The top level workflow directory is ".", the current directory where Porch is run.
 2. If the command's `working_directory` is empty, it will use the parent's resolved directory.

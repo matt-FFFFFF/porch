@@ -219,7 +219,7 @@ Results are saved as [gob](https://pkg.go.dev/encoding/gob) files containing:
 ### Tree View with Details
 
 You can add additional details to the output using the `--show-details/--details` flag.
-Doing this will show information such as exit codes, the cwd, and the command type.,
+Doing this will show information such as exit codes, the cwd, and the command type.
 
 ```bash
 porch run --details -f workflow.yaml

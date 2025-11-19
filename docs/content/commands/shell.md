@@ -3,8 +3,6 @@ title = "Shell Command"
 weight = 1
 +++
 
-# Shell Command
-
 The `shell` command executes shell commands with full environment control and configurable exit code handling.
 
 ## Attributes
@@ -55,6 +53,7 @@ commands:
 ## Environment Variables
 
 Environment variables are inherited from:
+
 1. The system environment
 2. Parent command's environment
 3. The command's own `env` settings (takes precedence)

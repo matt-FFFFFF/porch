@@ -3,8 +3,6 @@ title = "TUI Implementation Details"
 weight = 2
 +++
 
-# Porch TUI (Terminal User Interface) Implementation
-
 ## Overview
 
 The Porch orchestration tool now includes a real-time Terminal User Interface (TUI) that provides live progress monitoring during command execution. This enhancement offers better visibility into complex workflows compared to traditional text-based output.

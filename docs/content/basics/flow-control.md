@@ -3,8 +3,6 @@ title = "Flow Control"
 weight = 3
 +++
 
-# Flow Control
-
 Porch provides sophisticated flow control mechanisms to handle complex execution scenarios, including conditional execution, error handling, and intentional skipping.
 
 ## Conditional Execution
@@ -15,11 +13,11 @@ Every command in Porch can specify when it should run using the `runs_on_conditi
 
 There are four run conditions available:
 
-| Condition | Description |
-|-----------|-------------|
-| `success` | Run only if all previous commands succeeded (default) |
-| `error` | Run only if a previous command failed |
-| `always` | Run regardless of previous command results |
+| Condition    | Description                                             |
+| ------------ | ------------------------------------------------------- |
+| `success`    | Run only if all previous commands succeeded (default)   |
+| `error`      | Run only if a previous command failed                   |
+| `always`     | Run regardless of previous command results              |
 | `exit-codes` | Run only if previous command exited with specific codes |
 
 ### Example: Basic Conditions
@@ -63,13 +61,13 @@ commands:
     name: "Handle Warning"
     command_line: "echo 'Database has warnings'"
     runs_on_condition: "exit-codes"
-    runs_on_exit_codes: [1, 2]  # Run on warning codes
+    runs_on_exit_codes: [1, 2] # Run on warning codes
 
   - type: "shell"
     name: "Handle Critical Error"
     command_line: "echo 'Critical database error'"
     runs_on_condition: "exit-codes"
-    runs_on_exit_codes: [3, 4, 5]  # Run on critical codes
+    runs_on_exit_codes: [3, 4, 5] # Run on critical codes
 ```
 
 ## Skip Controls
@@ -102,6 +100,7 @@ commands:
 ```
 
 When a command exits with a skip code:
+
 1. The command is marked as intentionally skipped
 2. Remaining commands in the same batch are skipped
 3. The workflow continues with commands at the next level

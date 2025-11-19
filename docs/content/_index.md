@@ -3,9 +3,7 @@ title = "Porch Documentation"
 description = "A Portable Process Orchestration Framework"
 +++
 
-# Porch - A Portable Process Orchestration Framework
-
-![porch TUI](/images/tui-example.png)
+![porch TUI](/porch/images/tui-example.png)
 
 **porch** is a sophisticated Go-based process orchestration framework designed for running and managing complex command workflows. It provides a flexible, YAML-driven approach to define, compose, and execute command chains with advanced flow control, parallel processing, and comprehensive error handling.
 
@@ -14,6 +12,7 @@ It was designed to solve the problem of orchestrating complex command workflows 
 ## Features at a Glance
 
 ### 🚀 Command Orchestration
+
 - **Serial Execution**: Run commands sequentially with dependency management
 - **Parallel Execution**: Execute independent commands concurrently for optimal performance
 - **Nested Batches**: Compose complex workflows with serial and parallel command combinations
@@ -21,6 +20,7 @@ It was designed to solve the problem of orchestrating complex command workflows 
 - **Directory Iteration**: Execute commands across multiple directories with flexible traversal options
 
 ### 📋 Flexible Configuration
+
 - **YAML-Based Workflows**: Define command chains using simple, readable YAML syntax
 - **Working Directory Management**: Control execution context with per-command working directories
 - **Environment Variables**: Set and inherit environment variables at any level
@@ -28,6 +28,7 @@ It was designed to solve the problem of orchestrating complex command workflows 
 - **Command Groups**: Define reusable command sets that can be referenced by container commands
 
 ### 🛡️ Robust Error Handling
+
 - **Graceful Signal Handling**: Proper SIGINT/SIGTERM handling with graceful shutdown
 - **Context-Aware Execution**: Full context propagation for cancellation and timeouts
 - **Comprehensive Results**: Detailed execution results with exit codes, stdout, and stderr
@@ -35,6 +36,7 @@ It was designed to solve the problem of orchestrating complex command workflows 
 - **Skip Controls**: Configure commands to skip remaining tasks based on exit codes
 
 ### 🎨 Beautiful Output
+
 - **TUI**: Real-time terminal user interface for live command progress monitoring
 - **Tree Visualization**: Clear hierarchical display of command execution
 - **Colorized Output**: Terminal-aware colored output for better readability
@@ -46,17 +48,21 @@ It was designed to solve the problem of orchestrating complex command workflows 
 ### Installation
 
 #### Operating System Support
+
 Porch currently supports the following operating systems:
+
 - Linux
 - macOS
 - Windows
 
 #### Install from Go modules
+
 ```bash
 go install github.com/matt-FFFFFF/porch@latest
 ```
 
 #### Build from source
+
 ```bash
 git clone https://github.com/matt-FFFFFF/porch.git
 cd porch

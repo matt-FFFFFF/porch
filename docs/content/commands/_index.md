@@ -3,30 +3,30 @@ title = "Commands"
 weight = 2
 +++
 
-# Command Types
-
 Porch provides six built-in command types for different execution patterns. Each command type serves a specific purpose and has its own configuration options.
 
 ## Overview
 
-| Command Type | Purpose | Execution Mode |
-|--------------|---------|----------------|
-| [Shell](shell/) | Execute shell commands | Single |
-| [PowerShell](pwsh/) | Execute PowerShell scripts | Single |
-| [Serial](serial/) | Run commands sequentially | Container |
-| [Parallel](parallel/) | Run commands concurrently | Container |
-| [ForEach Directory](foreachdirectory/) | Execute commands in multiple directories | Container |
-| [Copy to Temp](copycwdtotemp/) | Copy working directory to temporary location | Utility |
+| Command Type                           | Purpose                                      | Execution Mode |
+| -------------------------------------- | -------------------------------------------- | -------------- |
+| [Shell](shell/)                        | Execute shell commands                       | Single         |
+| [PowerShell](pwsh/)                    | Execute PowerShell scripts                   | Single         |
+| [Serial](serial/)                      | Run commands sequentially                    | Container      |
+| [Parallel](parallel/)                  | Run commands concurrently                    | Container      |
+| [ForEach Directory](foreachdirectory/) | Execute commands in multiple directories     | Container      |
+| [Copy to Temp](copycwdtotemp/)         | Copy working directory to temporary location | Utility        |
 
 ## Single Commands
 
 Single commands execute a single task:
+
 - **[Shell](shell/)**: Execute any shell command or script
 - **[PowerShell](pwsh/)**: Execute PowerShell scripts (Windows, Linux, macOS)
 
 ## Container Commands
 
 Container commands group and control the execution of other commands:
+
 - **[Serial](serial/)**: Execute commands one after another
 - **[Parallel](parallel/)**: Execute commands simultaneously
 - **[ForEach Directory](foreachdirectory/)**: Execute commands for each directory found
@@ -34,6 +34,7 @@ Container commands group and control the execution of other commands:
 ## Utility Commands
 
 Utility commands provide special functionality:
+
 - **[Copy to Temp](copycwdtotemp/)**: Create isolated temporary environments
 
 ## Common Attributes

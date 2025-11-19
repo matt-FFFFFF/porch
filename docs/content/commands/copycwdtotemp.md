@@ -3,8 +3,6 @@ title = "Copy to Temp Command"
 weight = 6
 +++
 
-# Copy to Temp Command
-
 The `copycwdtotemp` command copies the current working directory to a temporary location for isolated execution. This is useful for testing, building, or any operations that should not affect the source directory.
 
 ## Attributes

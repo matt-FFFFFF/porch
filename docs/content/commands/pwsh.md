@@ -3,8 +3,6 @@ title = "PowerShell Command"
 weight = 2
 +++
 
-# PowerShell Command
-
 The `pwsh` command executes PowerShell scripts with full environment control and configurable exit code handling. It works on Windows, Linux, and macOS.
 
 ## Attributes
@@ -58,15 +56,15 @@ commands:
     script: |
       Write-Host "Building application..."
       dotnet build -c Release
-      
+
       Write-Host "Running tests..."
       dotnet test
-      
+
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Tests failed"
         exit 1
       }
-      
+
       Write-Host "Deployment successful"
     working_directory: "/path/to/project"
     env:
@@ -79,6 +77,7 @@ commands:
 ## Script vs Script File
 
 Use `script` for inline PowerShell code:
+
 ```yaml
 - type: "pwsh"
   name: "Inline Script"
@@ -88,6 +87,7 @@ Use `script` for inline PowerShell code:
 ```
 
 Use `script_file` to reference an external file:
+
 ```yaml
 - type: "pwsh"
   name: "External Script"

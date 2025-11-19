@@ -3,9 +3,9 @@ title = "ForEach Directory Command"
 weight = 5
 +++
 
-# ForEach Directory Command
-
 The `foreachdirectory` command executes commands in each directory found by traversing the filesystem. This is particularly useful for monorepos or multi-module projects.
+
+Each item found is made available to child commands via the `ITEM` environment variable, which contains the relative path of the current directory being processed.
 
 ## Attributes
 
@@ -48,6 +48,7 @@ commands:
 ## Working Directory Strategy
 
 ### `item_relative`
+
 Sets the working directory to each found directory relative to the current directory:
 
 ```yaml
@@ -66,6 +67,7 @@ Sets the working directory to each found directory relative to the current direc
 ```
 
 ### `none`
+
 Does not change the working directory; commands run in the parent's working directory:
 
 ```yaml
@@ -202,15 +204,15 @@ commands:
             exit 99
           fi
         skip_exit_codes: [99]
-      
+
       - type: "shell"
         name: "Install Dependencies"
         command_line: "npm install"
-      
+
       - type: "shell"
         name: "Run Tests"
         command_line: "npm test"
-      
+
       - type: "shell"
         name: "Build Module"
         command_line: "npm run build"
@@ -237,7 +239,7 @@ Use skip codes to skip directories without certain criteria:
           exit 100
         fi
       skip_exit_codes: [100]
-    
+
     - type: "shell"
       name: "Build"
       command_line: "go build ./..."
@@ -254,7 +256,7 @@ Control whether hidden directories (starting with `.`) are included:
   working_directory: "."
   mode: "parallel"
   depth: 1
-  include_hidden: true  # Includes .git, .github, etc.
+  include_hidden: true # Includes .git, .github, etc.
   working_directory_strategy: "item_relative"
   commands:
     - type: "shell"
@@ -267,7 +269,7 @@ Control whether hidden directories (starting with `.`) are included:
   working_directory: "."
   mode: "parallel"
   depth: 1
-  include_hidden: false  # Skips .git, .github, etc.
+  include_hidden: false # Skips .git, .github, etc.
   working_directory_strategy: "item_relative"
   commands:
     - type: "shell"

@@ -3,8 +3,6 @@ title = "Serial Command"
 weight = 3
 +++
 
-# Serial Command
-
 The `serial` command executes a list of commands sequentially, where each command waits for the previous one to complete before starting.
 
 ## Attributes
@@ -34,11 +32,11 @@ commands:
       - type: "shell"
         name: "Install Dependencies"
         command_line: "npm install"
-      
+
       - type: "shell"
         name: "Build"
         command_line: "npm run build"
-      
+
       - type: "shell"
         name: "Test"
         command_line: "npm test"
@@ -47,6 +45,7 @@ commands:
 ## Execution Flow
 
 In serial execution:
+
 1. Commands execute in the order defined
 2. Each command waits for the previous to complete
 3. If a command fails, subsequent commands are skipped (unless they have `runs_on_condition: "error"` or `runs_on_condition: "always"`)

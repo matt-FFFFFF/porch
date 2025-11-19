@@ -1,25 +1,25 @@
 baseURL = 'https://matt-FFFFFF.github.io/porch/'
 languageCode = 'en-us'
-title = 'Porch Documentation'
+title = '🏗️ Porch Documentation'
 theme = 'relearn'
 
 [params]
-  showVisitedLinks = true
-  disableBreadcrumb = false
-  disableNextPrev = false
-  disableLandingPageButton = true
-  titleSeparator = "::"
-  themeVariant = "auto"
+showVisitedLinks = true
+disableBreadcrumb = false
+disableNextPrev = false
+disableLandingPageButton = true
+titleSeparator = "::"
+themeVariant = "zen-dark"
 
 [params.author]
-  name = "matt-FFFFFF"
+name = "matt-FFFFFF"
 
 [outputs]
-  home = ["HTML", "RSS"]
+home = ["HTML", "RSS"]
 
 [markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
-  [markup.highlight]
-    style = "monokai"
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
+[markup.highlight]
+style = "monokai"

@@ -3,8 +3,6 @@ title = "Advanced Topics"
 weight = 5
 +++
 
-# Advanced Topics
-
 This section covers advanced features and implementation details of Porch.
 
 ## Topics

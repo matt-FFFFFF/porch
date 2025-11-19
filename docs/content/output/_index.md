@@ -3,40 +3,39 @@ title = "Output Control"
 weight = 3
 +++
 
-# Controlling Output
-
 Porch provides several ways to control the output and logging behavior of your workflows. This includes environment variables for logging, command-line flags for output formatting, and color control.
 
 ## Log Levels
 
-Porch uses structured logging with different log levels. Control the log level using the `LOG_LEVEL` environment variable.
+Porch uses structured logging with different log levels. Control the log level using the `PORCH_LOG_LEVEL` environment variable.
 
 ### Available Log Levels
 
-| Level | Description | When to Use |
-|-------|-------------|-------------|
-| `DEBUG` | Detailed debugging information | Development and troubleshooting |
-| `INFO` | General informational messages | Normal operation (default) |
-| `WARN` | Warning messages | Important but non-critical issues |
-| `ERROR` | Error messages | Error conditions only |
+| Level   | Description                    | When to Use                       |
+| ------- | ------------------------------ | --------------------------------- |
+| `DEBUG` | Detailed debugging information | Development and troubleshooting   |
+| `INFO`  | General informational messages | Normal operation (default)        |
+| `WARN`  | Warning messages               | Important but non-critical issues |
+| `ERROR` | Error messages                 | Error conditions only             |
 
 ### Setting Log Level
 
 ```bash
 # Set log level via environment variable
-export LOG_LEVEL=DEBUG
+export PORCH_LOG_LEVEL=DEBUG
 porch run -f workflow.yaml
 
 # Or inline
-LOG_LEVEL=DEBUG porch run -f workflow.yaml
+PORCH_LOG_LEVEL=DEBUG porch run -f workflow.yaml
 
 # Production: Only errors
-LOG_LEVEL=ERROR porch run -f workflow.yaml
+PORCH_LOG_LEVEL=ERROR porch run -f workflow.yaml
 ```
 
 ### Example Output by Level
 
 **DEBUG level** (most verbose):
+
 ```
 DEBUG: Starting workflow execution
 DEBUG: Creating command: Build Application
@@ -46,12 +45,14 @@ DEBUG: Command completed with exit code 0
 ```
 
 **INFO level** (default):
+
 ```
 INFO: Running command: Build Application
 INFO: Command completed successfully
 ```
 
 **ERROR level** (least verbose):
+
 ```
 ERROR: Command failed: Build Application
 ```
@@ -67,7 +68,7 @@ By default, Porch captures stdout and stderr from all commands. You can control 
 porch run -f workflow.yaml --output-stdout
 porch run -f workflow.yaml --stdout
 
-# Exclude stderr from results  
+# Exclude stderr from results
 porch run -f workflow.yaml --no-output-stderr
 porch run -f workflow.yaml --no-stderr
 
@@ -82,6 +83,7 @@ porch run -f workflow.yaml --stdout --success --no-stderr
 ### Default Behavior
 
 By default:
+
 - **Stdout**: Not included in output (unless `--stdout` is specified)
 - **Stderr**: Included for failed commands and commands with skip exit codes
 - **Success details**: Not included for successful commands (unless `--success` is specified)
@@ -93,10 +95,10 @@ By default:
 $ porch run -f workflow.yaml
 ✓ Build Application (1.2s)
 
-# With --stdout  
+# With --stdout
 $ porch run -f workflow.yaml --stdout
 ✓ Build Application (1.2s)
-  stdout: 
+  stdout:
     Building main.go...
     Build completed successfully
 ```
@@ -126,7 +128,7 @@ $ porch run -f workflow.yaml --success
 ✓ Tests (5.2s)
   exit code: 0
   duration: 5.234s
-  stderr: 
+  stderr:
     PASS
     coverage: 85.3% of statements
 ```
@@ -153,7 +155,7 @@ FORCE_COLOR=1 porch run -f workflow.yaml
 Porch uses colors to indicate command status:
 
 - **Green (✓)**: Successful commands
-- **Red (✗)**: Failed commands  
+- **Red (✗)**: Failed commands
 - **Yellow (⚠)**: Commands with warnings or non-zero success codes
 - **Gray**: Skipped commands
 - **Blue**: Running commands (in TUI)
@@ -190,7 +192,8 @@ porch show results --stdout --success
 
 ### Results File Format
 
-Results are saved as JSON files containing:
+Results are saved as [gob](https://pkg.go.dev/encoding/gob) files containing:
+
 - Command hierarchy
 - Exit codes
 - Execution duration
@@ -213,24 +216,22 @@ Results are saved as JSON files containing:
     ✓ Build for macOS (1.8s)
 ```
 
-### JSON Output
+### Tree View with Details
 
-Results files use JSON format for programmatic processing:
+You can add additional details to the output using the `--show-details/--details` flag.
+Doing this will show information such as exit codes, the cwd, and the command type.
 
-```json
-{
-  "name": "Build and Test Workflow",
-  "status": "success",
-  "duration": "10.5s",
-  "commands": [
-    {
-      "name": "Setup Environment",
-      "status": "success",
-      "exit_code": 0,
-      "duration": "0.1s"
-    }
-  ]
-}
+```bash
+porch run --details -f workflow.yaml
+```
+
+```text
+✓ Skip test (type: SerialBatch) (cwd: .)
+  ✓ echo pwd (type: OSCommand) (cwd: .)
+  ✓ skip test (type: OSCommand) (cwd: .) (exit code: 2)
+    ➜ Error: intentionally skip execution
+  ~ should not run (type: OSCommand) (cwd: .)
+    ➜ Error: intentionally skip execution
 ```
 
 ## Redirecting Command Output
@@ -270,14 +271,14 @@ Within commands, use shell redirection to control output:
 
 ```bash
 # Maximum verbosity for debugging
-LOG_LEVEL=DEBUG porch run -f workflow.yaml --stdout --success
+PORCH_LOG_LEVEL=DEBUG porch run -f workflow.yaml --stdout --success
 ```
 
 ### Clean CI/CD Output
 
 ```bash
 # Minimal output for CI/CD
-NO_COLOR=1 LOG_LEVEL=ERROR porch run -f workflow.yaml --no-stderr --out results
+NO_COLOR=1 PORCH_LOG_LEVEL=ERROR porch run -f workflow.yaml --no-stderr --out results
 ```
 
 ### Detailed Results Review
@@ -294,13 +295,13 @@ porch show results --stdout --success
 
 ```bash
 # Only errors, save results for audit
-NO_COLOR=1 LOG_LEVEL=ERROR porch run -f workflow.yaml --out deploy-results --no-stderr
+NO_COLOR=1 PORCH_LOG_LEVEL=ERROR porch run -f workflow.yaml --out deploy-results --no-stderr
 ```
 
 ## Best Practices
 
-1. **Use LOG_LEVEL=DEBUG for development**: Get detailed information during development
-2. **Use LOG_LEVEL=ERROR for production**: Reduce noise in production logs
+1. **Use PORCH_LOG_LEVEL=DEBUG for development**: Get detailed information during development
+2. **Use PORCH_LOG_LEVEL=ERROR for production**: Reduce noise in production logs
 3. **Save results in CI/CD**: Keep audit trail with `--out results`
 4. **Disable color in CI/CD**: Use `NO_COLOR=1` to avoid escape sequences
 5. **Use --stdout for debugging**: See command output when troubleshooting
@@ -309,20 +310,20 @@ NO_COLOR=1 LOG_LEVEL=ERROR porch run -f workflow.yaml --out deploy-results --no-
 
 ## Environment Variables Summary
 
-| Variable | Values | Default | Purpose |
-|----------|--------|---------|---------|
-| `LOG_LEVEL` | `DEBUG`, `INFO`, `WARN`, `ERROR` | `INFO` | Control logging verbosity |
-| `NO_COLOR` | `1` or any value | Not set | Disable color output |
-| `FORCE_COLOR` | `1` or any value | Not set | Force color output |
+| Variable          | Values                           | Default | Purpose                   |
+| ----------------- | -------------------------------- | ------- | ------------------------- |
+| `PORCH_LOG_LEVEL` | `DEBUG`, `INFO`, `WARN`, `ERROR` | `INFO`  | Control logging verbosity |
+| `NO_COLOR`        | `1` or any value                 | Not set | Disable color output      |
+| `FORCE_COLOR`     | `1` or any value                 | Not set | Force color output        |
 
 ## Command-Line Flags Summary
 
-| Flag | Shorthand | Description |
-|------|-----------|-------------|
-| `--output-stdout` | `--stdout` | Include stdout in results |
-| `--no-output-stderr` | `--no-stderr` | Exclude stderr from results |
-| `--output-success-details` | `--success` | Include details for successful commands |
-| `--out <file>` | | Save results to file |
+| Flag                       | Shorthand     | Description                             |
+| -------------------------- | ------------- | --------------------------------------- |
+| `--output-stdout`          | `--stdout`    | Include stdout in results               |
+| `--no-output-stderr`       | `--no-stderr` | Exclude stderr from results             |
+| `--output-success-details` | `--success`   | Include details for successful commands |
+| `--out <file>`             |               | Save results to file                    |
 
 ## Related
 

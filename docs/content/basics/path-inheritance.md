@@ -3,8 +3,6 @@ title = "Path Inheritance"
 weight = 2
 +++
 
-# Path Inheritance
-
 One of Porch's most powerful features is its intelligent handling of working directories through **path inheritance**. This allows you to build complex workflows where commands naturally inherit and modify their working directory context.
 
 ## How It Works
@@ -13,14 +11,12 @@ Porch uses a **recursive dynamic programming approach** to resolve working direc
 
 ### Resolution Rules
 
-The `GetCwd()` method resolves working directories using these rules:
+Porch resolves working directories using these rules:
 
-1. **Nil receiver**: Returns `"."`
-2. **Empty cwd, no parent**: Returns `"."`
-3. **Empty cwd, has parent**: Inherits parent's cwd
-4. **Absolute path**: Returns the path directly (no inheritance)
-5. **Relative path, no parent**: Returns the relative path
-6. **Relative path, has parent**: Joins with parent's cwd using `filepath.Join()`
+1. The top level workflow directory is ".", the current directory where Porch is run.
+2. If the command's `working_directory` is empty, it will use the parent's resolved directory.
+3. If the command's `working_directory` is an absolute path, it will use that path directly.
+4. If the command's `working_directory` is a relative path and has a parent, it will be joined to its parent's resolved directory.
 
 This creates a hierarchical resolution system where child commands automatically inherit their parent's working directory unless they specify otherwise.
 
@@ -60,6 +56,7 @@ commands:
 ```
 
 In this example:
+
 - The first command runs in `./project`
 - The second command runs in `./project/packages/core`
 - The third command runs in `.` (going up two levels from `./project`)
@@ -95,6 +92,7 @@ commands:
 ```
 
 In this example:
+
 - First command: Uses `./frontend` (inherited)
 - Second command: Uses `/home/user/projects/backend` (absolute, breaks inheritance)
 - Third command: Uses `./frontend` (back to inherited path)
@@ -173,38 +171,8 @@ commands:
 5. **Resolution is recursive**: The algorithm walks up the command tree to resolve the final path
 
 This design makes it easy to:
+
 - Build hierarchical workflows with natural directory context
 - Override paths when needed with absolute paths
 - Keep workflows portable using relative paths
 - Avoid repetitive path specifications
-
-## Implementation Details
-
-The path resolution is implemented in `internal/runbatch/base.go`:
-
-```go
-func (c *BaseCommand) GetCwd() string {
-    if c == nil {
-        return "."
-    }
-    
-    if c.cwd == "" {
-        if c.parent == nil {
-            return "."
-        }
-        return c.parent.GetCwd()
-    }
-    
-    if filepath.IsAbs(c.cwd) {
-        return c.cwd
-    }
-    
-    if c.parent == nil {
-        return c.cwd
-    }
-    
-    return filepath.Join(c.parent.GetCwd(), c.cwd)
-}
-```
-
-This recursive approach ensures efficient path resolution while maintaining clarity and simplicity.

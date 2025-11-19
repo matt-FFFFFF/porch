@@ -3,8 +3,6 @@ title = "Parallel Command"
 weight = 4
 +++
 
-# Parallel Command
-
 The `parallel` command executes a list of commands concurrently, allowing independent tasks to run simultaneously for optimal performance.
 
 ## Attributes
@@ -34,11 +32,11 @@ commands:
       - type: "shell"
         name: "Unit Tests"
         command_line: "go test ./..."
-      
+
       - type: "shell"
         name: "Linting"
         command_line: "golangci-lint run"
-      
+
       - type: "shell"
         name: "Security Scan"
         command_line: "gosec ./..."
@@ -47,6 +45,7 @@ commands:
 ## Execution Flow
 
 In parallel execution:
+
 1. All commands start simultaneously
 2. Commands run independently of each other
 3. The batch waits for all commands to complete
@@ -76,6 +75,7 @@ In parallel execution:
 ## Use Cases
 
 Parallel execution is ideal for:
+
 - **Independent tests**: Unit tests, integration tests, E2E tests
 - **Quality checks**: Linting, security scans, code coverage
 - **Multi-platform builds**: Building for different OS/architectures
@@ -90,19 +90,19 @@ commands:
       - type: "shell"
         name: "Unit Tests"
         command_line: "npm run test:unit"
-      
+
       - type: "shell"
         name: "Integration Tests"
         command_line: "npm run test:integration"
-      
+
       - type: "shell"
         name: "ESLint"
         command_line: "npm run lint"
-      
+
       - type: "shell"
         name: "TypeScript Check"
         command_line: "npm run type-check"
-      
+
       - type: "shell"
         name: "Security Audit"
         command_line: "npm audit"
@@ -192,6 +192,7 @@ Combine parallel and serial execution:
 ## Performance Considerations
 
 Parallel execution provides performance benefits when:
+
 - Tasks are I/O bound (network, disk)
 - Tasks are independent (no shared state)
 - System has multiple CPU cores
@@ -217,7 +218,7 @@ Parallel execution provides performance benefits when:
       command_line: "make build"
     - type: "shell"
       name: "Test"
-      command_line: "make test"  # Needs build output
+      command_line: "make test" # Needs build output
 ```
 
 ## Best Practices

@@ -3,8 +3,6 @@ title = "Circular Dependency Detection"
 weight = 1
 +++
 
-# Circular Dependency Detection
-
 ## Overview
 
 The porch configuration system now includes robust circular dependency detection to prevent infinite loops in command group references. This feature helps catch configuration errors early and provides clear error messages to help debug issues.

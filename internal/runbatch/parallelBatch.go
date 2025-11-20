@@ -33,8 +33,8 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 		With("runnableType", "ParallelBatch")
 
 	// Report that this batch is starting if we have a reporter
-	if b.hasProgressReporter() {
-		ReportBatchStarted(b.GetProgressReporter(), b.Label, "parallel")
+	if rep := b.GetProgressReporter(); rep != nil {
+		ReportBatchStarted(rep, b.Label, "parallel")
 	}
 
 	// Propagate reporter to child commands
@@ -83,8 +83,8 @@ func (b *ParallelBatch) Run(ctx context.Context) Results {
 	}
 
 	// Report completion based on results if we have a reporter
-	if b.hasProgressReporter() {
-		ReportExecutionComplete(ctx, b.GetProgressReporter(), b.Label, res,
+	if rep := b.GetProgressReporter(); rep != nil {
+		ReportExecutionComplete(ctx, rep, b.Label, res,
 			"Parallel batch completed successfully",
 			"Parallel batch failed")
 	}

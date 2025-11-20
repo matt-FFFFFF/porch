@@ -158,8 +158,8 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 				result.Error = fmt.Errorf("%w: %v", ErrSkipIntentional, err)
 
 				// Report skipped if we have a reporter
-				if f.hasProgressReporter() {
-					f.GetProgressReporter().Report(progress.Event{
+				if rep := f.GetProgressReporter(); rep != nil {
+					rep.Report(progress.Event{
 						CommandPath: []string{f.Label},
 						Type:        progress.EventSkipped,
 						Message:     result.Error.Error(),
@@ -182,8 +182,8 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 		result.ExitCode = -1
 
 		// Report failure if we have a reporter
-		if f.hasProgressReporter() {
-			f.GetProgressReporter().Report(progress.Event{
+		if rep := f.GetProgressReporter(); rep != nil {
+			rep.Report(progress.Event{
 				CommandPath: []string{f.Label},
 				Type:        progress.EventFailed,
 				Message:     result.Error.Error(),
@@ -285,8 +285,8 @@ func (f *ForEachCommand) Run(ctx context.Context) Results {
 
 	// If we have a progress reporter, use a transparent reporter so the batch reports
 	// directly without the ForEach layer showing up in the hierarchy
-	if f.hasProgressReporter() {
-		transparentReporter := NewTransparentReporter(f.GetProgressReporter())
+	if rep := f.GetProgressReporter(); rep != nil {
+		transparentReporter := NewTransparentReporter(rep)
 		run.SetProgressReporter(transparentReporter)
 	}
 

@@ -193,18 +193,14 @@ func (c *BaseCommand) SetProgressReporter(reporter progress.Reporter) {
 // GetProgressReporter returns the currently set progress reporter, or nil if none is set.
 // This method is thread-safe.
 func (c *BaseCommand) GetProgressReporter() progress.Reporter {
+	if c == nil {
+		return nil
+	}
+
 	c.reporterMu.RLock()
 	defer c.reporterMu.RUnlock()
 
 	return c.reporter
-}
-
-// hasProgressReporter returns true if a progress reporter has been set.
-func (c *BaseCommand) hasProgressReporter() bool {
-	c.reporterMu.RLock()
-	defer c.reporterMu.RUnlock()
-
-	return c.reporter != nil
 }
 
 // GetType return the type of the runnable.

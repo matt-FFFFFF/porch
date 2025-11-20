@@ -85,6 +85,13 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	done := make(chan struct{})
 	defer close(done) // Signal the goroutine to stop if still running
 
+	// Get the progress reporter once to avoid acquiring the lock multiple times
+	rep := f.GetProgressReporter()
+
+	if rep != nil {
+		ReportCommandStarted(rep, f.GetLabel())
+	}
+
 	// Run the function in a goroutine and handle potential panics
 	go func() {
 		// Recover from panics and convert them to errors
@@ -176,6 +183,13 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 				Status:   ResultStatusError,
 			},
 		}
+	}
+
+	if rep != nil {
+		ReportExecutionComplete(ctx, rep, f.GetLabel(), Results{res},
+			fmt.Sprintf("Function command '%s' completed", fullLabel),
+			fmt.Sprintf("Function command '%s' failed", fullLabel),
+		)
 	}
 
 	logger.Debug("Function command completed successfully", "newCwd", res.newCwd)

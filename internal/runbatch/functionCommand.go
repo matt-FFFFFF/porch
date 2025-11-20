@@ -85,7 +85,10 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	done := make(chan struct{})
 	defer close(done) // Signal the goroutine to stop if still running
 
-	if rep := f.GetProgressReporter(); rep != nil {
+	// Get the progress reporter once to avoid acquiring the lock multiple times
+	rep := f.GetProgressReporter()
+
+	if rep != nil {
 		ReportCommandStarted(rep, f.GetLabel())
 	}
 
@@ -182,7 +185,7 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		}
 	}
 
-	if rep := f.GetProgressReporter(); rep != nil {
+	if rep != nil {
 		ReportExecutionComplete(ctx, rep, f.GetLabel(), Results{res},
 			fmt.Sprintf("Function command '%s' completed", fullLabel),
 			fmt.Sprintf("Function command '%s' failed", fullLabel),

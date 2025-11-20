@@ -85,6 +85,10 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	done := make(chan struct{})
 	defer close(done) // Signal the goroutine to stop if still running
 
+	if f.hasProgressReporter() {
+		ReportCommandStarted(f.GetProgressReporter(), f.GetLabel())
+	}
+
 	// Run the function in a goroutine and handle potential panics
 	go func() {
 		// Recover from panics and convert them to errors
@@ -176,6 +180,13 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 				Status:   ResultStatusError,
 			},
 		}
+	}
+
+	if f.hasProgressReporter() {
+		ReportExecutionComplete(ctx, f.GetProgressReporter(), f.GetLabel(), Results{res},
+			fmt.Sprintf("Function command '%s' completed", fullLabel),
+			fmt.Sprintf("Function command '%s' failed", fullLabel),
+		)
 	}
 
 	logger.Debug("Function command completed successfully", "newCwd", res.newCwd)

@@ -3,6 +3,11 @@ build:
 	@echo "Building the project..."
 	@go build -o porch ./cmd/porch
 
+.PHONY: install
+install:
+	@echo "Installing..."
+	@go install ./cmd/porch
+
 .PHONY: testcover
 testcover:
 	@echo "Running tests with coverage..."

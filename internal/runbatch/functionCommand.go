@@ -85,8 +85,8 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 	done := make(chan struct{})
 	defer close(done) // Signal the goroutine to stop if still running
 
-	if f.hasProgressReporter() {
-		ReportCommandStarted(f.GetProgressReporter(), f.GetLabel())
+	if rep := f.GetProgressReporter(); rep != nil {
+		ReportCommandStarted(rep, f.GetLabel())
 	}
 
 	// Run the function in a goroutine and handle potential panics
@@ -182,8 +182,8 @@ func (f *FunctionCommand) Run(ctx context.Context) Results {
 		}
 	}
 
-	if f.hasProgressReporter() {
-		ReportExecutionComplete(ctx, f.GetProgressReporter(), f.GetLabel(), Results{res},
+	if rep := f.GetProgressReporter(); rep != nil {
+		ReportExecutionComplete(ctx, rep, f.GetLabel(), Results{res},
 			fmt.Sprintf("Function command '%s' completed", fullLabel),
 			fmt.Sprintf("Function command '%s' failed", fullLabel),
 		)

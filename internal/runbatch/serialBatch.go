@@ -33,8 +33,8 @@ func (b *SerialBatch) Run(ctx context.Context) Results {
 		With("runnableType", "SerialBatch")
 
 	// Report that this batch is starting if we have a reporter
-	if b.hasProgressReporter() {
-		ReportBatchStarted(b.GetProgressReporter(), b.Label, "serial")
+	if rep := b.GetProgressReporter(); rep != nil {
+		ReportBatchStarted(rep, b.Label, "serial")
 	}
 
 	// Propagate reporter to child commands
@@ -64,8 +64,8 @@ OuterLoop:
 			switch cmd.ShouldRun(prevState) {
 			case ShouldRunActionSkip:
 				// Report skipped command if we have a reporter
-				if b.hasProgressReporter() {
-					b.GetProgressReporter().Report(progress.Event{
+				if rep := cmd.GetProgressReporter(); rep != nil {
+					rep.Report(progress.Event{
 						CommandPath: []string{cmd.GetLabel()},
 						Type:        progress.EventSkipped,
 						Message:     "Command skipped intentionally",
@@ -88,8 +88,8 @@ OuterLoop:
 
 			case ShouldRunActionError:
 				// Report skipped command due to error if we have a reporter
-				if b.hasProgressReporter() {
-					b.GetProgressReporter().Report(progress.Event{
+				if rep := cmd.GetProgressReporter(); rep != nil {
+					rep.Report(progress.Event{
 						CommandPath: []string{cmd.GetLabel()},
 						Type:        progress.EventSkipped,
 						Message:     "Command skipped due to previous error",
@@ -151,8 +151,8 @@ OuterLoop:
 	}
 
 	// Report completion based on results if we have a reporter
-	if b.hasProgressReporter() {
-		ReportExecutionComplete(ctx, b.GetProgressReporter(), b.Label, res,
+	if rep := b.GetProgressReporter(); rep != nil {
+		ReportExecutionComplete(ctx, rep, b.Label, res,
 			"Serial batch completed successfully",
 			"Serial batch failed")
 	}

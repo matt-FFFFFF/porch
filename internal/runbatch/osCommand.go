@@ -83,8 +83,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	logger.Debug("command info", "path", c.Path, "cwd", c.GetCwd(), "args", c.Args)
 
 	// Report start if we have a reporter
-	if c.hasProgressReporter() {
-		ReportCommandStarted(c.GetProgressReporter(), c.GetLabel())
+	if rep := c.GetProgressReporter(); rep != nil {
+		ReportCommandStarted(rep, c.GetLabel())
 	}
 
 	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
@@ -92,7 +92,7 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	var logCh chan<- string
 
 	// Setup progress reporting if we have a reporter
-	if c.hasProgressReporter() {
+	if rep := c.GetProgressReporter(); rep != nil {
 		logCh = c.setupProgressReporting(ctx)
 		tickerInterval = defaultProgressiveLogUpdateInterval
 	}
@@ -379,8 +379,8 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 	}
 
 	// Report completion if we have a reporter
-	if c.hasProgressReporter() {
-		ReportExecutionComplete(ctx, c.GetProgressReporter(), c.GetLabel(), Results{res},
+	if rep := c.GetProgressReporter(); rep != nil {
+		ReportExecutionComplete(ctx, rep, c.GetLabel(), Results{res},
 			fmt.Sprintf("Command completed: %s", c.GetLabel()),
 			fmt.Sprintf("Command failed: %s", c.GetLabel()))
 	}

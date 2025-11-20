@@ -82,17 +82,13 @@ func (c *OSCommand) Run(ctx context.Context) Results {
 
 	logger.Debug("command info", "path", c.Path, "cwd", c.GetCwd(), "args", c.Args)
 
-	// Report start if we have a reporter
-	if rep := c.GetProgressReporter(); rep != nil {
-		ReportCommandStarted(rep, c.GetLabel())
-	}
-
 	tickerInterval := defaultTickerSeconds * time.Second // Interval for the process watchdog ticker
 
 	var logCh chan<- string
 
-	// Setup progress reporting if we have a reporter
+	// Report start and setup progress reporting if we have a reporter
 	if rep := c.GetProgressReporter(); rep != nil {
+		ReportCommandStarted(rep, c.GetLabel())
 		logCh = c.setupProgressReporting(ctx)
 		tickerInterval = defaultProgressiveLogUpdateInterval
 	}

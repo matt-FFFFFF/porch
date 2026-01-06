@@ -113,7 +113,7 @@ func TestBaseCommand_InheritEnv(t *testing.T) {
 			name:        "inherit_nil_env_into_empty",
 			initialEnv:  map[string]string{},
 			inheritEnv:  nil,
-			expectedEnv: nil,
+			expectedEnv: map[string]string{},
 		},
 		{
 			name:        "inherit_nil_env_into_non_empty",

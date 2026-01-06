@@ -77,3 +77,61 @@ func TestBaseCommand_NewBaseCommand(t *testing.T) {
 		})
 	}
 }
+
+func TestBaseCommand_InheritEnv(t *testing.T) {
+	tests := []struct {
+		name        string
+		initialEnv  map[string]string
+		inheritEnv  map[string]string
+		expectedEnv map[string]string
+	}{
+		{
+			name:        "inherit_into_empty_env",
+			initialEnv:  map[string]string{},
+			inheritEnv:  map[string]string{"PARENT": "val"},
+			expectedEnv: map[string]string{"PARENT": "val"},
+		},
+		{
+			name:        "inherit_empty_env",
+			initialEnv:  map[string]string{"CHILD": "val"},
+			inheritEnv:  map[string]string{},
+			expectedEnv: map[string]string{"CHILD": "val"},
+		},
+		{
+			name:        "inherit_non_overlapping",
+			initialEnv:  map[string]string{"CHILD": "val1"},
+			inheritEnv:  map[string]string{"PARENT": "val2"},
+			expectedEnv: map[string]string{"CHILD": "val1", "PARENT": "val2"},
+		},
+		{
+			name:        "inherit_overlapping_child_precedence",
+			initialEnv:  map[string]string{"SHARED": "child_val"},
+			inheritEnv:  map[string]string{"SHARED": "parent_val", "PARENT": "val2"},
+			expectedEnv: map[string]string{"SHARED": "child_val", "PARENT": "val2"},
+		},
+		{
+			name:        "inherit_nil_env_into_empty",
+			initialEnv:  map[string]string{},
+			inheritEnv:  nil,
+			expectedEnv: nil,
+		},
+		{
+			name:        "inherit_nil_env_into_non_empty",
+			initialEnv:  map[string]string{"CHILD": "val"},
+			inheritEnv:  nil,
+			expectedEnv: map[string]string{"CHILD": "val"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := &BaseCommand{
+				Env: tt.initialEnv,
+			}
+
+			cmd.InheritEnv(tt.inheritEnv)
+
+			assert.Equal(t, tt.expectedEnv, cmd.Env)
+		})
+	}
+}

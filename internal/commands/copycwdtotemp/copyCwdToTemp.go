@@ -43,6 +43,7 @@ var RandomName = func(prefix string, n int) string {
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
+
 	return prefix + string(b)
 }
 

@@ -129,12 +129,16 @@ func (c *BaseCommand) GetCwd() string {
 
 // InheritEnv sets additional environment variables for the command.
 func (c *BaseCommand) InheritEnv(env map[string]string) {
+	if len(env) == 0 {
+		return
+	}
+
 	if len(c.Env) == 0 {
 		c.Env = maps.Clone(env)
 		return
 	}
 
-	for k, v := range maps.All(env) {
+	for k, v := range env {
 		if _, ok := c.Env[k]; !ok {
 			c.Env[k] = v
 		}

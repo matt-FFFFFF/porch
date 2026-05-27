@@ -1,0 +1,90 @@
+# VSCode ignore file for Porch HCL extension
+# This reduces the extension package size by excluding unnecessary files
+
+# Development files
+.vscode/**
+.vscode-test/**
+src/**
+tsconfig.json
+webpack.config.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files
+test/**
+*.test.js
+*.test.ts
+__tests__/**
+out/test/**
+
+# Documentation that's not essential for runtime
+*.md
+!README.md
+docs/**
+examples/**
+
+# Build artifacts and temporary files
+*.tmp
+*.temp
+*.log
+.DS_Store
+Thumbs.db
+
+# Git and version control
+.git/**
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/**
+.travis.yml
+.circleci/**
+
+# Language server source (only keep binaries)
+# Note: We keep the bin/ directory as it contains the compiled binaries
+language-server/**
+
+# Duplicate language server binary in server/ directory
+server/**
+
+# Makefile and build scripts (not needed at runtime)
+Makefile
+*.sh
+*.bat
+
+# Source maps (optional - remove if not needed for debugging)
+dist/**/*.map
+out/**
+
+# Package development files
+package-lock.json
+yarn.lock
+.npmrc
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# Coverage reports
+coverage/**
+.coverage
+.nyc_output
+
+# Linting and formatting
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# Node modules - we bundle everything so exclude all node_modules
+node_modules/**
+
+# Only include essential files for runtime
+!dist/extension.js
+!package.json
+!LICENSE*
+!bin/**
+!snippets/**
+!syntaxes/**
+!language-configuration.json
